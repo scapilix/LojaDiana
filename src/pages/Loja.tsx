@@ -47,22 +47,6 @@ function LojaContent() {
     }
   };
 
-  // Responsive Hero Dimensions
-  const [heroDimensions, setHeroDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
-    height: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.6) : 720
-  });
-
-  React.useEffect(() => {
-    const updateDimensions = () => {
-      setHeroDimensions({
-        width: window.innerWidth,
-        height: Math.floor(window.innerHeight * 0.6)
-      });
-    };
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
 
   const allProducts = useMemo(() => {
     const excelCatalog = data.products_catalog || [];
@@ -295,7 +279,7 @@ function LojaContent() {
             </button>
             <div className="flex flex-col">
               <span className="text-2xl font-black tracking-tighter text-slate-950 dark:text-white leading-none">DianaLoja</span>
-              <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em] mt-1 ml-0.5">EST. 2024</span>
+              <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em] mt-1 ml-0.5">EST. 2026</span>
             </div>
           </div>
 
@@ -370,8 +354,8 @@ function LojaContent() {
             component={FashionVideo}
             durationInFrames={300}
             fps={30}
-            compositionWidth={heroDimensions.width}
-            compositionHeight={heroDimensions.height}
+            compositionWidth={3840}
+            compositionHeight={2160}
             style={{
               width: '100%',
               height: '100%',
@@ -506,7 +490,7 @@ function LojaContent() {
           </div>
         </div>
         <div className="mt-24 pt-10 border-t border-slate-200 dark:border-white/10 text-center">
-          <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2024 DianaLoja - ALL RIGHTS RESERVED</p>
+          <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2026 DianaLoja - ALL RIGHTS RESERVED</p>
         </div>
       </footer>
 

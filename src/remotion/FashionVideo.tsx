@@ -54,7 +54,7 @@ export const FashionVideo: React.FC = () => {
                 const titles = [
                     "DIANA LOJA",
                     "MODA FEMININA",
-                    "COLEÇÃO 2024"
+                    "COLEÇÃO 2026"
                 ];
 
                 return (
