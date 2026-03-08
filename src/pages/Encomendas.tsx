@@ -204,15 +204,15 @@ export default function Encomendas() {
       .filter(val => val && val !== 'N/A')
       .join(', ');
 
-    const message = `Olá ${order.nome_cliente?.split(' ')[0]}! 👋\n\n` +
+    const message = `Olá ${order.nome_cliente?.split(' ')[0]}! \u{1F44B}\n\n` +
       `Passo para lhe enviar o resumo detalhado da sua encomenda *${order.id_venda}*:\n\n` +
-      `📦 *ITENS COMPRADOS:*\n${itemsList}\n\n` +
-      `💰 *VALOR TOTAL:* ${formatCurrency(Number(order.pvp))}\n\n` +
-      `💳 *FORMA DE PAGAMENTO:* ${order.forma_de_pagamento || 'N/A'}\n\n` +
-      `🚚 *MÉTODO DE ENVIO:* ${order.loja_ctt || 'CTT'}\n` +
-      `📍 *MORADA:* ${address || 'N/A'}\n\n` +
+      `\u{1F4E6} *ITENS COMPRADOS:*\n${itemsList}\n\n` +
+      `\u{1F4B0} *VALOR TOTAL:* ${formatCurrency(Number(order.pvp))}\n\n` +
+      `\u{1F4B3} *FORMA DE PAGAMENTO:* ${order.forma_de_pagamento || 'N/A'}\n\n` +
+      `\u{1F69A} *MÉTODO DE ENVIO:* ${order.loja_ctt || 'CTT'}\n` +
+      `\u{1F4CD} *MORADA:* ${address || 'N/A'}\n\n` +
       `Se precisar de alguma ajuda ou tiver alguma dúvida, estou por aqui!\n\n` +
-      `Muito obrigado pela preferência! 🌟`;
+      `Muito obrigado pela preferência! \u{1F31F}`;
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
@@ -650,19 +650,19 @@ export default function Encomendas() {
                 <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 relative group">
                   {followUpData.type === 'delivery' ? (
                     <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-medium font-serif leading-relaxed">
-                      {`Olá ${followUpData.order.nome_cliente.split(' ')[0]}!\n\nPassando apenas para avisar que a sua encomenda (${followUpData.order.id_venda}) acabou de ser enviada via ${followUpData.order.loja_ctt || 'CTT'}. 🚀\n\nQualquer dúvida sobre a entrega, estou à disposição por aqui. Muito obrigado pela preferência!`}
+                      {`Olá ${followUpData.order.nome_cliente.split(' ')[0]}!\n\nPassando apenas para avisar que a sua encomenda (${followUpData.order.id_venda}) acabou de ser enviada via ${followUpData.order.loja_ctt || 'CTT'}. \u{1F680}\n\nQualquer dúvida sobre a entrega, estou à disposição por aqui. Muito obrigado pela preferência!`}
                     </p>
                   ) : (
                     <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-medium font-serif leading-relaxed">
-                      {`Olá ${followUpData.order.nome_cliente.split(' ')[0]}, tudo bem? 👋\n\nVi que você recebeu a sua encomenda recente! O que achou dos produtos?\n\nO seu feedback é muito importante para continuarmos a melhorar e a trazer sempre o melhor para você. Se puder partilhar uma foto ou a sua opinião, ficarei muito feliz! 💜`}
+                      {`Olá ${followUpData.order.nome_cliente.split(' ')[0]}, tudo bem? \u{1F44B}\n\nVi que você recebeu a sua encomenda recente! O que achou dos produtos?\n\nO seu feedback é muito importante para continuarmos a melhorar e a trazer sempre o melhor para você. Se puder partilhar uma foto ou a sua opinião, ficarei muito feliz! \u{1F49C}`}
                     </p>
                   )}
 
                   <button
                     onClick={() => {
                       const text = followUpData.type === 'delivery'
-                        ? `Olá ${followUpData.order.nome_cliente.split(' ')[0]}!\n\nPassando apenas para avisar que a sua encomenda (${followUpData.order.id_venda}) acabou de ser enviada via ${followUpData.order.loja_ctt || 'CTT'}. 🚀\n\nQualquer dúvida sobre a entrega, estou à disposição por aqui. Muito obrigado pela preferência!`
-                        : `Olá ${followUpData.order.nome_cliente.split(' ')[0]}, tudo bem? 👋\n\nVi que você recebeu a sua encomenda recente! O que achou dos produtos?\n\nO seu feedback é muito importante para continuarmos a melhorar e a trazer sempre o melhor para você. Se puder partilhar uma foto ou a sua opinião, ficarei muito feliz! 💜`;
+                        ? `Olá ${followUpData.order.nome_cliente.split(' ')[0]}!\n\nPassando apenas para avisar que a sua encomenda (${followUpData.order.id_venda}) acabou de ser enviada via ${followUpData.order.loja_ctt || 'CTT'}. \u{1F680}\n\nQualquer dúvida sobre a entrega, estou à disposição por aqui. Muito obrigado pela preferência!`
+                        : `Olá ${followUpData.order.nome_cliente.split(' ')[0]}, tudo bem? \u{1F44B}\n\nVi que você recebeu a sua encomenda recente! O que achou dos produtos?\n\nO seu feedback é muito importante para continuarmos a melhorar e a trazer sempre o melhor para você. Se puder partilhar uma foto ou a sua opinião, ficarei muito feliz! \u{1F49C}`;
                       navigator.clipboard.writeText(text);
                     }}
                     className="absolute top-4 right-4 p-2.5 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 transition-all opacity-0 group-hover:opacity-100 hover:scale-105 active:scale-95"
