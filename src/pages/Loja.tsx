@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Player } from '@remotion/player';
-import { DianaVideo } from '../remotion/DianaVideo';
+import { FashionVideo } from '../remotion/FashionVideo';
 import {
   ShoppingBag,
   Search,
@@ -50,14 +50,14 @@ function LojaContent() {
   // Responsive Hero Dimensions
   const [heroDimensions, setHeroDimensions] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1920,
-    height: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.85) : 1080
+    height: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.6) : 720
   });
 
   React.useEffect(() => {
     const updateDimensions = () => {
       setHeroDimensions({
         width: window.innerWidth,
-        height: Math.floor(window.innerHeight * 0.85)
+        height: Math.floor(window.innerHeight * 0.6)
       });
     };
     window.addEventListener('resize', updateDimensions);
@@ -365,9 +365,9 @@ function LojaContent() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero Section */}
-        <section className="relative h-[85vh] overflow-hidden bg-black">
+        <section className="relative h-[60vh] overflow-hidden bg-black">
           <Player
-            component={DianaVideo}
+            component={FashionVideo}
             durationInFrames={300}
             fps={30}
             compositionWidth={heroDimensions.width}
