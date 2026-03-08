@@ -1,0 +1,537 @@
+import React, { useState, useMemo, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Player } from '@remotion/player';
+import { DianaVideo } from '../remotion/DianaVideo';
+import {
+  ShoppingBag,
+  Search,
+  Filter,
+  ArrowLeft,
+  CheckCircle2,
+  Package,
+  Menu,
+  User,
+  Instagram,
+  Facebook
+} from 'lucide-react';
+import { useData } from '../contexts/DataContext';
+import { useCart, CartProvider } from '../contexts/CartContext';
+import { ProductCard } from '../components/Loja/ProductCard';
+import { Cart } from '../components/Loja/Cart';
+import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
+
+function LojaContent() {
+  const { data, addSale } = useData();
+  const { items, total, itemCount, clearCart, addToCart } = useCart();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [zoomedProduct, setZoomedProduct] = useState<any>(null);
+  const [checkoutStep, setCheckoutStep] = useState<'browsing' | 'checkout' | 'success'>('browsing');
+  const [loading, setLoading] = useState(false);
+
+  // Form State
+  const [customerName, setCustomerName] = useState('');
+  const [customerInsta, setCustomerInsta] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+
+  const productsSectionRef = useRef<HTMLDivElement>(null);
+
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    // Smooth scroll to objects section
+    if (productsSectionRef.current) {
+      productsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Responsive Hero Dimensions
+  const [heroDimensions, setHeroDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.85) : 1080
+  });
+
+  React.useEffect(() => {
+    const updateDimensions = () => {
+      setHeroDimensions({
+        width: window.innerWidth,
+        height: Math.floor(window.innerHeight * 0.85)
+      });
+    };
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  const allProducts = useMemo(() => {
+    const excelCatalog = data.products_catalog || [];
+    const manualCatalog = data.manual_products_catalog || [];
+
+    // Manual overrides merge
+    const productMap = new Map();
+    excelCatalog.forEach(p => productMap.set(p.ref, p));
+    manualCatalog.forEach(p => {
+      productMap.set(p.ref, { ...productMap.get(p.ref), ...p });
+    });
+
+    const catalog = Array.from(productMap.values()).filter(p => p.published !== false);
+
+    return catalog.map(p => {
+      const name = p.nome_artigo?.toLowerCase() || '';
+      let image_url = p.image_url;
+
+      if (!image_url) {
+        if (name.includes('hoodie') || name.includes('sweat') || name.includes('casaco')) image_url = 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=800';
+        else if (name.includes('dress') || name.includes('vestido')) image_url = 'https://images.unsplash.com/photo-1539008886428-44c520ef224c?auto=format&fit=crop&q=80&w=800';
+        else if (name.includes('jeans') || name.includes('calça')) image_url = 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=800';
+        else if (name.includes('shirt') || name.includes('t-shirt') || name.includes('camisa')) image_url = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800';
+        else image_url = 'https://images.unsplash.com/photo-1434389677634-91677891d98e?auto=format&fit=crop&q=80&w=800';
+      }
+
+      return { ...p, image_url };
+    });
+  }, [data.products_catalog, data.manual_products_catalog]);
+
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    allProducts.forEach(p => {
+      if (p.categoria) cats.add(p.categoria);
+    });
+    return Array.from(cats).sort();
+  }, [allProducts]);
+
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts;
+
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.categoria === selectedCategory);
+    }
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.ref.toLowerCase().includes(term) ||
+        (p.nome_artigo && p.nome_artigo.toLowerCase().includes(term))
+      );
+    }
+
+    return filtered;
+  }, [allProducts, searchTerm, selectedCategory]);
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const dateObj = new Date();
+      const meses = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+      const msano = `${meses[dateObj.getMonth()]}/${dateObj.getFullYear()}`;
+
+      const diasSemana = ['DOMINGO', 'SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO'];
+      const diaDaSemana = diasSemana[dateObj.getDay()];
+
+      const newSale = {
+        data_venda: dateObj.toISOString().split('T')[0],
+        id_venda: `#SITE-${Math.floor(Math.random() * 10000)}`,
+        nome_cliente: customerName,
+        telefone: customerPhone,
+        instagram: customerInsta || 'N/A',
+        pvp: total,
+        base: items.reduce((acc, curr) => acc + (curr.base_price || 0) * curr.quantidade, 0),
+        lucro: items.reduce((acc, curr) => acc + (curr.lucro_meu_faturado || 0) * curr.quantidade, 0),
+        iva: 0,
+        forma_de_pagamento: 'Site / Carrinho',
+        site_kyte: 'SITE',
+        loja_ctt: 'LOJA',
+        msano: msano,
+        morada: customerAddress || 'N/A',
+        localidade: '',
+        dia_da_semana: diaDaSemana,
+        items: items.map(i => ({
+          ref: i.ref,
+          designacao: i.nome_artigo,
+          pvp: i.pvp_cica,
+          base: i.base_price || 0,
+          lucro: i.lucro_meu_faturado || 0,
+          quantidade: i.quantidade
+        }))
+      };
+
+      await addSale(newSale);
+      setCheckoutStep('success');
+      clearCart();
+    } catch (err) {
+      alert('Erro ao processar compra');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (checkoutStep === 'success') {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full p-12 text-center space-y-8"
+        >
+          <div className="w-24 h-24 bg-black dark:bg-white text-white dark:text-black flex items-center justify-center mx-auto shadow-2xl">
+            <CheckCircle2 className="w-12 h-12" />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">ENCOMENDA RECEBIDA</h1>
+            <p className="text-[#827b14] font-black uppercase tracking-[0.2em] text-[10px]">Obrigado pela sua preferência. Em breve receberá os detalhes.</p>
+          </div>
+          <button
+            onClick={() => setCheckoutStep('browsing')}
+            className="w-full py-5 bg-black dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.25em] text-[10px] hover:bg-[#827b14] dark:hover:bg-[#827b14] dark:hover:text-white transition-all shadow-xl"
+          >
+            VOLTAR AO CATÁLOGO
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (checkoutStep === 'checkout') {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center py-24 px-6 md:px-12">
+        <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-24">
+          <div className="space-y-12">
+            <button
+              onClick={() => setCheckoutStep('browsing')}
+              className="flex items-center gap-2 text-slate-400 hover:text-black dark:hover:text-white transition-colors uppercase font-black text-[10px] tracking-[0.2em]"
+            >
+              <ArrowLeft className="w-4 h-4" /> VOLTAR AO CATÁLOGO
+            </button>
+
+            <div className="space-y-8">
+              <h1 className="text-5xl font-black text-slate-950 dark:text-white tracking-tighter uppercase leading-none">CHECKOUT</h1>
+              <p className="text-[#827b14] font-black uppercase tracking-[0.2em] text-[10px]">INTRODUZA OS SEUS DADOS PARA ENTREGA</p>
+            </div>
+
+            <form onSubmit={handleCheckout} className="space-y-10">
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">NOME COMPLETO</label>
+                  <input
+                    required
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">INSTAGRAM (@...)</label>
+                  <input
+                    type="text"
+                    value={customerInsta}
+                    onChange={(e) => setCustomerInsta(e.target.value)}
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">TELEFONE / WHATSAPP</label>
+                  <input
+                    required
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1">MORADA / CIDADE</label>
+                  <input
+                    required
+                    type="text"
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    className="w-full px-0 py-4 bg-transparent border-b-2 border-slate-100 dark:border-white/10 focus:border-[#827b14] outline-none transition-all font-bold text-xl uppercase tracking-tight text-slate-950 dark:text-white placeholder:text-slate-200"
+                  />
+                </div>
+              </div>
+
+              <button
+                disabled={loading}
+                type="submit"
+                className="w-full py-6 bg-black dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.3em] text-[11px] hover:bg-[#827b14] dark:hover:bg-[#827b14] dark:hover:text-white transition-all disabled:opacity-50"
+              >
+                {loading ? 'A PROCESSAR...' : 'FINALIZAR PEDIDO'}
+              </button>
+            </form>
+          </div>
+
+          <div className="space-y-12 bg-[#F9F9F9] dark:bg-white/5 p-12">
+            <h3 className="text-xl font-black text-slate-950 dark:text-white uppercase tracking-widest">RESUMO DO PEDIDO</h3>
+            <div className="space-y-6">
+              {items.map(item => (
+                <div key={item.ref} className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-white/10 pb-4">
+                  <span className="text-slate-600 dark:text-slate-300">{item.quantidade}X {item.nome_artigo} <span className="text-[#827b14] ml-2">[{item.ref}]</span></span>
+                  <span className="text-black dark:text-white">{(item.pvp_cica * item.quantidade).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
+                </div>
+              ))}
+              <div className="pt-6 flex justify-between items-end">
+                <span className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">TOTAL FINAL</span>
+                <span className="text-4xl font-black text-black dark:text-white tracking-tighter">{total.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-950 dark:text-white transition-colors flex flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-[90] bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-white/5">
+        <div className="max-w-[1600px] mx-auto px-10 h-24 flex items-center justify-between">
+          <div className="flex items-center gap-12">
+            <button className="p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded-full transition-colors lg:hidden">
+              <Menu className="w-5 h-5 text-black dark:text-white" />
+            </button>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black tracking-tighter text-slate-950 dark:text-white leading-none">DianaLoja</span>
+              <span className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em] mt-1 ml-0.5">EST. 2024</span>
+            </div>
+          </div>
+
+          <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+            <button
+              onClick={() => handleCategoryChange(null)}
+              className={`hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${!selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}
+            >
+              Ver Tudo
+            </button>
+
+            {/* Dynamic Categorias Dropdown */}
+            <div className="relative group py-8">
+              <button className={`flex items-center gap-2 hover:text-black dark:hover:text-white transition-colors border-b-2 pb-1 ${selectedCategory ? 'text-black dark:text-white border-[#827b14]' : 'border-transparent'}`}>
+                Roupas
+              </button>
+
+              <div className="absolute top-[calc(100%-15px)] left-0 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 dark:border-white/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 translate-y-4 group-hover:translate-y-0 z-[100] rounded-[2rem] overflow-hidden">
+                <div className="py-6">
+                  <button
+                    onClick={() => handleCategoryChange(null)}
+                    className="w-full text-left px-10 py-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all border-b border-slate-50 dark:border-white/5 group/item"
+                  >
+                    <span className="text-slate-950 dark:text-white group-hover/item:translate-x-1 inline-block transition-transform">VER TUDO</span>
+                  </button>
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`w-full text-left px-10 py-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all border-b border-slate-50 dark:border-white/5 last:border-0 group/item ${selectedCategory === cat ? 'bg-slate-50 dark:bg-white/5' : ''}`}
+                    >
+                      <span className={`inline-block transition-transform group-hover/item:translate-x-1 ${selectedCategory === cat ? 'text-[#827b14]' : 'text-slate-950 dark:text-white'}`}>
+                        {cat.toUpperCase()}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Homem</a>
+            <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Mulher</a>
+            <a href="#" className="hover:text-black dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-[#827b14] pb-1">Novidades</a>
+          </nav>
+
+          <div className="flex items-center gap-8">
+            <button className="p-2 hover:text-[#827b14] transition-colors hidden md:block">
+              <Search className="w-4 h-4" />
+            </button>
+            <button className="p-2 hover:text-[#827b14] transition-colors">
+              <User className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 hover:text-[#827b14] transition-colors flex items-center gap-3"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {itemCount > 0 && (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 rounded-full">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col">
+        {/* Hero Section */}
+        <section className="relative h-[85vh] overflow-hidden bg-black">
+          <Player
+            component={DianaVideo}
+            durationInFrames={300}
+            fps={30}
+            compositionWidth={heroDimensions.width}
+            compositionHeight={heroDimensions.height}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+            className="[&_canvas]:object-cover [&_canvas]:w-full [&_canvas]:h-full"
+            loop
+            autoPlay
+            controls={false}
+          />
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 pointer-events-auto mt-auto mb-20">
+              <button className="px-14 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl hover:bg-[#827b14] hover:text-white transition-all transform hover:-translate-y-1">
+                Shop Now
+              </button>
+              <button className="px-14 py-6 bg-transparent border-2 border-white/20 text-white font-black uppercase tracking-[0.4em] text-[10px] backdrop-blur-md hover:bg-white hover:text-black transition-all transform hover:-translate-y-1">
+                Collection
+              </button>
+            </div>
+          </div>
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 animate-bounce opacity-50">
+            <div className="w-px h-16 bg-white/30" />
+          </div>
+        </section>
+
+        {/* Filters & Grid Wrapper */}
+        <div ref={productsSectionRef} className="max-[1600px]:px-10 px-24 py-24 space-y-24">
+          {/* Filters Bar */}
+          <div className="flex flex-col md:flex-row gap-12 items-end justify-between border-b border-slate-100 dark:border-white/5 pb-10">
+            <div className="space-y-4">
+              <h3 className="text-4xl font-black uppercase tracking-tighter">OS NOSSOS ESSENCIAIS</h3>
+              <p className="text-[10px] font-black text-[#827b14] uppercase tracking-[0.3em]">PEÇAS SELECIONADAS PARA O SEU LOOK</p>
+            </div>
+
+            <div className="flex items-center gap-12 w-full md:w-auto">
+              <div className="relative group flex-1 md:w-64">
+                <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <input
+                  type="text"
+                  placeholder="PESQUISAR..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-transparent border-none py-3 pl-8 rounded-none text-xs font-black uppercase tracking-[0.2em] focus:ring-0 outline-none placeholder:text-slate-200"
+                />
+              </div>
+              <div className="flex items-center gap-3 shrink-0 cursor-pointer group">
+                <Filter className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#827b14] transition-colors" />
+                <select className="bg-transparent border-none text-[10px] font-black uppercase tracking-[0.2em] text-black dark:text-white outline-none appearance-none cursor-pointer">
+                  <option>FILTRAR POR</option>
+                  <option>PREÇO: BAIXO-ALTO</option>
+                  <option>PREÇO: ALTO-BAIXO</option>
+                  <option>MAIS RECENTES</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.ref}
+                product={product}
+                onAddToCart={addToCart}
+                onExpand={setZoomedProduct}
+              />
+            ))}
+          </div>
+
+          {filteredProducts.length === 0 && (
+            <div className="py-24 text-center space-y-8">
+              <div className="w-24 h-24 bg-[#F9F9F9] dark:bg-white/5 flex items-center justify-center mx-auto">
+                <Package className="w-10 h-10 text-slate-200 dark:text-slate-800" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-slate-900 dark:text-white font-black uppercase tracking-[0.1em] text-sm">NENHUM ARTIGO ENCONTRADO</p>
+                <p className="text-[#827b14] text-[9px] font-black uppercase tracking-[0.3em]">TENTE READEQUAR A SUA PESQUISA</p>
+              </div>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-12 py-4 bg-black text-white dark:bg-white dark:text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#827b14] transition-all"
+              >
+                VER TUDO
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-[#F9F9F9] dark:bg-white/5 px-24 py-24 mt-24">
+        <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-20">
+          <div className="space-y-8">
+            <h4 className="text-xl font-black uppercase tracking-tighter">DianaLoja</h4>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-loose">
+              Elevando o seu estilo através de designs minimalistas e qualidade superior em cada detalhe.
+            </p>
+            <div className="flex gap-6">
+              <Instagram className="w-5 h-5 text-slate-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer" />
+              <Facebook className="w-5 h-5 text-slate-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer" />
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#827b14]">COLEÇÕES</h5>
+            <nav className="flex flex-col gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Novidades</a>
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Mais Vendidos</a>
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Edições Limitadas</a>
+            </nav>
+          </div>
+
+          <div className="space-y-8">
+            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#827b14]">APOIO AO CLIENTE</h5>
+            <nav className="flex flex-col gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Encomendas</a>
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Envios & Devoluções</a>
+              <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Contactos</a>
+            </nav>
+          </div>
+
+          <div className="space-y-8">
+            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#827b14]">NEWSLETTER</h5>
+            <div className="relative group">
+              <input
+                type="email"
+                placeholder="O SEU EMAIL..."
+                className="w-full bg-transparent border-b-2 border-slate-200 dark:border-white/10 py-4 font-black uppercase tracking-[0.2em] text-[10px] focus:border-[#827b14] outline-none transition-all"
+              />
+              <button className="absolute right-0 bottom-4 text-[10px] font-black uppercase tracking-[0.3em] hover:text-[#827b14] transition-colors">OK</button>
+            </div>
+          </div>
+        </div>
+        <div className="mt-24 pt-10 border-t border-slate-200 dark:border-white/10 text-center">
+          <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">© 2024 DianaLoja - ALL RIGHTS RESERVED</p>
+        </div>
+      </footer>
+
+      <Cart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        onCheckout={() => {
+          setIsCartOpen(false);
+          setCheckoutStep('checkout');
+        }}
+      />
+      <ImageZoomModal
+        isOpen={!!zoomedProduct}
+        onClose={() => setZoomedProduct(null)}
+        imageUrl={zoomedProduct?.image_url || ''}
+        productName={zoomedProduct?.nome_artigo || ''}
+      />
+    </div>
+  );
+}
+
+export default function Loja() {
+  return (
+    <CartProvider>
+      <LojaContent />
+    </CartProvider>
+  );
+}

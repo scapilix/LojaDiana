@@ -1,0 +1,73 @@
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import AppLayout from '../components/Layout/AppLayout';
+import Overview from '../pages/Overview';
+import Clientes from '../pages/Clientes';
+import BaseClientes from '../pages/BaseClientes';
+import BaseItems from '../pages/BaseItems';
+import StockManager from '../pages/StockManager';
+import Produtos from '../pages/Produtos';
+import Rankings from '../pages/Rankings';
+import Portes from '../pages/Portes';
+import Faturas from '../pages/Faturas';
+import Despesas from '../pages/Despesas';
+import Emprestimos from '../pages/Emprestimos';
+import CadastroVendas from '../pages/CadastroVendas';
+import Encomendas from '../pages/Encomendas';
+import Loja from '../pages/Loja';
+import Settings from '../pages/Settings';
+
+import Login from '../pages/Login';
+import { FilterProvider } from '../contexts/FilterContext';
+import { DataProvider } from '../contexts/DataContext';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import rawData from '../data/data.json';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isInitialized } = useAuth();
+  const location = useLocation();
+
+  if (!isInitialized) return null; // Wait for session check
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  return (
+    <HashRouter>
+      <AuthProvider>
+        <DataProvider initialData={rawData as any}>
+          <FilterProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/loja" element={<Loja />} />
+              <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route index element={<Overview />} />
+                <Route path="clientes" element={<Clientes />} />
+                <Route path="base-clientes" element={<BaseClientes />} />
+                <Route path="base-itens" element={<BaseItems />} />
+                <Route path="stock-manager" element={<StockManager />} />
+
+                <Route path="produtos" element={<Produtos />} />
+                <Route path="rankings" element={<Rankings />} />
+                <Route path="portes" element={<Portes />} />
+                <Route path="faturas" element={<Faturas />} />
+                <Route path="despesas" element={<Despesas />} />
+                <Route path="emprestimos" element={<Emprestimos />} />
+                <Route path="cadastro-vendas" element={<CadastroVendas />} />
+                <Route path="encomendas" element={<Encomendas />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </FilterProvider>
+        </DataProvider>
+      </AuthProvider>
+    </HashRouter>
+  );
+}
+
+export default AppRoutes;
