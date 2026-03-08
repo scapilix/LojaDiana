@@ -96,7 +96,7 @@ export default function Encomendas() {
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [selectedOrderForLabel, setSelectedOrderForLabel] = useState<any>(null);
-  const [followUpData, setFollowUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
+  const [followUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
 
   const {
     filteredOrders,
@@ -745,7 +745,6 @@ export default function Encomendas() {
                 <div className="mt-8 flex gap-3 no-print">
                   <button
                     onClick={() => {
-                      const printContent = document.getElementById('printable-label');
                       const WinPrint = window.open('', '', 'width=900,height=650');
                       WinPrint?.document.write(`
                         <html>
