@@ -11,9 +11,12 @@ import {
     Instagram,
     CheckCircle2,
     AlertCircle,
-    Loader2
+    Loader2,
+    Camera,
+    Image as ImageIcon
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { uploadToSupabase } from '../lib/upload';
 
 const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -35,8 +38,11 @@ export default function Settings() {
     const [generalSettings, setGeneralSettings] = useState({
         storeName: data.appSettings?.storeName || '',
         whatsapp: data.appSettings?.whatsapp || '',
-        instagram: data.appSettings?.instagram || ''
+        instagram: data.appSettings?.instagram || '',
+        heroImages: data.appSettings?.heroImages || ['', '', '']
     });
+
+    const [isUploading, setIsUploading] = useState<number | null>(null);
 
     const handleAddCategory = () => {
         if (newCategory.trim() && !categories.includes(newCategory.trim())) {
@@ -72,6 +78,26 @@ export default function Settings() {
         } finally {
             setIsSaving(false);
             setTimeout(() => setShowStatus(null), 3000);
+        }
+    };
+
+    const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(index);
+            const url = await uploadToSupabase(file, 'loja_hero');
+            if (url) {
+                const newHeroImages = [...generalSettings.heroImages];
+                newHeroImages[index] = url;
+                setGeneralSettings({ ...generalSettings, heroImages: newHeroImages });
+            }
+        } catch (error) {
+            console.error('Error uploading hero image:', error);
+            alert('Erro ao carregar imagem');
+        } finally {
+            setIsUploading(null);
         }
     };
 
@@ -267,6 +293,63 @@ export default function Settings() {
                                                     placeholder="Link do Instagram"
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-6 md:col-span-2">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <ImageIcon className="w-3 h-3 text-purple-500" /> Imagens do Vídeo (Hero)
+                                            </label>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">3 Imagens Máx.</span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                            {[0, 1, 2].map((i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div className="relative aspect-[3/4] sm:aspect-video rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-all hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5 shadow-sm">
+                                                        {generalSettings.heroImages[i] ? (
+                                                            <>
+                                                                <img src={generalSettings.heroImages[i]} alt={`Hero ${i + 1}`} className="w-full h-full object-cover" />
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const newImgs = [...generalSettings.heroImages];
+                                                                            newImgs[i] = '';
+                                                                            setGeneralSettings({ ...generalSettings, heroImages: newImgs });
+                                                                        }}
+                                                                        className="p-2 bg-rose-500 rounded-xl hover:bg-rose-600 transition-colors shadow-lg"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                                                                {isUploading === i ? (
+                                                                    <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
+                                                                ) : (
+                                                                    <Camera className="w-6 h-6 text-slate-300 dark:text-slate-600" />
+                                                                )}
+                                                                <div className="space-y-1">
+                                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Slot {i + 1}</span>
+                                                                    <span className="text-[8px] font-bold text-slate-300 dark:text-slate-700 uppercase">3840x2160 Recomendado</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => handleHeroImageUpload(e, i)}
+                                                            disabled={isUploading !== null}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>

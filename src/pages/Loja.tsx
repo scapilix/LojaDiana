@@ -352,6 +352,9 @@ function LojaContent() {
         <section className="relative h-[60vh] overflow-hidden bg-black">
           <Player
             component={FashionVideo}
+            inputProps={{
+              customImages: data.appSettings?.heroImages
+            }}
             durationInFrames={300}
             fps={30}
             compositionWidth={3840}

@@ -1,14 +1,19 @@
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, Img, staticFile, Sequence, spring } from 'remotion';
 
-export const FashionVideo: React.FC = () => {
+export const FashionVideo: React.FC<{ customImages?: string[] }> = ({ customImages }) => {
     const frame = useCurrentFrame();
     const { durationInFrames, fps } = useVideoConfig();
 
-    const images = [
-        staticFile('assets/fashion/fashion_1.png'),
-        staticFile('assets/fashion/fashion_2.png'),
-        staticFile('assets/fashion/fashion_3.png'),
+    const defaultImages = [
+        staticFile('/assets/fashion/fashion_1.png'),
+        staticFile('/assets/fashion/fashion_2.png'),
+        staticFile('/assets/fashion/fashion_3.png'),
     ];
+
+    // Use custom images if they exist and are not empty, otherwise fallback to defaults
+    const images = customImages && customImages.some(img => img)
+        ? customImages.map((img, i) => img || defaultImages[i])
+        : defaultImages;
 
     const framesPerImage = durationInFrames / images.length;
 
