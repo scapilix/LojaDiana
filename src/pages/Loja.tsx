@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Player } from '@remotion/player';
 import { FashionVideo } from '../remotion/FashionVideo';
 import {
@@ -477,6 +478,7 @@ function LojaContent() {
               <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Encomendas</a>
               <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Envios & Devoluções</a>
               <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Contactos</a>
+              <Link to="/login" className="hover:text-[#827b14] transition-colors mt-2 pt-2 border-t border-slate-100 dark:border-white/5 w-fit">Adm</Link>
             </nav>
           </div>
 
