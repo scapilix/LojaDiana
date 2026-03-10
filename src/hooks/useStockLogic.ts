@@ -13,24 +13,26 @@ export interface StockStatus {
   profit?: number;
   supplier?: string;
   last_purchase_date?: string;
+  sizes?: string[];
+  colors?: string[];
 }
 
 export function useStockLogic() {
   const { data } = useData();
-  
+
   const stockInventory = useMemo(() => {
     const calculationStart = performance.now();
-    
+
     // 1. Map Manual Purchases (Inflows)
     // Purchases come from Supabase (loaded into data.purchases via DataContext)
     const purchaseMap = new Map<string, { qty: number; lastDate: string }>();
-    
+
     const purchases = data.purchases || []; // We need to add this to DataContext
-    
+
     purchases.forEach((p: any) => {
       const ref = String(p.ref).trim().toUpperCase();
       const current = purchaseMap.get(ref) || { qty: 0, lastDate: '' };
-      
+
       purchaseMap.set(ref, {
         qty: current.qty + Number(p.quantidade),
         lastDate: p.data_compra > current.lastDate ? p.data_compra : current.lastDate
@@ -48,7 +50,7 @@ export function useStockLogic() {
             const ref = String(item.ref).trim().toUpperCase();
             // Ignore shipping refs or special non-stock items if necessary
             if (ref === 'CONTINENTAL' || ref === 'ILHAS' || ref === 'PORTES') return;
-            
+
             const qty = Number(item.quantidade) || 1;
             const current = salesMap.get(ref) || 0;
             salesMap.set(ref, current + qty);
@@ -59,16 +61,16 @@ export function useStockLogic() {
 
     // 3. Combine into Master Stock List (based on Base Items + anything with activity)
     const masterRefs = new Set<string>();
-    
+
     // Add all from Base Items Catalog
     (data.products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
 
     // Add all from Manual Products Catalog
     (data.manual_products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
-    
+
     // Add all from Purchases (in case we bought something not in catalog yet)
     purchaseMap.forEach((_, key) => masterRefs.add(key));
-    
+
     // Add all from Sales (in case we sold something legacy)
     salesMap.forEach((_, key) => masterRefs.add(key));
 
@@ -79,7 +81,7 @@ export function useStockLogic() {
       const totalPurchased = purchaseData.qty;
       const totalSold = salesMap.get(ref) || 0;
       const currentStock = totalPurchased - totalSold;
-      
+
       // Get Details from Catalog (Base or Manual)
       const baseCatalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
       const manualCatalogItem = data.manual_products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
@@ -90,6 +92,8 @@ export function useStockLogic() {
       const pvp = catalogItem ? catalogItem.pvp_cica : undefined;
       const profit = catalogItem ? catalogItem.lucro_meu_faturado : undefined;
       const supplier = catalogItem ? catalogItem.fornecedor : undefined;
+      const sizes = catalogItem?.sizes;
+      const colors = catalogItem?.colors;
 
       // Determine Status
       let status: StockStatus['status'] = 'ok';
@@ -108,12 +112,14 @@ export function useStockLogic() {
         pvp,
         profit,
         supplier,
-        last_purchase_date: purchaseData.lastDate
+        last_purchase_date: purchaseData.lastDate,
+        sizes,
+        colors
       });
     });
 
     console.log(`Stock calculation took ${performance.now() - calculationStart}ms for ${inventory.length} items`);
-    
+
     return inventory.sort((a, b) => a.current_stock - b.current_stock); // Sort by lowest stock first
   }, [data.orders, data.purchases, data.products_catalog]);
 
