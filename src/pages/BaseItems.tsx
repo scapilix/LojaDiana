@@ -893,12 +893,12 @@ export default function BaseItems() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-black text-xs shadow-xl shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <CheckCircle2 className="w-5 h-5" />
+                        <CheckCircle2 className="w-4 h-4" />
                       )}
                       <span>{isAddingNew ? 'Cadastrar Artigo' : 'Guardar Alterações'}</span>
                     </button>
@@ -938,10 +938,10 @@ export default function BaseItems() {
                         <select
                           value={stockFormData.size}
                           onChange={(e) => setStockFormData({ ...stockFormData, size: e.target.value })}
-                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                          className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhum</option>
-                          {editingItem?.sizes?.map(s => <option key={s} value={s}>{s}</option>)}
+                          {data.sizes?.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
                       <div className="space-y-1">
@@ -949,18 +949,18 @@ export default function BaseItems() {
                         <select
                           value={stockFormData.color}
                           onChange={(e) => setStockFormData({ ...stockFormData, color: e.target.value })}
-                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                          className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhuma</option>
-                          {editingItem?.colors?.map(c => <option key={c} value={c}>{c}</option>)}
+                          {data.colors?.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="md:col-span-2 mt-2 px-8 py-4 bg-purple-600 text-white rounded-2xl font-black text-sm hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
+                        className="md:col-span-2 mt-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-black text-xs hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
                       >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                         Registar Entrada de Stock
                       </button>
                     </form>
@@ -1020,6 +1020,6 @@ export default function BaseItems() {
         imageUrl={zoomedProduct?.image_url || ''}
         productName={zoomedProduct?.nome_artigo || ''}
       />
-    </motion.div>
+    </motion.div >
   );
 }
