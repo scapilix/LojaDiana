@@ -11,6 +11,8 @@ interface ProductCatalogItem {
   image_url?: string;
   description?: string;
   categoria?: string;
+  promo_price?: number;
+  promo_start?: string;
   promo_end?: string;
   published?: boolean;
   sizes?: string[];
@@ -20,6 +22,7 @@ interface ProductCatalogItem {
 interface ExcelData {
   orders: any[];
   customers: any[];
+  purchases?: any[];
   products_catalog?: ProductCatalogItem[];
   stats?: any[];
   categories?: string[];
