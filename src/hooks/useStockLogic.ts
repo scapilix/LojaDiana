@@ -1,6 +1,15 @@
 import { useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 
+export interface VariationStock {
+  variation_id: string;
+  size?: string;
+  color?: string;
+  total_purchased: number;
+  total_sold: number;
+  current_stock: number;
+}
+
 export interface StockStatus {
   ref: string;
   name: string;
@@ -15,6 +24,7 @@ export interface StockStatus {
   last_purchase_date?: string;
   sizes?: string[];
   colors?: string[];
+  variations: VariationStock[];
 }
 
 export function useStockLogic() {
@@ -23,23 +33,25 @@ export function useStockLogic() {
   const stockInventory = useMemo(() => {
     const calculationStart = performance.now();
 
-    // 1. Map Manual Purchases (Inflows)
-    // Purchases come from Supabase (loaded into data.purchases via DataContext)
-    const purchaseMap = new Map<string, { qty: number; lastDate: string }>();
+    const getVariationId = (ref: string, size?: string, color?: string) => {
+      return `${String(ref).trim().toUpperCase()}|${size || ''}|${color || ''}`;
+    };
 
-    const purchases = data.purchases || []; // We need to add this to DataContext
+    // 1. Map Manual Purchases
+    const purchaseMap = new Map<string, { qty: number; lastDate: string }>();
+    const purchases = data.purchases || [];
 
     purchases.forEach((p: any) => {
-      const ref = String(p.ref).trim().toUpperCase();
-      const current = purchaseMap.get(ref) || { qty: 0, lastDate: '' };
+      const vid = getVariationId(p.ref, p.size, p.color);
+      const current = purchaseMap.get(vid) || { qty: 0, lastDate: '' };
 
-      purchaseMap.set(ref, {
+      purchaseMap.set(vid, {
         qty: current.qty + Number(p.quantidade),
         lastDate: p.data_compra > current.lastDate ? p.data_compra : current.lastDate
       });
     });
 
-    // 2. Map Sales (Outflows) from Excel Orders
+    // 2. Map Sales 
     const salesMap = new Map<string, number>();
     const orders = data.orders || [];
 
@@ -47,80 +59,137 @@ export function useStockLogic() {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
           if (item.ref) {
-            const ref = String(item.ref).trim().toUpperCase();
-            // Ignore shipping refs or special non-stock items if necessary
-            if (ref === 'CONTINENTAL' || ref === 'ILHAS' || ref === 'PORTES') return;
+            const refStr = String(item.ref).trim().toUpperCase();
+            if (refStr === 'CONTINENTAL' || refStr === 'ILHAS' || refStr === 'PORTES') return;
 
+            const vid = getVariationId(item.ref, item.size, item.color);
             const qty = Number(item.quantidade) || 1;
-            const current = salesMap.get(ref) || 0;
-            salesMap.set(ref, current + qty);
+            const current = salesMap.get(vid) || 0;
+            salesMap.set(vid, current + qty);
           }
         });
       }
     });
 
-    // 3. Combine into Master Stock List (based on Base Items + anything with activity)
-    const masterRefs = new Set<string>();
+    // 3. Build Base Products Map
+    const baseProductsMap = new Map<string, StockStatus>();
 
-    // Add all from Base Items Catalog
-    (data.products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
-
-    // Add all from Manual Products Catalog
-    (data.manual_products_catalog || []).forEach(p => masterRefs.add(String(p.ref).trim().toUpperCase()));
-
-    // Add all from Purchases (in case we bought something not in catalog yet)
-    purchaseMap.forEach((_, key) => masterRefs.add(key));
-
-    // Add all from Sales (in case we sold something legacy)
-    salesMap.forEach((_, key) => masterRefs.add(key));
-
-    const inventory: StockStatus[] = [];
-
-    masterRefs.forEach(ref => {
-      const purchaseData = purchaseMap.get(ref) || { qty: 0, lastDate: undefined };
-      const totalPurchased = purchaseData.qty;
-      const totalSold = salesMap.get(ref) || 0;
-      const currentStock = totalPurchased - totalSold;
-
-      // Get Details from Catalog (Base or Manual)
+    // Helper to initialize a base product
+    const getInitBaseProduct = (ref: string): StockStatus => {
       const baseCatalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
       const manualCatalogItem = data.manual_products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
       const catalogItem = baseCatalogItem || manualCatalogItem;
 
-      const name = catalogItem && catalogItem.nome_artigo ? catalogItem.nome_artigo : 'Item Desconhecido';
-      const basePrice = catalogItem ? catalogItem.base_price : undefined;
-      const pvp = catalogItem ? catalogItem.pvp_cica : undefined;
-      const profit = catalogItem ? catalogItem.lucro_meu_faturado : undefined;
-      const supplier = catalogItem ? catalogItem.fornecedor : undefined;
-      const sizes = catalogItem?.sizes;
-      const colors = catalogItem?.colors;
-
-      // Determine Status
-      let status: StockStatus['status'] = 'ok';
-      if (currentStock <= 0) status = 'out';
-      else if (currentStock <= 3) status = 'critical';
-      else if (currentStock <= 10) status = 'low';
-
-      inventory.push({
+      return {
         ref,
-        name,
-        total_purchased: totalPurchased,
-        total_sold: totalSold,
-        current_stock: currentStock,
-        status,
-        base_price: basePrice,
-        pvp,
-        profit,
-        supplier,
-        last_purchase_date: purchaseData.lastDate,
-        sizes,
-        colors
+        name: catalogItem?.nome_artigo || 'Item Desconhecido',
+        total_purchased: 0,
+        total_sold: 0,
+        current_stock: 0,
+        status: 'out',
+        base_price: catalogItem?.base_price,
+        pvp: catalogItem?.pvp_cica,
+        profit: catalogItem?.lucro_meu_faturado,
+        supplier: catalogItem?.fornecedor,
+        sizes: catalogItem?.sizes,
+        colors: catalogItem?.colors,
+        variations: []
+      };
+    };
+
+    // Add all from Base Items Catalog and generate their designated variations explicitly
+    const addCatalogToMaster = (catalog: any[]) => {
+      catalog.forEach(p => {
+        const ref = String(p.ref).trim().toUpperCase();
+        if (!baseProductsMap.has(ref)) {
+          baseProductsMap.set(ref, getInitBaseProduct(ref));
+        }
+
+        const base = baseProductsMap.get(ref)!;
+        const hasSizes = p.sizes && p.sizes.length > 0;
+        const hasColors = p.colors && p.colors.length > 0;
+
+        // Ensure variations array is pre-populated with all possible catalog combinations
+        if (hasSizes && hasColors) {
+          p.sizes.forEach((sz: string) => {
+            p.colors.forEach((c: string) => {
+              base.variations.push({ variation_id: getVariationId(ref, sz, c), size: sz, color: c, total_purchased: 0, total_sold: 0, current_stock: 0 });
+            });
+          });
+        } else if (hasSizes) {
+          p.sizes.forEach((sz: string) => {
+            base.variations.push({ variation_id: getVariationId(ref, sz), size: sz, total_purchased: 0, total_sold: 0, current_stock: 0 });
+          });
+        } else if (hasColors) {
+          p.colors.forEach((c: string) => {
+            base.variations.push({ variation_id: getVariationId(ref, undefined, c), color: c, total_purchased: 0, total_sold: 0, current_stock: 0 });
+          });
+        } else {
+          base.variations.push({ variation_id: getVariationId(ref), total_purchased: 0, total_sold: 0, current_stock: 0 });
+        }
       });
+    };
+
+    addCatalogToMaster(data.products_catalog || []);
+    addCatalogToMaster(data.manual_products_catalog || []);
+
+    // 4. Populate variations with actual data
+    // First, compile all unique variation IDs from maps
+    const allVariationIds = new Set<string>();
+    purchaseMap.forEach((_, vid) => allVariationIds.add(vid));
+    salesMap.forEach((_, vid) => allVariationIds.add(vid));
+
+    allVariationIds.forEach(vid => {
+      const [ref, sizeStr, colorStr] = vid.split('|');
+      const size = sizeStr || undefined;
+      const color = colorStr || undefined;
+
+      if (!baseProductsMap.has(ref)) {
+        baseProductsMap.set(ref, getInitBaseProduct(ref));
+      }
+
+      const base = baseProductsMap.get(ref)!;
+      let variation = base.variations.find(v => v.variation_id === vid);
+
+      // If this variation was sold/purchased but isn't strictly in catalog combos, add it ad-hoc
+      if (!variation) {
+        variation = { variation_id: vid, size, color, total_purchased: 0, total_sold: 0, current_stock: 0 };
+        base.variations.push(variation);
+      }
+
+      // Apply quantities
+      const pQty = purchaseMap.get(vid)?.qty || 0;
+      const sQty = salesMap.get(vid) || 0;
+
+      variation.total_purchased += pQty;
+      variation.total_sold += sQty;
+      variation.current_stock = variation.total_purchased - variation.total_sold;
+
+      // Keep root tracking last purchase date
+      const pDate = purchaseMap.get(vid)?.lastDate;
+      if (pDate && (!base.last_purchase_date || pDate > base.last_purchase_date)) {
+        base.last_purchase_date = pDate;
+      }
     });
 
-    console.log(`Stock calculation took ${performance.now() - calculationStart}ms for ${inventory.length} items`);
+    // 5. Aggregate base products totals and determine status
+    const inventory: StockStatus[] = [];
+    baseProductsMap.forEach(base => {
+      base.total_purchased = base.variations.reduce((acc, v) => acc + v.total_purchased, 0);
+      base.total_sold = base.variations.reduce((acc, v) => acc + v.total_sold, 0);
+      // Only sum positive stock toward total availability
+      base.current_stock = base.variations.reduce((acc, v) => acc + Math.max(0, v.current_stock), 0);
 
-    return inventory.sort((a, b) => a.current_stock - b.current_stock); // Sort by lowest stock first
+      if (base.current_stock <= 0) base.status = 'out';
+      else if (base.current_stock <= 3) base.status = 'critical';
+      else if (base.current_stock <= 10) base.status = 'low';
+      else base.status = 'ok';
+
+      inventory.push(base);
+    });
+
+    console.log(`Stock calculation took ${performance.now() - calculationStart}ms`);
+    return inventory.sort((a, b) => a.current_stock - b.current_stock);
   }, [data.orders, data.purchases, data.products_catalog]);
 
   return stockInventory;

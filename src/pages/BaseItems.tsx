@@ -15,7 +15,9 @@ import {
   Eye,
   EyeOff,
   Globe,
-  GlobeLock
+  GlobeLock,
+  History,
+  Package
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
@@ -42,14 +44,26 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, isLoading, updateProduct, updateAllProductsVisibility, addProduct, deleteProduct, setData } = useData();
+  const { data, isLoading, updateProduct, updateAllProductsVisibility, addProduct, deleteProduct, setData, updateSizes, updateColors } = useData();
   const [searchTerm, setSearchTerm] = useState('');
+  const [newSizeInput, setNewSizeInput] = useState('');
+  const [newColorInput, setNewColorInput] = useState('');
   const [editingItem, setEditingItem] = useState<ProductCatalogItem | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'stock'>('details');
+  const { addPurchase } = useData();
+
+  const [stockFormData, setStockFormData] = useState({
+    quantidade: 1,
+    size: '',
+    color: '',
+    data_compra: new Date().toISOString().split('T')[0],
+    preco_custo: ''
+  });
 
   const [newItem, setNewItem] = useState<ProductCatalogItem>({
     ref: '',
@@ -220,6 +234,38 @@ export default function BaseItems() {
     }
   };
 
+  const handleAddStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || stockFormData.quantidade <= 0) return;
+
+    try {
+      setIsSubmitting(true);
+      await addPurchase({
+        ref: editingItem.ref,
+        quantidade: Number(stockFormData.quantidade),
+        data_compra: stockFormData.data_compra,
+        size: stockFormData.size || undefined,
+        color: stockFormData.color || undefined,
+        preco_custo: stockFormData.preco_custo ? Number(stockFormData.preco_custo) : Number(editingItem.base_price || 0)
+      });
+
+      // Clear form
+      setStockFormData({
+        quantidade: 1,
+        size: '',
+        color: '',
+        data_compra: new Date().toISOString().split('T')[0],
+        preco_custo: ''
+      });
+      alert('Stock adicionado com sucesso!');
+    } catch (error) {
+      console.error('Error adding stock:', error);
+      alert('Erro ao adicionar stock.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleToggleSize = (size: string) => {
     if (isAddingNew) {
       const currentSizes = newItem.sizes || [];
@@ -250,6 +296,28 @@ export default function BaseItems() {
         colors: currentColors.includes(color) ? currentColors.filter(c => c !== color) : [...currentColors, color]
       });
     }
+  };
+
+  const handleQuickAddSize = async () => {
+    if (!newSizeInput.trim()) return;
+    const newSize = newSizeInput.trim().toUpperCase();
+    const currentGlobalSizes = data.sizes || [];
+    if (!currentGlobalSizes.includes(newSize)) {
+      await updateSizes([...currentGlobalSizes, newSize]);
+    }
+    handleToggleSize(newSize);
+    setNewSizeInput('');
+  };
+
+  const handleQuickAddColor = async () => {
+    if (!newColorInput.trim()) return;
+    const newColor = newColorInput.trim();
+    const currentGlobalColors = data.colors || [];
+    if (!currentGlobalColors.includes(newColor)) {
+      await updateColors([...currentGlobalColors, newColor]);
+    }
+    handleToggleColor(newColor);
+    setNewColorInput('');
   };
 
   // Helper logic for auto-calculating profit
@@ -496,191 +564,238 @@ export default function BaseItems() {
                     </p>
                   </div>
                 </div>
-                <button onClick={() => { setEditingItem(null); setIsAddingNew(false); }} className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <button
+                  type="button"
+                  onClick={() => { setEditingItem(null); setIsAddingNew(false); }}
+                  className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={isAddingNew ? handleAdd : handleUpdate} className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Left Column: Image & Promotion */}
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Imagem do Produto</label>
-                      <div className="relative aspect-video w-full rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-colors hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5">
-                        {(isAddingNew ? newItem.image_url : editingItem?.image_url) ? (
-                          <>
-                            <img src={isAddingNew ? newItem.image_url : editingItem?.image_url} alt="Preview" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                isAddingNew ? setNewItem({ ...newItem, image_url: '' }) : setEditingItem(prev => prev ? ({ ...prev, image_url: '' }) : null)
+              {!isAddingNew && (
+                <div className="flex px-8 border-b border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
+                  <button
+                    onClick={() => setActiveTab('details')}
+                    className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${activeTab === 'details'
+                      ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/5'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                  >
+                    <Tag className="w-4 h-4" />
+                    Detalhes do Artigo
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('stock')}
+                    className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${activeTab === 'stock'
+                      ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/5'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    Entrada de Stock
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'details' || isAddingNew ? (
+                <form onSubmit={isAddingNew ? handleAdd : handleUpdate} className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Left Column: Image & Promotion */}
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Imagem do Produto</label>
+                        <div className="relative aspect-video w-full rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-colors hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5">
+                          {(isAddingNew ? newItem.image_url : editingItem?.image_url) ? (
+                            <>
+                              <img src={isAddingNew ? newItem.image_url : editingItem?.image_url} alt="Preview" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  isAddingNew ? setNewItem({ ...newItem, image_url: '' }) : setEditingItem(prev => prev ? ({ ...prev, image_url: '' }) : null)
+                                }}
+                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                              <Camera className="w-5 h-5 text-slate-400" />
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">Enviar Imagem</span>
+                            </div>
+                          )}
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit')} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-rose-50/50 dark:bg-rose-500/5 rounded-2xl border border-rose-100 dark:border-rose-500/10 space-y-4">
+                        <label className="text-[9px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                          <Tag className="w-3 h-3" /> Promoção Temporária
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço Promo</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={isAddingNew ? newItem.promo_price : editingItem?.promo_price}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                isAddingNew ? setNewItem({ ...newItem, promo_price: val }) : setEditingItem(prev => prev ? ({ ...prev, promo_price: val }) : null);
                               }}
-                              className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
-                            <Camera className="w-5 h-5 text-slate-400" />
-                            <span className="text-[9px] font-bold text-slate-400 uppercase">Enviar Imagem</span>
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all font-bold text-xs"
+                            />
                           </div>
-                        )}
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit')} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-rose-50/50 dark:bg-rose-500/5 rounded-2xl border border-rose-100 dark:border-rose-500/10 space-y-4">
-                      <label className="text-[9px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
-                        <Tag className="w-3 h-3" /> Promoção Temporária
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço Promo</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={isAddingNew ? newItem.promo_price : editingItem?.promo_price}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value);
-                              isAddingNew ? setNewItem({ ...newItem, promo_price: val }) : setEditingItem(prev => prev ? ({ ...prev, promo_price: val }) : null);
-                            }}
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all font-bold text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Início / Fim</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="date"
-                              value={isAddingNew ? newItem.promo_start : editingItem?.promo_start}
-                              onChange={(e) => isAddingNew ? setNewItem({ ...newItem, promo_start: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, promo_start: e.target.value }) : null)}
-                              className="w-1/2 px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg outline-none text-[10px] font-bold"
-                            />
-                            <input
-                              type="date"
-                              value={isAddingNew ? newItem.promo_end : editingItem?.promo_end}
-                              onChange={(e) => isAddingNew ? setNewItem({ ...newItem, promo_end: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, promo_end: e.target.value }) : null)}
-                              className="w-1/2 px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg outline-none text-[10px] font-bold"
-                            />
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Início / Fim</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="date"
+                                value={isAddingNew ? newItem.promo_start : editingItem?.promo_start}
+                                onChange={(e) => isAddingNew ? setNewItem({ ...newItem, promo_start: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, promo_start: e.target.value }) : null)}
+                                className="w-1/2 px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg outline-none text-[10px] font-bold"
+                              />
+                              <input
+                                type="date"
+                                value={isAddingNew ? newItem.promo_end : editingItem?.promo_end}
+                                onChange={(e) => isAddingNew ? setNewItem({ ...newItem, promo_end: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, promo_end: e.target.value }) : null)}
+                                className="w-1/2 px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg outline-none text-[10px] font-bold"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right Column: Info & Prices */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Referência</label>
-                        <input
-                          required
-                          disabled={!isAddingNew}
-                          type="text"
-                          value={isAddingNew ? newItem.ref : editingItem?.ref}
-                          onChange={(e) => isAddingNew ? setNewItem({ ...newItem, ref: e.target.value.toUpperCase() }) : null}
-                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs disabled:opacity-50"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
-                        {(data.categories && data.categories.length > 0) ? (
-                          <select
-                            value={isAddingNew ? newItem.categoria : editingItem?.categoria}
-                            onChange={(e) => isAddingNew ? setNewItem({ ...newItem, categoria: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, categoria: e.target.value }) : null)}
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs appearance-none"
-                          >
-                            <option value="">Selecionar...</option>
-                            {data.categories.map(cat => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            value={isAddingNew ? newItem.categoria : editingItem?.categoria}
-                            onChange={(e) => isAddingNew ? setNewItem({ ...newItem, categoria: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, categoria: e.target.value }) : null)}
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                            placeholder="Ex: Tops..."
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Designação (Nome)</label>
-                      <input
-                        required
-                        type="text"
-                        value={isAddingNew ? newItem.nome_artigo : editingItem?.nome_artigo}
-                        onChange={(e) => isAddingNew ? setNewItem({ ...newItem, nome_artigo: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, nome_artigo: e.target.value }) : null)}
-                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fornecedor</label>
-                      <input
-                        type="text"
-                        value={isAddingNew ? newItem.fornecedor : editingItem?.fornecedor}
-                        onChange={(e) => isAddingNew ? setNewItem({ ...newItem, fornecedor: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, fornecedor: e.target.value }) : null)}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                      />
-                    </div>
-
-                    <div className="p-4 bg-purple-50/50 dark:bg-purple-500/5 rounded-2xl border border-purple-100 dark:border-purple-500/10 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                    {/* Right Column: Info & Prices */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Custo Base (€)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={isAddingNew ? newItem.base_price : editingItem?.base_price}
-                            onChange={(e) => handlePriceChange('base_price', parseFloat(e.target.value))}
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">PVP Venda (€)</label>
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Referência</label>
                           <input
                             required
-                            type="number"
-                            step="0.01"
-                            value={isAddingNew ? newItem.pvp_cica : editingItem?.pvp_cica}
-                            onChange={(e) => handlePriceChange('pvp_cica', parseFloat(e.target.value))}
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-xl outline-none font-black text-xs text-purple-600"
+                            disabled={!isAddingNew}
+                            type="text"
+                            value={isAddingNew ? newItem.ref : editingItem?.ref}
+                            onChange={(e) => isAddingNew ? setNewItem({ ...newItem, ref: e.target.value.toUpperCase() }) : null}
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs disabled:opacity-50"
                           />
                         </div>
-                      </div>
-
-                      <div className="flex justify-between items-center px-4 py-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800/30">
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Lucro Calculado</span>
-                          <span className="text-[8px] text-slate-400 font-bold">(PVP - Custo)</span>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                          {(data.categories && data.categories.length > 0) ? (
+                            <select
+                              value={isAddingNew ? newItem.categoria : editingItem?.categoria}
+                              onChange={(e) => isAddingNew ? setNewItem({ ...newItem, categoria: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, categoria: e.target.value }) : null)}
+                              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs appearance-none"
+                            >
+                              <option value="">Selecionar...</option>
+                              {data.categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={isAddingNew ? newItem.categoria : editingItem?.categoria}
+                              onChange={(e) => isAddingNew ? setNewItem({ ...newItem, categoria: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, categoria: e.target.value }) : null)}
+                              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                              placeholder="Ex: Tops..."
+                            />
+                          )}
                         </div>
-                        <span className="font-black text-lg text-emerald-600 dark:text-emerald-400">
-                          {(() => {
-                            const pvp = isAddingNew ? (newItem.pvp_cica || 0) : (editingItem?.pvp_cica || 0);
-                            const base = isAddingNew ? (newItem.base_price || 0) : (editingItem?.base_price || 0);
-                            return formatCurrency(Number((pvp - base).toFixed(2)));
-                          })()}
-                        </span>
                       </div>
-                    </div>
 
-                    <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
-                      {/* Tamanhos */}
-                      {(data.sizes && data.sizes.length > 0) && (
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Designação (Nome)</label>
+                        <input
+                          required
+                          type="text"
+                          value={isAddingNew ? newItem.nome_artigo : editingItem?.nome_artigo}
+                          onChange={(e) => isAddingNew ? setNewItem({ ...newItem, nome_artigo: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, nome_artigo: e.target.value }) : null)}
+                          className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fornecedor</label>
+                        <input
+                          type="text"
+                          value={isAddingNew ? newItem.fornecedor : editingItem?.fornecedor}
+                          onChange={(e) => isAddingNew ? setNewItem({ ...newItem, fornecedor: e.target.value }) : setEditingItem(prev => prev ? ({ ...prev, fornecedor: e.target.value }) : null)}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-purple-50/50 dark:bg-purple-500/5 rounded-2xl border border-purple-100 dark:border-purple-500/10 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Custo Base (€)</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={isAddingNew ? newItem.base_price : editingItem?.base_price}
+                              onChange={(e) => handlePriceChange('base_price', parseFloat(e.target.value))}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">PVP Venda (€)</label>
+                            <input
+                              required
+                              type="number"
+                              step="0.01"
+                              value={isAddingNew ? newItem.pvp_cica : editingItem?.pvp_cica}
+                              onChange={(e) => handlePriceChange('pvp_cica', parseFloat(e.target.value))}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-xl outline-none font-black text-xs text-purple-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center px-4 py-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800/30">
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Lucro Calculado</span>
+                            <span className="text-[8px] text-slate-400 font-bold">(PVP - Custo)</span>
+                          </div>
+                          <span className="font-black text-lg text-emerald-600 dark:text-emerald-400">
+                            {(() => {
+                              const pvp = isAddingNew ? (newItem.pvp_cica || 0) : (editingItem?.pvp_cica || 0);
+                              const base = isAddingNew ? (newItem.base_price || 0) : (editingItem?.base_price || 0);
+                              return formatCurrency(Number((pvp - base).toFixed(2)));
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
+                        {/* Tamanhos */}
+                        {/* Tamanhos */}
                         <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/20">
                           <div className="flex items-center gap-2 mb-3">
                             <Tag className="w-4 h-4 text-emerald-500" />
                             <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Tamanhos Disponíveis</h4>
+                            <div className="flex items-center gap-1 ml-auto">
+                              <input
+                                type="text"
+                                placeholder="..."
+                                value={newSizeInput}
+                                onChange={(e) => setNewSizeInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleQuickAddSize())}
+                                className="w-16 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold focus:ring-1 focus:ring-emerald-500 outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleQuickAddSize}
+                                className="p-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-600 hover:text-white transition-all"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {data.sizes.map(size => {
+                            {(data.sizes || []).map(size => {
                               const isSelected = isAddingNew ? newItem.sizes?.includes(size) : editingItem?.sizes?.includes(size);
                               return (
                                 <button
@@ -696,19 +811,37 @@ export default function BaseItems() {
                                 </button>
                               );
                             })}
+                            {(!data.sizes || data.sizes.length === 0) && (
+                              <p className="text-[10px] text-slate-400 italic">Nenhum tamanho definido. Adicione no campo acima.</p>
+                            )}
                           </div>
                         </div>
-                      )}
 
-                      {/* Cores */}
-                      {(data.colors && data.colors.length > 0) && (
+                        {/* Cores */}
                         <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-800/20">
                           <div className="flex items-center gap-2 mb-3">
                             <Tag className="w-4 h-4 text-blue-500" />
                             <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Cores Disponíveis</h4>
+                            <div className="flex items-center gap-1 ml-auto">
+                              <input
+                                type="text"
+                                placeholder="..."
+                                value={newColorInput}
+                                onChange={(e) => setNewColorInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleQuickAddColor())}
+                                className="w-16 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold focus:ring-1 focus:ring-blue-500 outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleQuickAddColor}
+                                className="p-1 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-600 hover:text-white transition-all"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {data.colors.map(color => {
+                            {(data.colors || []).map(color => {
                               const isSelected = isAddingNew ? newItem.colors?.includes(color) : editingItem?.colors?.includes(color);
                               return (
                                 <button
@@ -724,55 +857,163 @@ export default function BaseItems() {
                                 </button>
                               );
                             })}
+                            {(!data.colors || data.colors.length === 0) && (
+                              <p className="text-[10px] text-slate-400 italic">Nenhuma cor definida. Adicione no campo acima.</p>
+                            )}
                           </div>
                         </div>
-                      )}
+                      </div>
+                    </div>
+                  </div>
 
-                      {(!data.sizes?.length && !data.colors?.length) && (
-                        <p className="text-xs text-slate-500 italic">Nenhum tamanho ou cor configurado globalmente. Vá a Configurações para adicionar.</p>
+                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => isAddingNew ? setNewItem({ ...newItem, published: !newItem.published }) : setEditingItem(prev => prev ? ({ ...prev, published: !prev.published }) : null)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${(isAddingNew ? newItem.published : editingItem?.published) !== false
+                          ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                          : 'bg-slate-200 dark:bg-white/5 text-slate-500'
+                          }`}
+                      >
+                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? 'Público no Site' : 'Oculto no Site'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setEditingItem(null); setIsAddingNew(false); }}
+                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-500 font-black uppercase tracking-widest text-[9px] hover:bg-slate-200 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5" />
                       )}
+                      <span>{isAddingNew ? 'Cadastrar Artigo' : 'Guardar Alterações'}</span>
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+                  <div className="bg-purple-50/50 dark:bg-purple-500/5 p-6 rounded-3xl border border-purple-100 dark:border-purple-500/10">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-purple-500" />
+                      Registar Nova Entrada
+                    </h3>
+                    <form onSubmit={handleAddStock} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantidade</label>
+                        <input
+                          required
+                          type="number"
+                          min="1"
+                          value={stockFormData.quantidade}
+                          onChange={(e) => setStockFormData({ ...stockFormData, quantidade: parseInt(e.target.value) })}
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data de Entrada</label>
+                        <input
+                          required
+                          type="date"
+                          value={stockFormData.data_compra}
+                          onChange={(e) => setStockFormData({ ...stockFormData, data_compra: e.target.value })}
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tamanho</label>
+                        <select
+                          value={stockFormData.size}
+                          onChange={(e) => setStockFormData({ ...stockFormData, size: e.target.value })}
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        >
+                          <option value="">Nenhum</option>
+                          {editingItem?.sizes?.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Cor</label>
+                        <select
+                          value={stockFormData.color}
+                          onChange={(e) => setStockFormData({ ...stockFormData, color: e.target.value })}
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                        >
+                          <option value="">Nenhuma</option>
+                          {editingItem?.colors?.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="md:col-span-2 mt-2 px-8 py-4 bg-purple-600 text-white rounded-2xl font-black text-sm hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
+                      >
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        Registar Entrada de Stock
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <History className="w-4 h-4 text-slate-400" />
+                      Histórico Recente
+                    </h3>
+                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 dark:bg-white/[0.02]">
+                          <tr>
+                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Data</th>
+                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Qt</th>
+                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Var.</th>
+                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest text-right">Custo</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                          {data.purchases
+                            ?.filter(p => p.ref === editingItem?.ref)
+                            .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
+                            .slice(0, 5)
+                            .map((purchase, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
+                                <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{new Date(purchase.data_compra).toLocaleDateString('pt-PT')}</td>
+                                <td className="px-4 py-3 font-black text-purple-600 dark:text-purple-400">+{purchase.quantidade}</td>
+                                <td className="px-4 py-3 font-medium text-slate-500">
+                                  {purchase.size || '-'}{purchase.color ? ` / ${purchase.color}` : ''}
+                                </td>
+                                <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 text-right">
+                                  {formatCurrency(purchase.preco_custo || 0)}
+                                </td>
+                              </tr>
+                            ))}
+                          {(!data.purchases?.some(p => p.ref === editingItem?.ref)) && (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-8 text-center text-slate-400 italic">Sem histórico de entradas.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => isAddingNew ? setNewItem({ ...newItem, published: !newItem.published }) : setEditingItem(prev => prev ? ({ ...prev, published: !prev.published }) : null)}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${(isAddingNew ? newItem.published : editingItem?.published) !== false
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                        : 'bg-slate-200 dark:bg-white/5 text-slate-500'
-                        }`}
-                    >
-                      {(isAddingNew ? newItem.published : editingItem?.published) !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      {(isAddingNew ? newItem.published : editingItem?.published) !== false ? 'Público no Site' : 'Oculto no Site'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => { setEditingItem(null); setIsAddingNew(false); }}
-                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-500 font-black uppercase tracking-widest text-[9px] hover:bg-slate-200 rounded-xl transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    disabled={isSubmitting || isUploading}
-                    type="submit"
-                    className="flex-[2] py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black uppercase tracking-widest text-[9px] shadow-xl hover:scale-[1.02] active:scale-[0.98] rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                    {isSubmitting ? 'Salvando...' : 'Confirmar e Salvar'}
-                  </button>
-                </div>
-              </form>
+              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
       <ImageZoomModal
         isOpen={!!zoomedProduct}
         onClose={() => setZoomedProduct(null)}

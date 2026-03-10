@@ -160,7 +160,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
                     quantidade: item.quantidade,
                     pvp: item.pvp_cica * item.quantidade,
                     base: (item.base_price || 0) * item.quantidade,
-                    lucro: (item.pvp_cica - (item.base_price || 0)) * item.quantidade
+                    lucro: (item.pvp_cica - (item.base_price || 0)) * item.quantidade,
+                    size: item.size,
+                    color: item.color
                 }))
             };
 
@@ -205,7 +207,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 quantidade: item.quantidade,
                 pvp: item.pvp_cica * item.quantidade,
                 base: (item.base_price || 0) * item.quantidade,
-                lucro: (item.pvp_cica - (item.base_price || 0)) * item.quantidade
+                lucro: (item.pvp_cica - (item.base_price || 0)) * item.quantidade,
+                size: item.size,
+                color: item.color
             }))
         };
 

@@ -20,6 +20,17 @@ export default function POS() {
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [variationQuantity, setVariationQuantity] = useState(1);
 
+    const currentVariationStock = useMemo(() => {
+        if (!selectedProductForVariation || !selectedProductForVariation.variations) return 0;
+        const getVariationId = (ref: string, size?: string | null, color?: string | null) => {
+            return `${String(ref).trim().toUpperCase()}|${size || ''}|${color || ''}`;
+        };
+        const exactVar = selectedProductForVariation.variations.find((v: any) =>
+            v.variation_id === getVariationId(selectedProductForVariation.ref, selectedSize, selectedColor)
+        );
+        return exactVar ? exactVar.current_stock : 0;
+    }, [selectedProductForVariation, selectedSize, selectedColor]);
+
     // Filter products based on search
     const filteredProducts = useMemo(() => {
         if (!searchTerm) return stockInventory.slice(0, 50); // Limit initial render
@@ -42,8 +53,11 @@ export default function POS() {
 
         if (hasSizes || hasColors) {
             setSelectedProductForVariation(product);
-            setSelectedSize(hasSizes ? product.sizes[0] : null);
-            setSelectedColor(hasColors ? product.colors[0] : null);
+
+            const firstInStock = product.variations?.find((v: any) => v.current_stock > 0);
+            setSelectedSize(firstInStock?.size || (hasSizes ? product.sizes[0] : null));
+            setSelectedColor(firstInStock?.color || (hasColors ? product.colors[0] : null));
+
             setVariationQuantity(1);
             return;
         }
@@ -62,13 +76,18 @@ export default function POS() {
     const handleConfirmVariation = () => {
         if (!selectedProductForVariation) return;
 
+        if (currentVariationStock < variationQuantity) {
+            alert(`Apenas ${currentVariationStock} em stock para esta variação.`);
+            return;
+        }
+
         addToCart({
             ref: selectedProductForVariation.ref,
             nome_artigo: selectedProductForVariation.name,
             quantidade: variationQuantity,
             pvp_cica: selectedProductForVariation.pvp || 0,
             base_price: selectedProductForVariation.base_price || 0,
-            current_stock: selectedProductForVariation.current_stock,
+            current_stock: currentVariationStock,
             size: selectedSize || undefined,
             color: selectedColor || undefined
         });
@@ -355,8 +374,8 @@ export default function POS() {
                                                     key={sz}
                                                     onClick={() => setSelectedSize(sz)}
                                                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
-                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
                                                         }`}
                                                 >
                                                     {sz}
@@ -376,8 +395,8 @@ export default function POS() {
                                                     key={c}
                                                     onClick={() => setSelectedColor(c)}
                                                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
-                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
                                                         }`}
                                                 >
                                                     {c}
@@ -399,13 +418,13 @@ export default function POS() {
                                         </button>
                                         <span className="font-black text-lg w-8 text-center">{variationQuantity}</span>
                                         <button
-                                            onClick={() => setVariationQuantity(Math.min(selectedProductForVariation.current_stock, variationQuantity + 1))}
+                                            onClick={() => setVariationQuantity(Math.min(currentVariationStock, variationQuantity + 1))}
                                             className="p-3 bg-white dark:bg-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
                                         >
                                             <Plus className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-slate-500 font-bold mt-2 ml-1">Estoque disponível: {selectedProductForVariation.current_stock}</p>
+                                    <p className={`text-[10px] font-bold mt-2 ml-1 ${currentVariationStock <= 0 ? 'text-rose-500' : 'text-slate-500'}`}>Estoque disponível: {currentVariationStock}</p>
                                 </div>
                             </div>
 

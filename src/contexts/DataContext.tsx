@@ -50,6 +50,8 @@ interface Purchase {
   fornecedor?: string;
   notas?: string;
   created_at?: string;
+  size?: string;
+  color?: string;
 }
 
 
