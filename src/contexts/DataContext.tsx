@@ -395,19 +395,16 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
 
   const clearAllItems = async () => {
     try {
-      // 1. Clear database tables
-      const { error: err1 } = await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      const { error: err2 } = await supabase.from('diana_products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-      // 2. Clear state in loja_app_state
-      const { error: err3 } = await supabase
-        .from('loja_app_state')
-        .upsert({ key: 'manual_products_catalog', value: [] });
-
-      if (err1 || err2 || err3) throw (err1 || err2 || err3);
-
-      // 3. Update local state
+      // 1. Clear local state immediately (works even if DB operations fail)
       setData(prev => ({ ...prev, manual_products_catalog: [], products_catalog: [] }));
+
+      // 2. Update loja_app_state: delete old entry, then insert fresh one
+      await supabase.from('loja_app_state').delete().eq('key', 'manual_products_catalog');
+      await supabase.from('loja_app_state').insert({ key: 'manual_products_catalog', value: [] });
+
+      // 3. Best-effort clear of product tables (ignore errors)
+      try { await supabase.from('diana_products').delete().gte('created_at', '1970-01-01'); } catch (_) { }
+      try { await supabase.from('products').delete().gte('created_at', '1970-01-01'); } catch (_) { }
     } catch (err) {
       console.error('Error clearing all items:', err);
       throw err;
