@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   Package,
-  Trophy,
   BarChart3,
   Menu,
   X,
@@ -26,30 +25,64 @@ import {
   Store
 } from 'lucide-react';
 
+
 import { ThemeToggle } from '../ThemeToggle';
 import { ExcelImport } from '../ExcelImport';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 
-const navigation = [
-  { id: 'loja', label: 'E-commerce Loja', icon: ShoppingBag, path: '/loja' },
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/' },
-  { id: 'clientes', label: 'Análise Clientes', icon: Users, path: '/clientes' },
-  { id: 'base-clientes', label: 'Base Clientes', icon: Database, path: '/base-clientes' },
-  { id: 'base-itens', label: 'Base de Itens', icon: Tag, path: '/base-itens' },
-  { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
-
-  { id: 'pos', label: 'Frente de Caixa (POS)', icon: Store, path: '/pos' },
-  { id: 'stock-manager', label: 'Gestão de Stock', icon: Box, path: '/stock-manager' },
-  { id: 'cadastro-vendas', label: 'Cadastro de Vendas', icon: PlusCircle, path: '/cadastro-vendas' },
-  { id: 'encomendas', label: 'Encomendas', icon: ClipboardList, path: '/encomendas' },
-  { id: 'produtos', label: 'Produtos', icon: Package, path: '/produtos' },
-  { id: 'rankings', label: 'Rankings', icon: Trophy, path: '/rankings' },
-  { id: 'portes', label: 'Portes', icon: Truck, path: '/portes' },
-  { id: 'faturas', label: 'Faturas', icon: FileText, path: '/faturas' },
-  { id: 'despesas', label: 'Despesas', icon: Wallet, path: '/despesas' },
-  { id: 'emprestimos', label: 'Empréstimos', icon: Banknote, path: '/emprestimos' },
+const navGroups = [
+  {
+    label: 'Visão Geral',
+    items: [
+      { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { id: 'rankings', label: 'Relatórios', icon: BarChart3, path: '/rankings' },
+    ]
+  },
+  {
+    label: 'Vendas',
+    items: [
+      { id: 'pos', label: 'PDV / Caixa', icon: Store, path: '/pos' },
+      { id: 'cadastro-vendas', label: 'Nova Venda', icon: PlusCircle, path: '/cadastro-vendas' },
+      { id: 'encomendas', label: 'Pedidos', icon: ClipboardList, path: '/encomendas' },
+      { id: 'portes', label: 'Portes & Devoluções', icon: Truck, path: '/portes' },
+    ]
+  },
+  {
+    label: 'Catálogo',
+    items: [
+      { id: 'base-itens', label: 'Produtos', icon: Tag, path: '/base-itens' },
+      { id: 'produtos', label: 'Coleções', icon: Package, path: '/produtos' },
+      { id: 'stock-manager', label: 'Grade / Estoque', icon: Box, path: '/stock-manager' },
+    ]
+  },
+  {
+    label: 'Clientes',
+    items: [
+      { id: 'clientes', label: 'CRM', icon: Users, path: '/clientes' },
+      { id: 'base-clientes', label: 'Avaliações', icon: Database, path: '/base-clientes' },
+    ]
+  },
+  {
+    label: 'Financeiro',
+    items: [
+      { id: 'despesas', label: 'Despesas', icon: Wallet, path: '/despesas' },
+      { id: 'emprestimos', label: 'Empréstimos', icon: Banknote, path: '/emprestimos' },
+      { id: 'faturas', label: 'Faturas', icon: FileText, path: '/faturas' },
+    ]
+  },
+  {
+    label: 'Sistema',
+    items: [
+      { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
+      { id: 'loja', label: 'E-commerce', icon: ShoppingBag, path: '/loja' },
+    ]
+  },
 ];
+
+// Flat list kept for path lookup
+const navigation = navGroups.flatMap(g => g.items);
+
 
 function AppLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // Collapsed state
@@ -131,34 +164,35 @@ function AppLayout() {
           )}
         </div>
 
-        <nav className="flex-1 px-3 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              title={isSidebarCollapsed ? item.label : ''}
-              className={({ isActive }) =>
-                `w-full flex items-center gap-4 px-3 py-3 rounded-lg transition-all duration-300 group relative overflow-hidden ${isActive
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20 dark:bg-white/10 dark:text-white dark:shadow-none'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/5 dark:hover:text-white'
-                } ${isSidebarCollapsed ? 'justify-center' : ''}`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && !isSidebarCollapsed && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute left-0 w-1 h-6 bg-white/20 rounded-full"
-                    />
-                  )}
-                  <item.icon className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${isActive ? 'text-white' : 'group-hover:text-purple-600 dark:group-hover:text-purple-400'}`} />
-                  {!isSidebarCollapsed && (
-                    <span className={`font-medium text-sm tracking-wide truncate ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
-                  )}
-                </>
+        <nav className="flex-1 px-3 mt-4 overflow-y-auto custom-scrollbar space-y-4">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              {!isSidebarCollapsed && (
+                <p className="px-2 mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-600">
+                  {group.label}
+                </p>
               )}
-            </NavLink>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    title={isSidebarCollapsed ? item.label : ''}
+                    className={({ isActive }) =>
+                      `w-full flex items-center gap-3 px-2.5 py-1.5 rounded-md transition-all duration-150 group relative ${isActive
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-white/5 dark:hover:text-white'
+                      } ${isSidebarCollapsed ? 'justify-center' : ''}`
+                    }
+                  >
+                    <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
+                    {!isSidebarCollapsed && (
+                      <span className="font-medium text-xs truncate">{item.label}</span>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
