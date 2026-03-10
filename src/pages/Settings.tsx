@@ -25,7 +25,7 @@ const pageVariants = {
 };
 
 export default function Settings() {
-    const { data, updateCategories, updateAppSettings } = useData();
+    const { data, updateCategories, updateSizes, updateColors, updateAppSettings } = useData();
     const [activeTab, setActiveTab] = useState<'categories' | 'general'>('categories');
     const [isSaving, setIsSaving] = useState(false);
     const [showStatus, setShowStatus] = useState<'success' | 'error' | null>(null);
@@ -33,6 +33,14 @@ export default function Settings() {
     // Categories Local State
     const [categories, setCategories] = useState<string[]>(data.categories || []);
     const [newCategory, setNewCategory] = useState('');
+
+    // Sizes Local State
+    const [sizes, setSizes] = useState<string[]>(data.sizes || []);
+    const [newSize, setNewSize] = useState('');
+
+    // Colors Local State
+    const [colors, setColors] = useState<string[]>(data.colors || []);
+    const [newColor, setNewColor] = useState('');
 
     // General Settings Local State
     const [generalSettings, setGeneralSettings] = useState({
@@ -44,21 +52,25 @@ export default function Settings() {
 
     const [isUploading, setIsUploading] = useState<number | null>(null);
 
-    const handleAddCategory = () => {
-        if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-            setCategories([...categories, newCategory.trim()]);
-            setNewCategory('');
+    // Handlers
+    const handleAddListItem = (setter: any, list: string[], newItem: string, resetter: any) => {
+        if (newItem.trim() && !list.includes(newItem.trim())) {
+            setter([...list, newItem.trim()]);
+            resetter('');
         }
     };
-
-    const handleRemoveCategory = (cat: string) => {
-        setCategories(categories.filter(c => c !== cat));
+    const handleRemoveListItem = (setter: any, list: string[], item: string) => {
+        setter(list.filter(c => c !== item));
     };
 
-    const handleSaveCategories = async () => {
+    const handleSaveCatalogVars = async () => {
         setIsSaving(true);
         try {
-            await updateCategories(categories);
+            await Promise.all([
+                updateCategories(categories),
+                updateSizes(sizes),
+                updateColors(colors)
+            ]);
             setShowStatus('success');
         } catch (err) {
             setShowStatus('error');
@@ -120,7 +132,7 @@ export default function Settings() {
                     </div>
                 </div>
 
-                <div className="flex gap-2 p-1 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-purple-100 dark:border-white/10 w-fit">
+                <div className="flex flex-wrap gap-2 p-1 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-purple-100 dark:border-white/10 w-fit">
                     <button
                         onClick={() => setActiveTab('categories')}
                         className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'categories'
@@ -128,7 +140,7 @@ export default function Settings() {
                             : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5'
                             }`}
                     >
-                        Categorias
+                        Variáveis & Catálogo
                     </button>
                     <button
                         onClick={() => setActiveTab('general')}
@@ -137,7 +149,7 @@ export default function Settings() {
                             : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5'
                             }`}
                     >
-                        Geral
+                        Loja & Contactos
                     </button>
                 </div>
             </div>
@@ -155,12 +167,12 @@ export default function Settings() {
                             <div className="flex items-center justify-between mb-8">
                                 <div>
                                     <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                        <Tag className="w-5 h-5 text-purple-500" /> Gestão de Categorias
+                                        <Tag className="w-5 h-5 text-purple-500" /> Variáveis & Catálogo
                                     </h2>
-                                    <p className="text-xs text-slate-500 font-medium mt-1">Crie as categorias para organizar o seu catálogo de produtos.</p>
+                                    <p className="text-xs text-slate-500 font-medium mt-1">Configure Categorias, Tamanhos e Cores disponíveis para a loja.</p>
                                 </div>
                                 <button
-                                    onClick={handleSaveCategories}
+                                    onClick={handleSaveCatalogVars}
                                     disabled={isSaving}
                                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
                                 >
@@ -169,7 +181,8 @@ export default function Settings() {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                {/* Categorias */}
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nova Categoria</label>
@@ -178,52 +191,112 @@ export default function Settings() {
                                                 type="text"
                                                 value={newCategory}
                                                 onChange={(e) => setNewCategory(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleAddListItem(setCategories, categories, newCategory, setNewCategory)}
                                                 placeholder="Ex: Malhas, Calçado..."
                                                 className="flex-1 px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
                                             />
                                             <button
-                                                onClick={handleAddCategory}
+                                                onClick={() => handleAddListItem(setCategories, categories, newCategory, setNewCategory)}
                                                 className="p-3 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-2xl hover:bg-purple-600 hover:text-white transition-all shadow-sm"
                                             >
                                                 <Plus className="w-6 h-6" />
                                             </button>
                                         </div>
                                     </div>
-
-                                    <div className="p-4 bg-purple-50/50 dark:bg-purple-900/10 rounded-2xl border border-purple-100/50 dark:border-purple-800/20">
-                                        <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold leading-relaxed">
-                                            💡 As categorias criadas aqui ficarão disponíveis como opções no formulário de cadastro de produtos da Base de Itens.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Lista de Categorias ({categories.length})</label>
-                                    <div className="bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-white/5 min-h-[200px] flex flex-wrap gap-2 content-start">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mt-4">Lista de Categorias ({categories.length})</label>
+                                    <div className="bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-white/5 min-h-[120px] max-h-[200px] overflow-y-auto custom-scrollbar flex flex-wrap gap-2 content-start">
                                         {categories.length === 0 ? (
-                                            <div className="w-full h-full flex flex-col items-center justify-center py-8 text-slate-400 gap-2 grayscale opacity-50">
-                                                <Tag className="w-8 h-8" />
-                                                <span className="text-[10px] font-black uppercase">Nenhuma categoria criada</span>
-                                            </div>
+                                            <div className="w-full text-center text-slate-400 text-[10px] uppercase font-bold py-4">Nenhuma categoria</div>
                                         ) : (
                                             categories.map((cat) => (
-                                                <motion.div
-                                                    key={cat}
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    className="flex items-center gap-2 pl-4 pr-2 py-2 bg-white dark:bg-white/5 border border-purple-100 dark:border-white/10 rounded-xl shadow-sm group"
-                                                >
+                                                <motion.div key={cat} initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-white/5 border border-purple-100 dark:border-white/10 rounded-xl shadow-sm group">
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{cat}</span>
-                                                    <button
-                                                        onClick={() => handleRemoveCategory(cat)}
-                                                        className="p-1.5 hover:bg-rose-500 hover:text-white rounded-lg text-slate-400 transition-all opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    <button onClick={() => handleRemoveListItem(setCategories, categories, cat)} className="p-1 hover:text-rose-500 text-slate-400 transition-colors"><Trash2 className="w-3 h-3" /></button>
                                                 </motion.div>
                                             ))
                                         )}
+                                    </div>
+                                </div>
+
+                                {/* Tamanhos */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Novo Tamanho</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newSize}
+                                                onChange={(e) => setNewSize(e.target.value.toUpperCase())}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleAddListItem(setSizes, sizes, newSize, setNewSize)}
+                                                placeholder="Ex: S, M, L, XL, 38..."
+                                                className="flex-1 px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-bold text-sm"
+                                            />
+                                            <button
+                                                onClick={() => handleAddListItem(setSizes, sizes, newSize, setNewSize)}
+                                                className="p-3 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Plus className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mt-4">Lista de Tamanhos ({sizes.length})</label>
+                                    <div className="bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-white/5 min-h-[120px] max-h-[200px] overflow-y-auto custom-scrollbar flex flex-wrap gap-2 content-start">
+                                        {sizes.length === 0 ? (
+                                            <div className="w-full text-center text-slate-400 text-[10px] uppercase font-bold py-4">Nenhum tamanho</div>
+                                        ) : (
+                                            sizes.map((sz) => (
+                                                <motion.div key={sz} initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl shadow-sm group">
+                                                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">{sz}</span>
+                                                    <button onClick={() => handleRemoveListItem(setSizes, sizes, sz)} className="p-1 hover:text-rose-500 text-slate-400 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                                </motion.div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Cores */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nova Cor</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newColor}
+                                                onChange={(e) => setNewColor(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleAddListItem(setColors, colors, newColor, setNewColor)}
+                                                placeholder="Ex: Azul, Rosa, Branco..."
+                                                className="flex-1 px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-sm"
+                                            />
+                                            <button
+                                                onClick={() => handleAddListItem(setColors, colors, newColor, setNewColor)}
+                                                className="p-3 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Plus className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mt-4">Lista de Cores ({colors.length})</label>
+                                    <div className="bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-white/5 min-h-[120px] max-h-[200px] overflow-y-auto custom-scrollbar flex flex-wrap gap-2 content-start">
+                                        {colors.length === 0 ? (
+                                            <div className="w-full text-center text-slate-400 text-[10px] uppercase font-bold py-4">Nenhuma cor</div>
+                                        ) : (
+                                            colors.map((c) => (
+                                                <motion.div key={c} initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl shadow-sm group">
+                                                    <span className="text-xs font-bold text-blue-700 dark:text-blue-400 capitalize">{c}</span>
+                                                    <button onClick={() => handleRemoveListItem(setColors, colors, c)} className="p-1 hover:text-rose-500 text-slate-400 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                                </motion.div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 flex flex-col justify-center">
+                                    <div className="p-4 bg-purple-50/50 dark:bg-purple-900/10 rounded-2xl border border-purple-100/50 dark:border-purple-800/20">
+                                        <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold leading-relaxed">
+                                            💡 Categorias, Tamanhos e Cores adicionados aqui ficam disponíveis globalmente para todos os produtos. Na janela de edição do artigo, o administrador escolhe quais destas opções se aplicam àquele artigo específico.
+                                        </p>
                                     </div>
                                 </div>
                             </div>

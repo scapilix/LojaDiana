@@ -14,6 +14,12 @@ export default function POS() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
+    // Variation Modal State
+    const [selectedProductForVariation, setSelectedProductForVariation] = useState<any | null>(null);
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [variationQuantity, setVariationQuantity] = useState(1);
+
     // Filter products based on search
     const filteredProducts = useMemo(() => {
         if (!searchTerm) return stockInventory.slice(0, 50); // Limit initial render
@@ -29,6 +35,20 @@ export default function POS() {
 
     const handleProductClick = (product: any) => {
         if (product.current_stock <= 0) return;
+
+        // Check if product has variations
+        const hasSizes = product.sizes && product.sizes.length > 0;
+        const hasColors = product.colors && product.colors.length > 0;
+
+        if (hasSizes || hasColors) {
+            setSelectedProductForVariation(product);
+            setSelectedSize(hasSizes ? product.sizes[0] : null);
+            setSelectedColor(hasColors ? product.colors[0] : null);
+            setVariationQuantity(1);
+            return;
+        }
+
+        // Add directly if no variations
         addToCart({
             ref: product.ref,
             nome_artigo: product.name,
@@ -37,6 +57,23 @@ export default function POS() {
             base_price: product.base_price || 0,
             current_stock: product.current_stock
         });
+    };
+
+    const handleConfirmVariation = () => {
+        if (!selectedProductForVariation) return;
+
+        addToCart({
+            ref: selectedProductForVariation.ref,
+            nome_artigo: selectedProductForVariation.name,
+            quantidade: variationQuantity,
+            pvp_cica: selectedProductForVariation.pvp || 0,
+            base_price: selectedProductForVariation.base_price || 0,
+            current_stock: selectedProductForVariation.current_stock,
+            size: selectedSize || undefined,
+            color: selectedColor || undefined
+        });
+
+        setSelectedProductForVariation(null);
     };
 
     const handleCheckout = async (method: string) => {
@@ -78,8 +115,8 @@ export default function POS() {
                                 onClick={() => handleProductClick(product)}
                                 disabled={product.current_stock <= 0}
                                 className={`relative flex flex-col items-start p-4 rounded-2xl border text-left transition-all ${product.current_stock <= 0
-                                        ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
-                                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1'
+                                    ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
+                                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1'
                                     }`}
                             >
                                 <div className="w-full aspect-square bg-slate-100 dark:bg-slate-900 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
@@ -97,8 +134,8 @@ export default function POS() {
                                         {formatCurrency(product.pvp || 0)}
                                     </span>
                                     <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${product.current_stock <= 0 ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30' :
-                                            product.current_stock <= 3 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
-                                                'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                        product.current_stock <= 3 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
+                                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                                         }`}>
                                         {product.current_stock} un
                                     </span>
@@ -167,13 +204,13 @@ export default function POS() {
                                     <p className="font-black text-sm text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(item.pvp_cica * item.quantidade)}</p>
                                 </div>
                                 <div className="flex flex-col items-center justify-between">
-                                    <button onClick={() => removeFromCart(item.ref)} className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                                    <button onClick={() => removeFromCart(item.cartItemId)} className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
                                         <X className="w-3 h-3" />
                                     </button>
                                     <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-white/10">
-                                        <button onClick={() => updateQuantity(item.ref, -1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
+                                        <button onClick={() => updateQuantity(item.cartItemId, -1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
                                         <span className="font-black text-xs w-4 text-center">{item.quantidade}</span>
-                                        <button onClick={() => updateQuantity(item.ref, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
+                                        <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
                                     </div>
                                 </div>
                             </div>
@@ -272,6 +309,113 @@ export default function POS() {
                                     <span className="font-black text-slate-900 dark:text-white tracking-widest uppercase text-xs animate-pulse">Processando Venda...</span>
                                 </div>
                             )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Variation Selection Modal */}
+            <AnimatePresence>
+                {selectedProductForVariation && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            onClick={() => setSelectedProductForVariation(null)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border border-slate-200 dark:border-white/10"
+                        >
+                            <button
+                                onClick={() => setSelectedProductForVariation(null)}
+                                className="absolute right-6 top-6 p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            <div className="mb-6">
+                                <span className="text-[10px] font-black text-purple-600 uppercase tracking-widest">{selectedProductForVariation.ref}</span>
+                                <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight mt-1">{selectedProductForVariation.name}</h2>
+                                <p className="font-black text-lg text-emerald-600 dark:text-emerald-400 mt-2">{formatCurrency(selectedProductForVariation.pvp || 0)}</p>
+                            </div>
+
+                            <div className="space-y-6">
+                                {/* Sizes */}
+                                {selectedProductForVariation.sizes && selectedProductForVariation.sizes.length > 0 && (
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tamanho</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedProductForVariation.sizes.map((sz: string) => (
+                                                <button
+                                                    key={sz}
+                                                    onClick={() => setSelectedSize(sz)}
+                                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
+                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                        }`}
+                                                >
+                                                    {sz}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Colors */}
+                                {selectedProductForVariation.colors && selectedProductForVariation.colors.length > 0 && (
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cor</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedProductForVariation.colors.map((c: string) => (
+                                                <button
+                                                    key={c}
+                                                    onClick={() => setSelectedColor(c)}
+                                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
+                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                        }`}
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Quantity */}
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Quantidade</label>
+                                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-white/10 w-fit">
+                                        <button
+                                            onClick={() => setVariationQuantity(Math.max(1, variationQuantity - 1))}
+                                            className="p-3 bg-white dark:bg-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                        <span className="font-black text-lg w-8 text-center">{variationQuantity}</span>
+                                        <button
+                                            onClick={() => setVariationQuantity(Math.min(selectedProductForVariation.current_stock, variationQuantity + 1))}
+                                            className="p-3 bg-white dark:bg-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 font-bold mt-2 ml-1">Estoque disponível: {selectedProductForVariation.current_stock}</p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleConfirmVariation}
+                                className="w-full mt-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-purple-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                            >
+                                <ShoppingCart className="w-5 h-5" />
+                                Adicionar
+                            </button>
                         </motion.div>
                     </div>
                 )}

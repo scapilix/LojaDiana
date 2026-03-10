@@ -37,6 +37,8 @@ interface ProductCatalogItem {
   promo_start?: string;
   promo_end?: string;
   published?: boolean;
+  sizes?: string[];
+  colors?: string[];
 }
 
 export default function BaseItems() {
@@ -95,7 +97,11 @@ export default function BaseItems() {
   };
 
   const handleEdit = (product: ProductCatalogItem) => {
-    setEditingItem({ ...product });
+    setEditingItem({
+      ...product,
+      sizes: product.sizes || [],
+      colors: product.colors || []
+    });
   };
 
   const handleDelete = async (ref: string) => {
@@ -168,7 +174,11 @@ export default function BaseItems() {
 
     try {
       setIsSubmitting(true);
-      await updateProduct(editingItem.ref, editingItem);
+      await updateProduct(editingItem.ref, {
+        ...editingItem,
+        sizes: editingItem.sizes || [],
+        colors: editingItem.colors || []
+      });
       setEditingItem(null);
     } catch (err) {
       alert('Erro ao atualizar produto');
@@ -183,7 +193,12 @@ export default function BaseItems() {
 
     try {
       setIsSubmitting(true);
-      await addProduct(newItem);
+      await addProduct({
+        ...newItem,
+        sizes: newItem.sizes || [],
+        colors: newItem.colors || [],
+        published: newItem.published !== false
+      });
       setIsAddingNew(false);
       setNewItem({
         ref: '',
@@ -194,12 +209,46 @@ export default function BaseItems() {
         lucro_meu_faturado: 0,
         fornecedor: '',
         image_url: '',
-        description: ''
+        description: '',
+        sizes: [],
+        colors: []
       });
     } catch (err: any) {
       alert(err.message || 'Erro ao adicionar produto');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleSize = (size: string) => {
+    if (isAddingNew) {
+      const currentSizes = newItem.sizes || [];
+      setNewItem({
+        ...newItem,
+        sizes: currentSizes.includes(size) ? currentSizes.filter(s => s !== size) : [...currentSizes, size]
+      });
+    } else if (editingItem) {
+      const currentSizes = editingItem.sizes || [];
+      setEditingItem({
+        ...editingItem,
+        sizes: currentSizes.includes(size) ? currentSizes.filter(s => s !== size) : [...currentSizes, size]
+      });
+    }
+  };
+
+  const handleToggleColor = (color: string) => {
+    if (isAddingNew) {
+      const currentColors = newItem.colors || [];
+      setNewItem({
+        ...newItem,
+        colors: currentColors.includes(color) ? currentColors.filter(c => c !== color) : [...currentColors, color]
+      });
+    } else if (editingItem) {
+      const currentColors = editingItem.colors || [];
+      setEditingItem({
+        ...editingItem,
+        colors: currentColors.includes(color) ? currentColors.filter(c => c !== color) : [...currentColors, color]
+      });
     }
   };
 
@@ -620,6 +669,68 @@ export default function BaseItems() {
                           })()}
                         </span>
                       </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
+                      {/* Tamanhos */}
+                      {(data.sizes && data.sizes.length > 0) && (
+                        <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/20">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Tag className="w-4 h-4 text-emerald-500" />
+                            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Tamanhos Disponíveis</h4>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {data.sizes.map(size => {
+                              const isSelected = isAddingNew ? newItem.sizes?.includes(size) : editingItem?.sizes?.includes(size);
+                              return (
+                                <button
+                                  type="button"
+                                  key={size}
+                                  onClick={() => handleToggleSize(size)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${isSelected
+                                    ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
+                                    }`}
+                                >
+                                  {size}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cores */}
+                      {(data.colors && data.colors.length > 0) && (
+                        <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-800/20">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Tag className="w-4 h-4 text-blue-500" />
+                            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Cores Disponíveis</h4>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {data.colors.map(color => {
+                              const isSelected = isAddingNew ? newItem.colors?.includes(color) : editingItem?.colors?.includes(color);
+                              return (
+                                <button
+                                  type="button"
+                                  key={color}
+                                  onClick={() => handleToggleColor(color)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border capitalize ${isSelected
+                                    ? 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    }`}
+                                >
+                                  {color}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {(!data.sizes?.length && !data.colors?.length) && (
+                        <p className="text-xs text-slate-500 italic">Nenhum tamanho ou cor configurado globalmente. Vá a Configurações para adicionar.</p>
+                      )}
                     </div>
                   </div>
                 </div>

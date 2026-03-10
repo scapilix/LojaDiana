@@ -1,0 +1,2 @@
+﻿src/pages/Encomendas.tsx(99,24): error TS6133: 'setFollowUpData' is declared but its value is never read.
+src/pages/Encomendas.tsx(748,29): error TS6133: 'printContent' is declared but its value is never read.

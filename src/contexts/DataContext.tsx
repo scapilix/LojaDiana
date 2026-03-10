@@ -11,19 +11,20 @@ interface ProductCatalogItem {
   image_url?: string;
   description?: string;
   categoria?: string;
-  promo_price?: number;
-  promo_start?: string;
   promo_end?: string;
   published?: boolean;
+  sizes?: string[];
+  colors?: string[];
 }
 
 interface ExcelData {
   orders: any[];
   customers: any[];
   products_catalog?: ProductCatalogItem[];
-  purchases?: Purchase[];
   stats?: any[];
   categories?: string[];
+  sizes?: string[];
+  colors?: string[];
   appSettings?: {
     storeName?: string;
     whatsapp?: string;
@@ -62,6 +63,8 @@ interface DataContextType {
   updateProduct: (ref: string, updates: Partial<ProductCatalogItem>) => Promise<void>;
   updateSaleStatus: (idVenda: string, status: string) => Promise<void>;
   updateCategories: (categories: string[]) => Promise<void>;
+  updateSizes: (sizes: string[]) => Promise<void>;
+  updateColors: (colors: string[]) => Promise<void>;
   updateAppSettings: (settings: any) => Promise<void>;
   updateAllProductsVisibility: (published: boolean) => Promise<void>;
   refreshPurchases: () => Promise<void>;
@@ -93,7 +96,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const { data: stateData, error } = await supabase
         .from('loja_app_state')
         .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'app_settings']);
+        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings']);
 
       if (stateData && !error) {
         const updates: Partial<ExcelData> = {};
@@ -103,6 +106,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           if (item.key === 'import_stats') updates.stats = item.value;
           if (item.key === 'manual_products_catalog') updates.manual_products_catalog = item.value;
           if (item.key === 'categories') updates.categories = item.value;
+          if (item.key === 'sizes') updates.sizes = item.value;
+          if (item.key === 'colors') updates.colors = item.value;
           if (item.key === 'app_settings') updates.appSettings = item.value;
         });
 
@@ -308,6 +313,34 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const updateSizes = async (sizes: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'sizes', value: sizes });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, sizes }));
+    } catch (err) {
+      console.error('Error updating sizes:', err);
+      throw err;
+    }
+  };
+
+  const updateColors = async (colors: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'colors', value: colors });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, colors }));
+    } catch (err) {
+      console.error('Error updating colors:', err);
+      throw err;
+    }
+  };
+
   const updateAppSettings = async (settings: any) => {
     try {
       const { error } = await supabase
@@ -360,7 +393,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       data, setData, isLoading, setIsLoading,
       addPurchase, addProduct, deleteProduct,
       addCustomer, addSale, updateProduct,
-      updateSaleStatus, updateCategories, updateAppSettings,
+      updateSaleStatus, updateCategories, updateSizes, updateColors, updateAppSettings,
       updateAllProductsVisibility,
       refreshPurchases
     }}>

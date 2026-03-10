@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useData } from './DataContext';
 
 interface CartItem {
+    cartItemId: string; // Composite key: ref-size-color
     ref: string;
     nome_artigo: string;
     quantidade: number;
@@ -10,13 +11,15 @@ interface CartItem {
     base_price?: number;
     image_url?: string;
     current_stock: number;
+    size?: string;
+    color?: string;
 }
 
 interface POSContextType {
     cart: CartItem[];
-    addToCart: (item: CartItem) => void;
-    updateQuantity: (ref: string, change: number) => void;
-    removeFromCart: (ref: string) => void;
+    addToCart: (item: Omit<CartItem, 'cartItemId'>) => void;
+    updateQuantity: (cartItemId: string, change: number) => void;
+    removeFromCart: (cartItemId: string) => void;
     clearCart: () => void;
     cartTotal: number;
     selectedCustomer: { nome: string; instagram?: string } | null;
@@ -35,9 +38,11 @@ export function POSProvider({ children }: { children: ReactNode }) {
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
 
-    const addToCart = (item: CartItem) => {
+    const addToCart = (item: Omit<CartItem, 'cartItemId'>) => {
+        const cartItemId = `${item.ref}${item.size ? `-${item.size}` : ''}${item.color ? `-${item.color}` : ''}`;
+
         setCart((prev) => {
-            const existing = prev.find((i) => i.ref === item.ref);
+            const existing = prev.find((i) => i.cartItemId === cartItemId);
             if (existing) {
                 // Obey stock limits
                 if (existing.quantidade + 1 > item.current_stock) {
@@ -45,17 +50,17 @@ export function POSProvider({ children }: { children: ReactNode }) {
                     return prev;
                 }
                 return prev.map((i) =>
-                    i.ref === item.ref ? { ...i, quantidade: i.quantidade + 1 } : i
+                    i.cartItemId === cartItemId ? { ...i, quantidade: i.quantidade + 1 } : i
                 );
             }
-            return [...prev, { ...item, quantidade: 1 }];
+            return [...prev, { ...item, cartItemId, quantidade: 1 }];
         });
     };
 
-    const updateQuantity = (ref: string, change: number) => {
+    const updateQuantity = (cartItemId: string, change: number) => {
         setCart((prev) =>
             prev.map((i) => {
-                if (i.ref === ref) {
+                if (i.cartItemId === cartItemId) {
                     const newQty = i.quantidade + change;
                     if (newQty < 1) return i; // Use remove instead
                     if (change > 0 && newQty > i.current_stock) {
@@ -69,8 +74,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
         );
     };
 
-    const removeFromCart = (ref: string) => {
-        setCart((prev) => prev.filter((i) => i.ref !== ref));
+    const removeFromCart = (cartItemId: string) => {
+        setCart((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
     };
 
     const clearCart = () => {
@@ -79,6 +84,17 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     const cartTotal = cart.reduce((sum, item) => sum + (item.pvp_cica * item.quantidade), 0);
+
+    const formatItemName = (item: CartItem) => {
+        let name = item.nome_artigo;
+        const extras = [];
+        if (item.size) extras.push(item.size);
+        if (item.color) extras.push(item.color);
+        if (extras.length > 0) {
+            name += ` (${extras.join(' / ')})`;
+        }
+        return name;
+    };
 
     const finalizeSale = async (paymentMethod: string, onSaleComplete?: () => void) => {
         if (cart.length === 0) return false;
@@ -113,7 +129,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             const orderItemsToInsert = cart.map(item => ({
                 order_id: newOrder.id,
                 product_ref: item.ref,
-                nome_artigo: item.nome_artigo,
+                nome_artigo: formatItemName(item),
                 quantidade: item.quantidade,
                 preco_unitario: item.pvp_cica,
                 lucro_unitario: item.pvp_cica - (item.base_price || 0)
@@ -140,7 +156,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 sales_channel: 'pos',
                 items: cart.map(item => ({
                     ref: item.ref,
-                    designacao: item.nome_artigo,
+                    designacao: formatItemName(item),
                     quantidade: item.quantidade,
                     pvp: item.pvp_cica * item.quantidade,
                     base: (item.base_price || 0) * item.quantidade,
@@ -185,7 +201,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             sales_channel: 'pos',
             items: cart.map(item => ({
                 ref: item.ref,
-                designacao: item.nome_artigo,
+                designacao: formatItemName(item),
                 quantidade: item.quantidade,
                 pvp: item.pvp_cica * item.quantidade,
                 base: (item.base_price || 0) * item.quantidade,
