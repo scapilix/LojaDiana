@@ -44,6 +44,8 @@ export default function BaseClientes() {
     return (
       String(customer.name || '').toLowerCase().includes(search) ||
       String(customer.address || '').toLowerCase().includes(search) ||
+      String(customer.zipCode || '').toLowerCase().includes(search) ||
+      String(customer.city || '').toLowerCase().includes(search) ||
       String(customer.instagram || '').toLowerCase().includes(search) ||
       String(customer.phone || '').toLowerCase().includes(search) ||
       String(customer.email || '').toLowerCase().includes(search)
@@ -119,6 +121,8 @@ export default function BaseClientes() {
               <tr>
                 <th scope="col" className="px-4 py-3">Instagram / Cliente</th>
                 <th scope="col" className="px-4 py-3">Morada</th>
+                <th scope="col" className="px-4 py-3">Cód. Postal</th>
+                <th scope="col" className="px-4 py-3">Localidade</th>
                 <th scope="col" className="px-4 py-3">Contactos</th>
                 <th scope="col" className="px-4 py-3 text-right">Vendas</th>
                 <th scope="col" className="px-4 py-3 text-right">Total</th>
@@ -178,6 +182,30 @@ export default function BaseClientes() {
                         <MapPin className="w-3 h-3 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
                         <span>{customer.address}</span>
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div
+                      className="text-slate-800 dark:text-slate-200 font-bold cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      title="Clique para copiar o código postal"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(customer.zipCode);
+                      }}
+                    >
+                      {customer.zipCode}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div
+                      className="text-slate-800 dark:text-slate-200 font-bold cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      title="Clique para copiar a localidade"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(customer.city);
+                      }}
+                    >
+                      {customer.city}
                     </div>
                   </td>
                   <td className="px-4 py-2">
@@ -314,6 +342,34 @@ export default function BaseClientes() {
                             <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Telefone</div>
                             <div className="text-sm font-bold text-slate-900 dark:text-white">
                               {selectedCustomer.phone || '-'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div
+                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-purple-400 transition-all group"
+                            onClick={() => copyToClipboard(selectedCustomer.zipCode)}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-[10px] font-black text-slate-500 uppercase">Cód. Postal</span>
+                              <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
+                            </div>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white">
+                              {selectedCustomer.zipCode || '-'}
+                            </div>
+                          </div>
+
+                          <div
+                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-purple-400 transition-all group"
+                            onClick={() => copyToClipboard(selectedCustomer.city)}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-[10px] font-black text-slate-500 uppercase">Localidade</span>
+                              <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
+                            </div>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                              {selectedCustomer.city || '-'}
                             </div>
                           </div>
                         </div>

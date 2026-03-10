@@ -9,15 +9,17 @@ export interface DashboardMetrics {
   revenueByMonth: { month: string; value: number }[];
   regionalData: { name: string; value: number }[];
   topCustomers: { name: string; revenue: number; orders: number; instagram: string; percentage: number }[];
-  allCustomers: { 
-    name: string; 
-    instagram: string; 
-    address: string; 
-    email: string; 
-    phone: string; 
-    orders: number; 
+  allCustomers: {
+    name: string;
+    instagram: string;
+    address: string;
+    zipCode: string;
+    city: string;
+    email: string;
+    phone: string;
+    orders: number;
     revenue: number;
-    history: Order[]; 
+    history: Order[];
   }[];
   topProducts: { ref: string; quantity: number; revenue: number; avgPrice: number; name?: string }[];
 
@@ -80,7 +82,7 @@ interface Order {
 
 export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetrics => {
   const { data: rawData } = useData();
-  
+
   return useMemo(() => {
     // Type assertion for raw data
     let orders = rawData.orders || [];
@@ -113,7 +115,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
         return true;
       });
     }
-    
+
     // Calculate KPIs
     let totalRevenue = 0;
     let totalProfit = 0;
@@ -125,26 +127,28 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
     const customerNameMap = new Map(); // Key: Name (for fallback lookup)
 
     if (rawData.customers && Array.isArray(rawData.customers)) {
-        rawData.customers.forEach((c: any) => {
-            const name = c.nome_cliente ? c.nome_cliente.trim().toUpperCase() : '';
-            if (name) {
-                customerNameMap.set(name, c);
-            }
+      rawData.customers.forEach((c: any) => {
+        const name = c.nome_cliente ? c.nome_cliente.trim().toUpperCase() : '';
+        if (name) {
+          customerNameMap.set(name, c);
+        }
 
-            if (c.instagram && c.instagram !== 'N/A' && c.instagram !== '-') {
-                const cleanInsta = c.instagram.trim().toUpperCase().replace('@', '');
-                customerDbMap.set(cleanInsta, c);
-            }
-        });
+        if (c.instagram && c.instagram !== 'N/A' && c.instagram !== '-') {
+          const cleanInsta = c.instagram.trim().toUpperCase().replace('@', '');
+          customerDbMap.set(cleanInsta, c);
+        }
+      });
     }
 
-    const customerMap: Record<string, { 
-      revenue: number; 
+    const customerMap: Record<string, {
+      revenue: number;
       orders: number;
       instagram: string;
       address: string;
+      zipCode: string;
+      city: string;
       history: Order[];
-    }> = {}; 
+    }> = {};
 
     const locationMap: Record<string, { revenue: number; orders: number }> = {};
     const dayOfWeekMap: Record<string, { revenue: number; orders: number }> = {};
@@ -153,10 +157,10 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
     const paymentMethodMap: Record<string, { count: number; revenue: number }> = {};
 
     // Product Performance Map (replacing old productMap)
-    const productPerformance: Record<string, { 
-      name: string; 
-      revenue: number; 
-      quantity: number; 
+    const productPerformance: Record<string, {
+      name: string;
+      revenue: number;
+      quantity: number;
       ref: string;
     }> = {};
 
@@ -184,7 +188,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       const normalizedPM = paymentMethod.toUpperCase().replace(/\s/g, '');
       if (normalizedPM === 'MBWAY') paymentMethod = 'MB Way';
       const orderDateString = order.data_venda ? new Date(order.data_venda).toISOString().split('T')[0] : 'N/A';
-      
+
       const orderDate = new Date(order.data_venda || '');
       const monthKey = orderDate.toLocaleString('default', { month: 'short' });
 
@@ -206,44 +210,46 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       // Priority 1: Instagram from Order
       // Priority 2: Instagram from DB (lookup by Name)
       // Priority 3: Name (Fallback)
-      
+
       let customerKey = '';
       let resolvedInsta = hasInsta ? cleanInsta : '';
       let dbCustomer: any = null;
 
       if (resolvedInsta) {
-          customerKey = resolvedInsta;
-          dbCustomer = customerDbMap.get(resolvedInsta);
+        customerKey = resolvedInsta;
+        dbCustomer = customerDbMap.get(resolvedInsta);
       } else {
-          // STRICT RULE: Do not try to find instagram via name for ID generation.
-          // This prevents merging "Joana (No Insta)" into "Joana A" or "Joana B" indiscriminately.
-          // Orders with N/A instagram will separate into their own "NAME:..." group.
-          customerKey = `NAME:${cleanName}`;
-          
-          // We can still try to find metadata for display purposes later, but the ID is strictly Name-based.
-          // If we want to be helpful, we can check if this Name maps to a SINGLE unique Instagram in DB.
-          // But user says "Names can be equal", so assuming identity by Name is dangerous.
+        // STRICT RULE: Do not try to find instagram via name for ID generation.
+        // This prevents merging "Joana (No Insta)" into "Joana A" or "Joana B" indiscriminately.
+        // Orders with N/A instagram will separate into their own "NAME:..." group.
+        customerKey = `NAME:${cleanName}`;
+
+        // We can still try to find metadata for display purposes later, but the ID is strictly Name-based.
+        // If we want to be helpful, we can check if this Name maps to a SINGLE unique Instagram in DB.
+        // But user says "Names can be equal", so assuming identity by Name is dangerous.
       }
-      
+
       if (!customerMap[customerKey]) {
-        customerMap[customerKey] = { 
-          revenue: 0, 
+        customerMap[customerKey] = {
+          revenue: 0,
           orders: 0,
           instagram: resolvedInsta ? (dbCustomer?.instagram || instagram) : 'N/A', // Keep display format
-          address: dbCustomer?.morada || region,
+          address: dbCustomer?.morada || '-',
+          zipCode: dbCustomer?.cod_postal || '-',
+          city: dbCustomer?.localidade || region,
           history: []
         };
       }
-      
+
       customerMap[customerKey].revenue += pvp;
       customerMap[customerKey].orders += 1;
       customerMap[customerKey].history.push(order);
-      
+
       // Update info if it was missing and we found better info (e.g. from a subsequent order)
       if (customerMap[customerKey].instagram === 'N/A' && hasInsta) {
-         customerMap[customerKey].instagram = instagram;
+        customerMap[customerKey].instagram = instagram;
       }
-      
+
       // Customer sales count using same key
       customerSalesCount[customerKey] = (customerSalesCount[customerKey] || 0) + 1;
 
@@ -260,7 +266,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       }
       dayOfWeekMap[dayOfWeek].revenue += pvp;
       dayOfWeekMap[dayOfWeek].orders += 1;
-      
+
       // Date data
       if (orderDateString !== 'N/A') {
         if (!dateMap[orderDateString]) {
@@ -269,7 +275,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
         dateMap[orderDateString].count += 1;
         dateMap[orderDateString].revenue += pvp;
       }
-      
+
       // Payment method data
       if (paymentMethod !== 'N/A') {
         if (!paymentMethodMap[paymentMethod]) {
@@ -290,7 +296,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
             // Shipping Analysis
             shippingMetrics.totalShippingRevenue += revenue;
             shippingMetrics.shippingCount += 1;
-            
+
             // Monthly Shipping Tracking
             if (!shippingMetrics.monthlyShipping[monthKey]) {
               shippingMetrics.monthlyShipping[monthKey] = 0;
@@ -342,27 +348,29 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
 
     // All Customers List (New Implementation)
     // We iterate the customerMap (Active Sales) + Filtered DB Customers
-    
+
     // 1. Convert Sales Map to List
     const activeCustomers = Object.entries(customerMap).map(([key, data]) => {
       // Find the best display name
       // Try DB match first
       let dbC = null;
       if (key.startsWith('NAME:')) {
-          const namePart = key.replace('NAME:', '');
-          dbC = customerNameMap.get(namePart);
+        const namePart = key.replace('NAME:', '');
+        dbC = customerNameMap.get(namePart);
       } else {
-          dbC = customerDbMap.get(key); // key is instagram
+        dbC = customerDbMap.get(key); // key is instagram
       }
 
       const displayName = dbC?.nome_cliente || data.history[0]?.nome_cliente || 'Sem Nome';
-      
+
       return {
         name: displayName,
         revenue: data.revenue,
         orders: data.orders,
         instagram: dbC?.instagram || data.instagram || '-',
         address: dbC?.morada || data.address || '-',
+        zipCode: dbC?.cod_postal || '-',
+        city: dbC?.localidade || '-',
         email: dbC?.email_cliente || '-',
         phone: dbC?.telefone_cliente || '-',
         history: data.history,
@@ -373,31 +381,33 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
 
     // 2. Add customers from DB that had NO sales
     const processedKeys = new Set(activeCustomers.map(c => c._key));
-    
-    (rawData.customers || []).forEach((dbC: any) => {
-        let key = '';
-        if (dbC.instagram && dbC.instagram !== 'N/A' && dbC.instagram !== '-') {
-            key = dbC.instagram.trim().toUpperCase().replace('@', '');
-        } else if (dbC.nome_cliente) {
-            key = `NAME:${dbC.nome_cliente.trim().toUpperCase()}`;
-        }
 
-        if (key && !processedKeys.has(key)) {
-            // Add inactive customer
-            activeCustomers.push({
-                name: dbC.nome_cliente || 'Sem Nome',
-                revenue: 0,
-                orders: 0,
-                instagram: dbC.instagram || '-',
-                address: dbC.morada || '-',
-                email: dbC.email_cliente || '-',
-                phone: dbC.telefone_cliente || '-',
-                history: [],
-                _key: key,
-                _source: 'DB_INACTIVE'
-            });
-            processedKeys.add(key); // Prevent dual adding if DB has duplicates
-        }
+    (rawData.customers || []).forEach((dbC: any) => {
+      let key = '';
+      if (dbC.instagram && dbC.instagram !== 'N/A' && dbC.instagram !== '-') {
+        key = dbC.instagram.trim().toUpperCase().replace('@', '');
+      } else if (dbC.nome_cliente) {
+        key = `NAME:${dbC.nome_cliente.trim().toUpperCase()}`;
+      }
+
+      if (key && !processedKeys.has(key)) {
+        // Add inactive customer
+        activeCustomers.push({
+          name: dbC.nome_cliente || 'Sem Nome',
+          revenue: 0,
+          orders: 0,
+          instagram: dbC.instagram || '-',
+          address: dbC.morada || '-',
+          zipCode: dbC.cod_postal || '-',
+          city: dbC.localidade || '-',
+          email: dbC.email_cliente || '-',
+          phone: dbC.telefone_cliente || '-',
+          history: [],
+          _key: key,
+          _source: 'DB_INACTIVE'
+        });
+        processedKeys.add(key); // Prevent dual adding if DB has duplicates
+      }
     });
 
     // Sort by revenue
@@ -449,7 +459,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
         };
       })
       .filter(item => item.revenue > 0);
-    
+
     // Sales by date (last 30 days or all available)
     const salesByDate = Object.entries(dateMap)
       .map(([date, data]) => ({
@@ -458,7 +468,7 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
         revenue: data.revenue
       }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+
     // Payment method data
     const paymentMethodData = Object.entries(paymentMethodMap)
       .map(([method, data]) => ({
@@ -471,78 +481,78 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
 
 
 
-      const allOrders = (rawData as any).orders || [];
-      
-      // Calculate context-aware counts for the filter UI
-      
-      // 1. Year Counts (Global)
-      const yearCounts: Record<string, number> = {};
+    const allOrders = (rawData as any).orders || [];
+
+    // Calculate context-aware counts for the filter UI
+
+    // 1. Year Counts (Global)
+    const yearCounts: Record<string, number> = {};
+    allOrders.forEach((o: any) => {
+      if (o.data_venda) {
+        const y = new Date(o.data_venda).getFullYear().toString();
+        yearCounts[y] = (yearCounts[y] || 0) + 1;
+      }
+    });
+
+    // 2. Month Counts (Context: Selected Year)
+    const monthCounts: Record<string, number> = {};
+    if (filters.year) {
       allOrders.forEach((o: any) => {
         if (o.data_venda) {
-          const y = new Date(o.data_venda).getFullYear().toString();
-          yearCounts[y] = (yearCounts[y] || 0) + 1;
+          const date = new Date(o.data_venda);
+          if (date.getFullYear().toString() === filters.year) {
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            monthCounts[m] = (monthCounts[m] || 0) + 1;
+          }
         }
       });
+    }
 
-      // 2. Month Counts (Context: Selected Year)
-      const monthCounts: Record<string, number> = {};
-      if (filters.year) {
-        allOrders.forEach((o: any) => {
-          if (o.data_venda) {
-            const date = new Date(o.data_venda);
-            if (date.getFullYear().toString() === filters.year) {
-              const m = (date.getMonth() + 1).toString().padStart(2, '0');
-              monthCounts[m] = (monthCounts[m] || 0) + 1;
-            }
+    // 3. Day Counts (Context: Selected Year + Month)
+    const dayCounts: Record<string, number> = {};
+    if (filters.year && filters.month) {
+      allOrders.forEach((o: any) => {
+        if (o.data_venda) {
+          const date = new Date(o.data_venda);
+          const y = date.getFullYear().toString();
+          const m = (date.getMonth() + 1).toString().padStart(2, '0');
+
+          if (y === filters.year && m === filters.month) {
+            const d = date.getDate().toString().padStart(2, '0');
+            dayCounts[d] = (dayCounts[d] || 0) + 1;
           }
-        });
-      }
+        }
+      });
+    }
 
-      // 3. Day Counts (Context: Selected Year + Month)
-      const dayCounts: Record<string, number> = {};
-      if (filters.year && filters.month) {
-        allOrders.forEach((o: any) => {
-          if (o.data_venda) {
-            const date = new Date(o.data_venda);
-            const y = date.getFullYear().toString();
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            
-            if (y === filters.year && m === filters.month) {
-              const d = date.getDate().toString().padStart(2, '0');
-              dayCounts[d] = (dayCounts[d] || 0) + 1;
-            }
-          }
-        });
-      }
-
-      return {
-        totalRevenue,
-        totalProfit,
-        orderCount,
-        avgTicket,
-        revenueByMonth,
-        regionalData,
-        topCustomers,
-        allCustomers, // Added allCustomers
-        topProducts,
-        salesByLocation,
-        salesByDayOfWeek,
-        customerSalesCount,
-        salesByDate,
-        paymentMethodData,
-        shippingMetrics,
-        isFiltered,
-        availableFilters: {
-          years: Array.from(allYears).sort().reverse(),
-          months: Array.from(allMonths).sort(),
-          days: Array.from(new Set(orders.map((o: any) => o.data_venda ? new Date(o.data_venda).getDate().toString().padStart(2, '0') : null).filter(Boolean) as string[])).sort()
-        },
-        filterCounts: {
-          years: yearCounts,
-          months: monthCounts,
-          days: dayCounts
-        },
-        filteredOrders: orders
-      };
-    }, [filters, rawData]);
+    return {
+      totalRevenue,
+      totalProfit,
+      orderCount,
+      avgTicket,
+      revenueByMonth,
+      regionalData,
+      topCustomers,
+      allCustomers, // Added allCustomers
+      topProducts,
+      salesByLocation,
+      salesByDayOfWeek,
+      customerSalesCount,
+      salesByDate,
+      paymentMethodData,
+      shippingMetrics,
+      isFiltered,
+      availableFilters: {
+        years: Array.from(allYears).sort().reverse(),
+        months: Array.from(allMonths).sort(),
+        days: Array.from(new Set(orders.map((o: any) => o.data_venda ? new Date(o.data_venda).getDate().toString().padStart(2, '0') : null).filter(Boolean) as string[])).sort()
+      },
+      filterCounts: {
+        years: yearCounts,
+        months: monthCounts,
+        days: dayCounts
+      },
+      filteredOrders: orders
+    };
+  }, [filters, rawData]);
 };
