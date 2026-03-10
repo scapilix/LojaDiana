@@ -312,15 +312,50 @@ export default function BaseClientes() {
 
                       <div className="grid grid-cols-1 gap-3">
                         <div
-                          className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-purple-400 transition-all group"
-                          onClick={() => copyToClipboard(selectedCustomer.address)}
+                          className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-all"
                         >
-                          <div className="flex justify-between items-start mb-1">
+                          <div className="flex justify-between items-start mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
                             <span className="text-[10px] font-black text-slate-500 uppercase">Morada Completa</span>
-                            <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
                           </div>
-                          <div className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">
-                            {selectedCustomer.address || '-'}
+
+                          <div className="space-y-3">
+                            <div
+                              className="group flex justify-between items-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-all border border-transparent hover:border-purple-200 dark:hover:border-purple-800/30"
+                              onClick={() => copyToClipboard(selectedCustomer.address)}
+                            >
+                              <div className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">
+                                {selectedCustomer.address || '-'}
+                              </div>
+                              <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Copiar Morada</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div
+                                className="group cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-all border border-transparent hover:border-purple-200 dark:hover:border-purple-800/30"
+                                onClick={() => copyToClipboard(selectedCustomer.zipCode)}
+                              >
+                                <div className="flex justify-between items-center mb-0.5">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase">Cód. Postal</span>
+                                  <span className="text-[9px] text-purple-600 dark:text-purple-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
+                                </div>
+                                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                                  {selectedCustomer.zipCode || '-'}
+                                </div>
+                              </div>
+
+                              <div
+                                className="group cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-700/50 p-2 rounded-lg transition-all border border-transparent hover:border-purple-200 dark:hover:border-purple-800/30"
+                                onClick={() => copyToClipboard(selectedCustomer.city)}
+                              >
+                                <div className="flex justify-between items-center mb-0.5">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase">Localidade</span>
+                                  <span className="text-[9px] text-purple-600 dark:text-purple-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
+                                </div>
+                                <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                  {selectedCustomer.city || '-'}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
@@ -342,34 +377,6 @@ export default function BaseClientes() {
                             <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Telefone</div>
                             <div className="text-sm font-bold text-slate-900 dark:text-white">
                               {selectedCustomer.phone || '-'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div
-                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-purple-400 transition-all group"
-                            onClick={() => copyToClipboard(selectedCustomer.zipCode)}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="text-[10px] font-black text-slate-500 uppercase">Cód. Postal</span>
-                              <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
-                            </div>
-                            <div className="text-sm font-bold text-slate-900 dark:text-white">
-                              {selectedCustomer.zipCode || '-'}
-                            </div>
-                          </div>
-
-                          <div
-                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-purple-400 transition-all group"
-                            onClick={() => copyToClipboard(selectedCustomer.city)}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="text-[10px] font-black text-slate-500 uppercase">Localidade</span>
-                              <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">Copiar</span>
-                            </div>
-                            <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                              {selectedCustomer.city || '-'}
                             </div>
                           </div>
                         </div>
