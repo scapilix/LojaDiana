@@ -22,8 +22,10 @@ import {
   PlusCircle,
   ClipboardList,
   ShoppingBag,
-  Settings
+  Settings,
+  Store
 } from 'lucide-react';
+
 import { ThemeToggle } from '../ThemeToggle';
 import { ExcelImport } from '../ExcelImport';
 import { useData } from '../../contexts/DataContext';
@@ -37,6 +39,7 @@ const navigation = [
   { id: 'base-itens', label: 'Base de Itens', icon: Tag, path: '/base-itens' },
   { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
 
+  { id: 'pos', label: 'Frente de Caixa (POS)', icon: Store, path: '/pos' },
   { id: 'stock-manager', label: 'Gestão de Stock', icon: Box, path: '/stock-manager' },
   { id: 'cadastro-vendas', label: 'Cadastro de Vendas', icon: PlusCircle, path: '/cadastro-vendas' },
   { id: 'encomendas', label: 'Encomendas', icon: ClipboardList, path: '/encomendas' },

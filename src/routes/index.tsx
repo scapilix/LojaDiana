@@ -15,11 +15,13 @@ import CadastroVendas from '../pages/CadastroVendas';
 import Encomendas from '../pages/Encomendas';
 import Loja from '../pages/Loja';
 import Settings from '../pages/Settings';
+import POS from '../pages/POS';
 
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
 import { DataProvider } from '../contexts/DataContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { POSProvider } from '../contexts/POSContext';
 import rawData from '../data/data.json';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,28 +43,31 @@ function AppRoutes() {
       <AuthProvider>
         <DataProvider initialData={rawData as any}>
           <FilterProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/loja" element={<Loja />} />
-              <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route index element={<Overview />} />
-                <Route path="clientes" element={<Clientes />} />
-                <Route path="base-clientes" element={<BaseClientes />} />
-                <Route path="base-itens" element={<BaseItems />} />
-                <Route path="stock-manager" element={<StockManager />} />
+            <POSProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/loja" element={<Loja />} />
+                <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route index element={<Overview />} />
+                  <Route path="clientes" element={<Clientes />} />
+                  <Route path="base-clientes" element={<BaseClientes />} />
+                  <Route path="base-itens" element={<BaseItems />} />
+                  <Route path="stock-manager" element={<StockManager />} />
+                  <Route path="pos" element={<POS />} />
 
-                <Route path="produtos" element={<Produtos />} />
-                <Route path="rankings" element={<Rankings />} />
-                <Route path="portes" element={<Portes />} />
-                <Route path="faturas" element={<Faturas />} />
-                <Route path="despesas" element={<Despesas />} />
-                <Route path="emprestimos" element={<Emprestimos />} />
-                <Route path="cadastro-vendas" element={<CadastroVendas />} />
-                <Route path="encomendas" element={<Encomendas />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
-            </Routes>
+                  <Route path="produtos" element={<Produtos />} />
+                  <Route path="rankings" element={<Rankings />} />
+                  <Route path="portes" element={<Portes />} />
+                  <Route path="faturas" element={<Faturas />} />
+                  <Route path="despesas" element={<Despesas />} />
+                  <Route path="emprestimos" element={<Emprestimos />} />
+                  <Route path="cadastro-vendas" element={<CadastroVendas />} />
+                  <Route path="encomendas" element={<Encomendas />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+            </POSProvider>
           </FilterProvider>
         </DataProvider>
       </AuthProvider>
