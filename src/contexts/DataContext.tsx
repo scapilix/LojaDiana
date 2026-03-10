@@ -73,6 +73,8 @@ interface DataContextType {
   updateAppSettings: (settings: any) => Promise<void>;
   updateAllProductsVisibility: (published: boolean) => Promise<void>;
   refreshPurchases: () => Promise<void>;
+  clearAllItems: () => Promise<void>;
+  clearAllOrders: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -391,6 +393,50 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const clearAllItems = async () => {
+    try {
+      // 1. Clear database tables
+      const { error: err1 } = await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { error: err2 } = await supabase.from('diana_products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // 2. Clear state in loja_app_state
+      const { error: err3 } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'manual_products_catalog', value: [] });
+
+      if (err1 || err2 || err3) throw (err1 || err2 || err3);
+
+      // 3. Update local state
+      setData(prev => ({ ...prev, manual_products_catalog: [], products_catalog: [] }));
+    } catch (err) {
+      console.error('Error clearing all items:', err);
+      throw err;
+    }
+  };
+
+  const clearAllOrders = async () => {
+    try {
+      // 1. Clear database tables
+      await supabase.from('order_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('diana_orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // 2. Clear state in loja_app_state
+      await supabase
+        .from('loja_app_state')
+        .upsert([
+          { key: 'import_orders', value: [] },
+          { key: 'import_stats', value: [] }
+        ]);
+
+      // 3. Update local state
+      setData(prev => ({ ...prev, orders: [], stats: [] }));
+    } catch (err) {
+      console.error('Error clearing all orders:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -400,7 +446,9 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       addCustomer, addSale, updateProduct,
       updateSaleStatus, updateCategories, updateSizes, updateColors, updateAppSettings,
       updateAllProductsVisibility,
-      refreshPurchases
+      refreshPurchases,
+      clearAllItems,
+      clearAllOrders
     }}>
       {children}
     </DataContext.Provider>

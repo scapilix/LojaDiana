@@ -44,7 +44,7 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, isLoading, updateProduct, updateAllProductsVisibility, addProduct, deleteProduct, setData, updateSizes, updateColors } = useData();
+  const { data, isLoading, updateProduct, updateAllProductsVisibility, addProduct, deleteProduct, setData, updateSizes, updateColors, clearAllItems } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [newSizeInput, setNewSizeInput] = useState('');
   const [newColorInput, setNewColorInput] = useState('');
@@ -382,6 +382,25 @@ export default function BaseItems() {
             className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 rounded-2xl transition-all flex items-center gap-2 shadow-xl shadow-purple-500/20"
           >
             <Plus className="w-4 h-4" /> Novo Artigo
+          </button>
+
+          <button
+            onClick={async () => {
+              if (window.confirm('TEM A CERTEZA? Esta ação irá apagar TODOS os itens do catálogo permanentemente! Esta operação não pode ser desfeita.')) {
+                setIsSubmitting(true);
+                try {
+                  await clearAllItems();
+                  alert('Todos os itens foram removidos com sucesso.');
+                } catch (err) {
+                  alert('Erro ao apagar itens');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }
+            }}
+            className="px-6 py-3 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black uppercase tracking-widest text-[10px] hover:bg-rose-500 hover:text-white rounded-2xl transition-all flex items-center gap-2 border border-rose-500/20 shadow-xl shadow-rose-500/5"
+          >
+            <Trash2 className="w-4 h-4" /> Apagar Tudo
           </button>
 
           <div className="flex items-center gap-2 border-l border-slate-200 dark:border-white/10 pl-4 ml-2">
