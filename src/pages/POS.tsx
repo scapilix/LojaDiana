@@ -60,27 +60,24 @@ export default function POS() {
         return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
     };
 
-    const handleProductClick = (product: any) => {
-        if (product.current_stock <= 0) return;
+    const handleProductClick = (item: any) => {
+        if (item.current_stock <= 0) return;
 
         // Open modal for all products to select quantity/size/color
-        setSelectedProductForVariation(product);
-
-        const hasSizes = (product.sizes && product.sizes.length > 0) || product.variations?.some((v: any) => v.size);
-        const hasColors = (product.colors && product.colors.length > 0) || product.variations?.some((v: any) => v.color);
+        setSelectedProductForVariation(item);
 
         // Try to pre-select first valid variation or just the first options
-        const firstInStock = product.variations?.find((v: any) => v.current_stock > 0);
+        const firstInStock = item.variations?.find((v: any) => v.current_stock > 0);
         
         // Ensure we gather ALL unique values for UI
         const uniqueSizes = Array.from(new Set([
-            ...(product.sizes || []),
-            ...(product.variations?.map((v: any) => v.size).filter(Boolean) || [])
+            ...(item.sizes || []),
+            ...(item.variations?.map((v: any) => v.size).filter(Boolean) || [])
         ])).sort();
         
         const uniqueColors = Array.from(new Set([
-            ...(product.colors || []),
-            ...(product.variations?.map((v: any) => v.color).filter(Boolean) || [])
+            ...(item.colors || []),
+            ...(item.variations?.map((v: any) => v.color).filter(Boolean) || [])
         ])).sort();
 
         setSelectedSize(firstInStock?.size || (uniqueSizes.length > 0 ? uniqueSizes[0] : null));
