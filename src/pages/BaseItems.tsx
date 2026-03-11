@@ -258,9 +258,9 @@ export default function BaseItems() {
         preco_custo: ''
       });
       alert('Stock adicionado com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding stock:', error);
-      alert('Erro ao adicionar stock.');
+      alert(`Erro ao adicionar stock: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -960,7 +960,7 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhum</option>
-                          {(editingItem?.sizes && editingItem.sizes.length > 0 ? editingItem.sizes : data.sizes)?.map(s => (
+                          {((editingItem?.sizes && editingItem.sizes.length > 0) ? editingItem.sizes : (data.sizes || [])).map(s => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
@@ -973,7 +973,7 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhuma</option>
-                          {(editingItem?.colors && editingItem.colors.length > 0 ? editingItem.colors : data.colors)?.map(c => (
+                          {((editingItem?.colors && editingItem.colors.length > 0) ? editingItem.colors : (data.colors || [])).map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
