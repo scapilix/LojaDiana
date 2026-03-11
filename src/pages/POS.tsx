@@ -138,9 +138,16 @@ export default function POS() {
                                     : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1'
                                     }`}
                             >
-                                <div className="w-full aspect-square bg-slate-100 dark:bg-slate-900 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-                                    {/* Placeholder for image, using icon for now */}
-                                    <Package className="w-8 h-8 text-slate-400" />
+                                <div className="w-full aspect-square bg-white dark:bg-slate-900 rounded-xl mb-3 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5">
+                                    {product.image_url ? (
+                                        <img 
+                                            src={product.image_url} 
+                                            alt={product.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <Package className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                                    )}
                                 </div>
                                 <span className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest truncate w-full">
                                     {product.ref}

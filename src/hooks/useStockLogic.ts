@@ -25,6 +25,7 @@ export interface StockStatus {
   sizes?: string[];
   colors?: string[];
   variations: VariationStock[];
+  image_url?: string;
 }
 
 export function useStockLogic() {
@@ -91,9 +92,9 @@ export function useStockLogic() {
         pvp: catalogItem?.pvp_cica,
         profit: catalogItem?.lucro_meu_faturado,
         supplier: catalogItem?.fornecedor,
-        sizes: catalogItem?.sizes,
         colors: catalogItem?.colors,
-        variations: []
+        variations: [],
+        image_url: catalogItem?.image_url
       };
     };
 
@@ -190,7 +191,7 @@ export function useStockLogic() {
 
     console.log(`Stock calculation took ${performance.now() - calculationStart}ms`);
     return inventory.sort((a, b) => a.current_stock - b.current_stock);
-  }, [data.orders, data.purchases, data.products_catalog]);
+  }, [data.orders, data.purchases, data.products_catalog, data.manual_products_catalog]);
 
   return stockInventory;
 }

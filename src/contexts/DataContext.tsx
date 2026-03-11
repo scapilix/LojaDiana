@@ -73,6 +73,8 @@ interface DataContextType {
   updateAppSettings: (settings: any) => Promise<void>;
   updateAllProductsVisibility: (published: boolean) => Promise<void>;
   refreshPurchases: () => Promise<void>;
+  deletePurchase: (id: number) => Promise<void>;
+  updatePurchase: (id: number, updates: Partial<Purchase>) => Promise<void>;
   clearAllItems: () => Promise<void>;
   clearAllOrders: () => Promise<void>;
 }
@@ -195,6 +197,28 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       await fetchPurchases(); // Refresh local state
     } catch (err) {
       console.error('Error adding purchase:', err);
+      throw err;
+    }
+  };
+
+  const deletePurchase = async (id: number) => {
+    try {
+      const { error } = await supabase.from('loja_compras').delete().eq('id', id);
+      if (error) throw error;
+      await fetchPurchases();
+    } catch (err) {
+      console.error('Error deleting purchase:', err);
+      throw err;
+    }
+  };
+
+  const updatePurchase = async (id: number, updates: Partial<Purchase>) => {
+    try {
+      const { error } = await supabase.from('loja_compras').update(updates).eq('id', id);
+      if (error) throw error;
+      await fetchPurchases();
+    } catch (err) {
+      console.error('Error updating purchase:', err);
       throw err;
     }
   };
@@ -444,6 +468,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       updateSaleStatus, updateCategories, updateSizes, updateColors, updateAppSettings,
       updateAllProductsVisibility,
       refreshPurchases,
+      deletePurchase,
+      updatePurchase,
       clearAllItems,
       clearAllOrders
     }}>

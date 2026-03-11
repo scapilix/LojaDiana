@@ -1,23 +1,29 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  Database,
   Search,
+  Plus,
+  ArrowRight,
+  Filter,
+  Package,
+  History,
   Tag,
-  Pencil,
-  X,
-  Camera,
-  CheckCircle2,
   Loader2,
   Trash2,
-  Plus,
-  Database,
-  Expand,
+  Edit,
   Eye,
   EyeOff,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  Edit3,
+  Pencil,
+  Camera,
+  Expand,
   Globe,
-  GlobeLock,
-  History,
-  Package
+  GlobeLock
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
@@ -44,7 +50,8 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, isLoading, updateProduct, updateAllProductsVisibility, addProduct, deleteProduct, setData, updateSizes, updateColors, clearAllItems } = useData();
+  const { data, addPurchase, addProduct, deleteProduct, updateProduct, deletePurchase, updatePurchase, updateSizes, updateColors, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [newSizeInput, setNewSizeInput] = useState('');
   const [newColorInput, setNewColorInput] = useState('');
@@ -55,7 +62,6 @@ export default function BaseItems() {
   const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [isMigrating, setIsMigrating] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'stock'>('details');
-  const { addPurchase } = useData();
 
   const [stockFormData, setStockFormData] = useState({
     quantidade: 1,
@@ -64,6 +70,8 @@ export default function BaseItems() {
     data_compra: new Date().toISOString().split('T')[0],
     preco_custo: ''
   });
+  const [editingStockId, setEditingStockId] = useState<number | null>(null);
+  const [editingStockData, setEditingStockData] = useState<any>(null);
 
   const [newItem, setNewItem] = useState<ProductCatalogItem>({
     ref: '',
@@ -261,6 +269,43 @@ export default function BaseItems() {
     } catch (error: any) {
       console.error('Error adding stock:', error);
       alert(`Erro ao adicionar stock: ${JSON.stringify(error)}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePurchase = async (id: number) => {
+    if (!confirm('Deseja eliminar este registo de entrada de stock?')) return;
+    try {
+      setIsSubmitting(true);
+      await deletePurchase(id);
+    } catch (err) {
+      alert('Erro ao eliminar registo');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditStock = (purchase: any) => {
+    setEditingStockId(purchase.id);
+    setEditingStockData({ ...purchase });
+  };
+
+  const handleUpdateStock = async () => {
+    if (!editingStockId || !editingStockData) return;
+    try {
+      setIsSubmitting(true);
+      await updatePurchase(editingStockId, {
+        quantidade: Number(editingStockData.quantidade),
+        data_compra: editingStockData.data_compra,
+        size: editingStockData.size,
+        color: editingStockData.color,
+        preco_custo: editingStockData.preco_custo ? Number(editingStockData.preco_custo) : undefined
+      });
+      setEditingStockId(null);
+      setEditingStockData(null);
+    } catch (err) {
+      alert('Erro ao atualizar stock');
     } finally {
       setIsSubmitting(false);
     }
@@ -1068,23 +1113,95 @@ export default function BaseItems() {
                             <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Qt</th>
                             <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Var.</th>
                             <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest text-right">Custo</th>
+                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest text-center">Ações</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                           {data.purchases
                             ?.filter(p => p.ref === editingItem?.ref)
                             .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
-                            .slice(0, 5)
+                            .slice(0, 10)
                             .map((purchase, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
-                                <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{new Date(purchase.data_compra).toLocaleDateString('pt-PT')}</td>
-                                <td className="px-4 py-3 font-black text-purple-600 dark:text-purple-400">+{purchase.quantidade}</td>
-                                <td className="px-4 py-3 font-medium text-slate-500">
-                                  {purchase.size || '-'}{purchase.color ? ` / ${purchase.color}` : ''}
-                                </td>
-                                <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 text-right">
-                                  {formatCurrency(purchase.preco_custo || 0)}
-                                </td>
+                              <tr key={purchase.id || idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
+                                {editingStockId === purchase.id ? (
+                                  <>
+                                    <td className="px-2 py-2">
+                                      <input
+                                        type="date"
+                                        value={editingStockData.data_compra}
+                                        onChange={(e) => setEditingStockData({ ...editingStockData, data_compra: e.target.value })}
+                                        className="w-full p-1 text-[10px] bg-white dark:bg-slate-900 border rounded"
+                                      />
+                                    </td>
+                                    <td className="px-2 py-2">
+                                      <input
+                                        type="number"
+                                        value={editingStockData.quantidade}
+                                        onChange={(e) => setEditingStockData({ ...editingStockData, quantidade: parseInt(e.target.value) })}
+                                        className="w-10 p-1 text-[10px] bg-white dark:bg-slate-900 border rounded"
+                                      />
+                                    </td>
+                                    <td className="px-2 py-2 flex gap-1">
+                                      <select
+                                        value={editingStockData.size || ''}
+                                        onChange={(e) => setEditingStockData({ ...editingStockData, size: e.target.value })}
+                                        className="p-1 text-[9px] bg-white dark:bg-slate-900 border rounded"
+                                      >
+                                        <option value="">-</option>
+                                        {(editingItem?.sizes || []).map(s => <option key={s} value={s}>{s}</option>)}
+                                      </select>
+                                      <select
+                                        value={editingStockData.color || ''}
+                                        onChange={(e) => setEditingStockData({ ...editingStockData, color: e.target.value })}
+                                        className="p-1 text-[9px] bg-white dark:bg-slate-900 border rounded"
+                                      >
+                                        <option value="">-</option>
+                                        {(editingItem?.colors || []).map(c => <option key={c} value={c}>{c}</option>)}
+                                      </select>
+                                    </td>
+                                    <td className="px-2 py-2">
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        value={editingStockData.preco_custo || ''}
+                                        onChange={(e) => setEditingStockData({ ...editingStockData, preco_custo: e.target.value })}
+                                        className="w-12 p-1 text-[10px] bg-white dark:bg-slate-900 border rounded text-right"
+                                      />
+                                    </td>
+                                    <td className="px-2 py-2 text-center flex justify-center gap-1">
+                                      <button onClick={handleUpdateStock} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded">
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </td>
+                                  </>
+                                ) : (
+                                  <>
+                                    <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{new Date(purchase.data_compra).toLocaleDateString('pt-PT')}</td>
+                                    <td className="px-4 py-3 font-black text-purple-600 dark:text-purple-400">+{purchase.quantidade}</td>
+                                    <td className="px-4 py-3 font-medium text-slate-500">
+                                      {purchase.size || '-'}{purchase.color ? ` / ${purchase.color}` : ''}
+                                    </td>
+                                    <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 text-right">
+                                      {formatCurrency(purchase.preco_custo || 0)}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      <div className="flex items-center justify-center gap-2">
+                                        <button
+                                          onClick={() => startEditStock(purchase)}
+                                          className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeletePurchase(purchase.id)}
+                                          className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </>
+                                )}
                               </tr>
                             ))}
                           {(!data.purchases?.some(p => p.ref === editingItem?.ref)) && (
