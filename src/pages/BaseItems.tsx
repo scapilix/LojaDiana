@@ -320,6 +320,34 @@ export default function BaseItems() {
     setNewColorInput('');
   };
 
+  const handleDeleteSize = async (sizeToDelete: string) => {
+    if (!confirm(`Deseja remover o tamanho "${sizeToDelete}" da lista global?`)) return;
+    const currentGlobalSizes = data.sizes || [];
+    const newGlobalSizes = currentGlobalSizes.filter(s => s !== sizeToDelete);
+    await updateSizes(newGlobalSizes);
+    
+    // Also remove from current item if selected
+    if (isAddingNew && newItem.sizes?.includes(sizeToDelete)) {
+      setNewItem({ ...newItem, sizes: newItem.sizes.filter(s => s !== sizeToDelete) });
+    } else if (editingItem && editingItem.sizes?.includes(sizeToDelete)) {
+      setEditingItem({ ...editingItem, sizes: editingItem.sizes.filter(s => s !== sizeToDelete) });
+    }
+  };
+
+  const handleDeleteColor = async (colorToDelete: string) => {
+    if (!confirm(`Deseja remover a cor "${colorToDelete}" da lista global?`)) return;
+    const currentGlobalColors = data.colors || [];
+    const newGlobalColors = currentGlobalColors.filter(c => c !== colorToDelete);
+    await updateColors(newGlobalColors);
+
+    // Also remove from current item if selected
+    if (isAddingNew && newItem.colors?.includes(colorToDelete)) {
+      setNewItem({ ...newItem, colors: newItem.colors.filter(c => c !== colorToDelete) });
+    } else if (editingItem && editingItem.colors?.includes(colorToDelete)) {
+      setEditingItem({ ...editingItem, colors: editingItem.colors.filter(c => c !== colorToDelete) });
+    }
+  };
+
   // Helper logic for auto-calculating profit
   const handlePriceChange = (field: 'pvp_cica' | 'base_price', value: number) => {
     const safeValue = isNaN(value) ? 0 : value;
