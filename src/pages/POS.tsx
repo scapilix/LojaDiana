@@ -47,30 +47,18 @@ export default function POS() {
     const handleProductClick = (product: any) => {
         if (product.current_stock <= 0) return;
 
-        // Check if product has variations
+        // Open modal for all products to select quantity/size/color
+        setSelectedProductForVariation(product);
+
         const hasSizes = product.sizes && product.sizes.length > 0;
         const hasColors = product.colors && product.colors.length > 0;
 
-        if (hasSizes || hasColors) {
-            setSelectedProductForVariation(product);
+        // Try to pre-select first valid variation or just the first options
+        const firstInStock = product.variations?.find((v: any) => v.current_stock > 0);
+        setSelectedSize(firstInStock?.size || (hasSizes ? product.sizes[0] : null));
+        setSelectedColor(firstInStock?.color || (hasColors ? product.colors[0] : null));
 
-            const firstInStock = product.variations?.find((v: any) => v.current_stock > 0);
-            setSelectedSize(firstInStock?.size || (hasSizes ? product.sizes[0] : null));
-            setSelectedColor(firstInStock?.color || (hasColors ? product.colors[0] : null));
-
-            setVariationQuantity(1);
-            return;
-        }
-
-        // Add directly if no variations
-        addToCart({
-            ref: product.ref,
-            nome_artigo: product.name,
-            quantidade: 1,
-            pvp_cica: product.pvp || 0,
-            base_price: product.base_price || 0,
-            current_stock: product.current_stock
-        });
+        setVariationQuantity(1);
     };
 
     const handleConfirmVariation = () => {
