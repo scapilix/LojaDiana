@@ -263,6 +263,12 @@ export default function POS() {
                                 <div className="flex-1">
                                     <span className="text-[9px] font-black text-purple-500 uppercase tracking-widest">{item.ref}</span>
                                     <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight mt-0.5 line-clamp-1">{item.nome_artigo}</p>
+                                    {(item.size || item.color) && (
+                                        <div className="flex gap-1.5 mt-1">
+                                            {item.size && <span className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase">{item.size}</span>}
+                                            {item.color && <span className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase">{item.color}</span>}
+                                        </div>
+                                    )}
                                     <p className="font-black text-sm text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(item.pvp_cica * item.quantidade)}</p>
                                 </div>
                                 <button onClick={() => removeFromCart(item.cartItemId)} className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
