@@ -12,6 +12,7 @@ export default function POS() {
 
     const stockInventory = useStockLogic();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
     // Variation Modal State
@@ -19,26 +20,41 @@ export default function POS() {
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [variationQuantity, setVariationQuantity] = useState(1);
-
     const currentVariationStock = useMemo(() => {
         if (!selectedProductForVariation || !selectedProductForVariation.variations) return 0;
         const getVariationId = (ref: string, size?: string | null, color?: string | null) => {
             return `${String(ref).trim().toUpperCase()}|${size || ''}|${color || ''}`;
         };
-        const exactVar = selectedProductForVariation.variations.find((v: any) =>
-            v.variation_id === getVariationId(selectedProductForVariation.ref, selectedSize, selectedColor)
-        );
+        const vid = getVariationId(selectedProductForVariation.ref, selectedSize, selectedColor);
+        const exactVar = selectedProductForVariation.variations.find((v: any) => v.variation_id === vid);
         return exactVar ? exactVar.current_stock : 0;
     }, [selectedProductForVariation, selectedSize, selectedColor]);
 
-    // Filter products based on search
+    const categories = useMemo(() => {
+        const cats = new Set<string>();
+        stockInventory.forEach(p => {
+            if (p.categoria) cats.add(p.categoria);
+        });
+        return Array.from(cats).sort();
+    }, [stockInventory]);
+
+    // Filter products based on search and category
     const filteredProducts = useMemo(() => {
-        if (!searchTerm) return stockInventory.slice(0, 50); // Limit initial render
-        const term = searchTerm.toLowerCase();
-        return stockInventory.filter(p =>
-            (p.name?.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term))
-        );
-    }, [stockInventory, searchTerm]);
+        let filtered = stockInventory;
+
+        if (selectedCategory) {
+            filtered = filtered.filter(p => p.categoria === selectedCategory);
+        }
+
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(p =>
+                (p.name?.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term))
+            );
+        }
+
+        return filtered.slice(0, 100); // Limit render for performance
+    }, [stockInventory, searchTerm, selectedCategory]);
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
@@ -101,7 +117,7 @@ export default function POS() {
         >
             {/* Left Column - Product Catalog */}
             <div className="flex-1 flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
-                <div className="p-4 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5">
+                <div className="p-4 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 space-y-4">
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input
@@ -111,6 +127,29 @@ export default function POS() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all font-bold text-slate-900 dark:text-white"
                         />
+                    </div>
+
+                    {/* Category Filter */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <button
+                            onClick={() => setSelectedCategory(null)}
+                            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedCategory 
+                                ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-600/20' 
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-500 hover:border-purple-400'}`}
+                        >
+                            Todos
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap border ${selectedCategory === cat 
+                                    ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-600/20' 
+                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-500 hover:border-purple-400'}`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -362,18 +401,32 @@ export default function POS() {
                                     <div>
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tamanho</label>
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedProductForVariation.sizes.map((sz: string) => (
-                                                <button
-                                                    key={sz}
-                                                    onClick={() => setSelectedSize(sz)}
-                                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
-                                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                                                        }`}
-                                                >
-                                                    {sz}
-                                                </button>
-                                            ))}
+                                            {selectedProductForVariation.sizes.map((sz: string) => {
+                                                const sizeStock = selectedProductForVariation.variations
+                                                    ?.filter((v: any) => v.size === sz)
+                                                    .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
+                                                
+                                                return (
+                                                    <button
+                                                        key={sz}
+                                                        onClick={() => setSelectedSize(sz)}
+                                                        disabled={sizeStock <= 0}
+                                                        className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
+                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                            : sizeStock <= 0
+                                                            ? 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 border-slate-100 dark:border-white/5 cursor-not-allowed'
+                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                            }`}
+                                                    >
+                                                        {sz}
+                                                        {sizeStock > 0 && (
+                                                            <span className={`ml-2 text-[8px] opacity-70 ${selectedSize === sz ? 'text-white' : 'text-slate-400 font-medium'}`}>
+                                                                ({sizeStock})
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -383,18 +436,34 @@ export default function POS() {
                                     <div>
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cor</label>
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedProductForVariation.colors.map((c: string) => (
-                                                <button
-                                                    key={c}
-                                                    onClick={() => setSelectedColor(c)}
-                                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
-                                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                                                        }`}
-                                                >
-                                                    {c}
-                                                </button>
-                                            ))}
+                                            {selectedProductForVariation.colors.map((c: string) => {
+                                                // If size is selected, show stock for that size + this color
+                                                // If no size is selected (not possible with logic but safety), show total color stock
+                                                const colorStock = selectedProductForVariation.variations
+                                                    ?.filter((v: any) => (!selectedSize || v.size === selectedSize) && v.color === c)
+                                                    .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
+
+                                                return (
+                                                    <button
+                                                        key={c}
+                                                        onClick={() => setSelectedColor(c)}
+                                                        disabled={colorStock <= 0}
+                                                        className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
+                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                            : colorStock <= 0
+                                                            ? 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 border-slate-100 dark:border-white/5 cursor-not-allowed'
+                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                            }`}
+                                                    >
+                                                        {c}
+                                                        {colorStock > 0 && (
+                                                            <span className={`ml-2 text-[8px] opacity-70 ${selectedColor === c ? 'text-white' : 'text-slate-400 font-medium'}`}>
+                                                                ({colorStock})
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}

@@ -26,6 +26,7 @@ export interface StockStatus {
   colors?: string[];
   variations: VariationStock[];
   image_url?: string;
+  categoria?: string;
 }
 
 export function useStockLogic() {
@@ -92,9 +93,11 @@ export function useStockLogic() {
         pvp: catalogItem?.pvp_cica,
         profit: catalogItem?.lucro_meu_faturado,
         supplier: catalogItem?.fornecedor,
+        sizes: catalogItem?.sizes,
         colors: catalogItem?.colors,
         variations: [],
-        image_url: catalogItem?.image_url
+        image_url: catalogItem?.image_url,
+        categoria: catalogItem?.categoria
       };
     };
 

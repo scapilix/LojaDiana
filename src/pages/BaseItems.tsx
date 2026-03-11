@@ -57,6 +57,7 @@ export default function BaseItems() {
   const [zoomedProduct, setZoomedProduct] = useState<any>(null);
   const [isMigrating, setIsMigrating] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'stock'>('details');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const [stockFormData, setStockFormData] = useState({
     quantidade: 1,
@@ -98,14 +99,23 @@ export default function BaseItems() {
     return Array.from(productMap.values());
   }, [data.products_catalog, data.manual_products_catalog]);
 
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    products.forEach(p => {
+      if (p.categoria) cats.add(p.categoria);
+    });
+    return Array.from(cats).sort();
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    const term = searchTerm.toLowerCase();
-    return products.filter(p =>
-      (p.nome_artigo && p.nome_artigo.toLowerCase().includes(term)) ||
-      (p.ref && p.ref.toString().toLowerCase().includes(term))
-    );
-  }, [products, searchTerm]);
+    return products.filter(p => {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = p.nome_artigo.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term);
+      const matchesCategory = selectedCategory === '' || p.categoria === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategory]);
+
 
   const formatCurrency = (val: number) => {
     if (val === undefined || val === null) return '-';
@@ -423,15 +433,28 @@ export default function BaseItems() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <div className="relative group w-full sm:w-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 lg:w-80 pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm transition-all"
-            />
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="relative group flex-1 sm:w-64">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Pesquisar por Name ou Ref..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-bold text-sm text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-bold text-sm text-slate-900 dark:text-white appearance-none cursor-pointer"
+            >
+              <option value="">Todas as Categorias</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
           </div>
 
           {(data.products_catalog?.length || 0) > 0 && (
