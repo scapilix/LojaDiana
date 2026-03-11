@@ -293,22 +293,19 @@ export default function CadastroVendas() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="max-w-[1400px] mx-auto space-y-3"
+      className="max-w-7xl mx-auto space-y-10"
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Registar Venda
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-[10px] font-bold uppercase tracking-wider">
-            Nova entrada no sistema de faturamento
-          </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registo de Vendas</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium uppercase tracking-widest text-[10px]">Cadastro detalhado de novas encomendas e faturado</p>
         </div>
+
         {success && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/20 font-bold text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/20 font-bold text-sm h-fit"
           >
             <CheckCircle2 className="w-5 h-5" />
             Venda Registrada!
@@ -908,6 +905,6 @@ export default function CadastroVendas() {
           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.div >
   );
 }

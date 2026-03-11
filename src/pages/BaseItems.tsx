@@ -960,7 +960,9 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhum</option>
-                          {data.sizes?.map(s => <option key={s} value={s}>{s}</option>)}
+                          {(editingItem?.sizes && editingItem.sizes.length > 0 ? editingItem.sizes : data.sizes)?.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
                         </select>
                       </div>
                       <div className="space-y-1">
@@ -971,7 +973,9 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhuma</option>
-                          {data.colors?.map(c => <option key={c} value={c}>{c}</option>)}
+                          {(editingItem?.colors && editingItem.colors.length > 0 ? editingItem.colors : data.colors)?.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
                         </select>
                       </div>
                       <button

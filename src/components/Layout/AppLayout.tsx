@@ -36,49 +36,50 @@ const navGroups = [
     label: 'Visão Geral',
     items: [
       { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-      { id: 'rankings', label: 'Relatórios', icon: BarChart3, path: '/rankings' },
+      { id: 'rankings', label: 'Relatórios & Rankings', icon: BarChart3, path: '/rankings' },
     ]
   },
   {
     label: 'Vendas',
     items: [
-      { id: 'pos', label: 'PDV / Caixa', icon: Store, path: '/pos' },
+      { id: 'pos', label: 'POS', icon: Store, path: '/pos' },
       { id: 'cadastro-vendas', label: 'Nova Venda', icon: PlusCircle, path: '/cadastro-vendas' },
-      { id: 'encomendas', label: 'Pedidos', icon: ClipboardList, path: '/encomendas' },
-      { id: 'portes', label: 'Portes & Devoluções', icon: Truck, path: '/portes' },
+      { id: 'encomendas', label: 'Pedidos / Encomendas', icon: ClipboardList, path: '/encomendas' },
+      { id: 'portes', label: 'Logística & Retornos', icon: Truck, path: '/portes' },
     ]
   },
   {
     label: 'Catálogo',
     items: [
-      { id: 'base-itens', label: 'Produtos', icon: Tag, path: '/base-itens' },
-      { id: 'produtos', label: 'Coleções', icon: Package, path: '/produtos' },
-      { id: 'stock-manager', label: 'Grade / Estoque', icon: Box, path: '/stock-manager' },
+      { id: 'base-itens', label: 'Gestão de Itens', icon: Tag, path: '/base-itens' },
+      { id: 'produtos', label: 'Análise de Produtos', icon: Package, path: '/produtos' },
+      { id: 'stock-manager', label: 'Gestão de Inventário', icon: Box, path: '/stock-manager' },
     ]
   },
   {
     label: 'Clientes',
     items: [
-      { id: 'clientes', label: 'CRM', icon: Users, path: '/clientes' },
-      { id: 'base-clientes', label: 'Avaliações', icon: Database, path: '/base-clientes' },
+      { id: 'clientes', label: 'Análise de Clientes', icon: Users, path: '/clientes' },
+      { id: 'base-clientes', label: 'CRM / Lista de Clientes', icon: Database, path: '/base-clientes' },
     ]
   },
   {
     label: 'Financeiro',
     items: [
-      { id: 'despesas', label: 'Despesas', icon: Wallet, path: '/despesas' },
-      { id: 'emprestimos', label: 'Empréstimos', icon: Banknote, path: '/emprestimos' },
-      { id: 'faturas', label: 'Faturas', icon: FileText, path: '/faturas' },
+      { id: 'despesas', label: 'Gestão de Despesas', icon: Wallet, path: '/despesas' },
+      { id: 'emprestimos', label: 'Crédito / Empréstimos', icon: Banknote, path: '/emprestimos' },
+      { id: 'faturas', label: 'Faturas & Recibos', icon: FileText, path: '/faturas' },
     ]
   },
   {
     label: 'Sistema',
     items: [
       { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
-      { id: 'loja', label: 'E-commerce', icon: ShoppingBag, path: '/loja' },
+      { id: 'loja', label: 'Ver Loja Online', icon: ShoppingBag, path: '/loja' },
     ]
   },
 ];
+
 
 // Flat list kept for path lookup
 const navigation = navGroups.flatMap(g => g.items);

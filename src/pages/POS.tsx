@@ -222,15 +222,13 @@ export default function POS() {
                                     <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight mt-0.5 line-clamp-1">{item.nome_artigo}</p>
                                     <p className="font-black text-sm text-emerald-600 dark:text-emerald-400 mt-1">{formatCurrency(item.pvp_cica * item.quantidade)}</p>
                                 </div>
-                                <div className="flex flex-col items-center justify-between">
-                                    <button onClick={() => removeFromCart(item.cartItemId)} className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-white/10">
-                                        <button onClick={() => updateQuantity(item.cartItemId, -1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
-                                        <span className="font-black text-xs w-4 text-center">{item.quantidade}</span>
-                                        <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
-                                    </div>
+                                <button onClick={() => removeFromCart(item.cartItemId)} className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                                    <X className="w-3 h-3" />
+                                </button>
+                                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-white/10">
+                                    <button onClick={() => updateQuantity(item.cartItemId, -1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
+                                    <span className="font-black text-xs w-4 text-center">{item.quantidade}</span>
+                                    <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
                                 </div>
                             </div>
                         ))
@@ -439,6 +437,6 @@ export default function POS() {
                     </div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div >
     );
 }

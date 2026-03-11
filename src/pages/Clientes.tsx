@@ -69,6 +69,11 @@ function Clientes() {
       transition={{ duration: 0.4 }}
       className="space-y-12"
     >
+      <div className="flex flex-col gap-2">
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Análise de Clientes</h1>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Insights e segmentação da base de dados</p>
+      </div>
+
       {/* Filter Bar */}
       <div className="relative z-50 flex flex-wrap items-center justify-between gap-4 bg-white/50 dark:bg-slate-800/40 p-3 rounded-3xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
         <div className="flex items-center gap-4">
@@ -76,17 +81,17 @@ function Clientes() {
             <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Smart Filters</span>
           </div>
-          
-          <SmartDateFilter 
-            filters={filters} 
-            setFilters={setFilters} 
-            availableFilters={availableFilters as any} 
+
+          <SmartDateFilter
+            filters={filters}
+            setFilters={setFilters}
+            availableFilters={availableFilters as any}
             counts={filterCounts}
           />
         </div>
 
         {isFiltered && (
-          <button 
+          <button
             onClick={() => setFilters(prev => ({ ...prev, year: '', month: '', days: [] }))}
             className="flex items-center gap-2 px-5 py-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 mr-2"
           >
@@ -138,12 +143,11 @@ function Clientes() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {customerSegmentation.map((segment, index) => (
             <div key={segment.name} className="relative">
-              <div className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${
-                index === 0 ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700' :
-                index === 1 ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' :
-                index === 2 ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' :
-                'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-              }`}>
+              <div className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${index === 0 ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700' :
+                  index === 1 ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' :
+                    index === 2 ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' :
+                      'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                }`}>
                 <div className="text-center">
                   <div className="text-4xl font-black font-mono mb-2">{segment.value}</div>
                   <div className="text-sm font-black text-slate-900 dark:text-slate-100 mb-1">{segment.name}</div>
@@ -151,12 +155,11 @@ function Clientes() {
                 </div>
                 <div className="mt-4 h-2 bg-white dark:bg-slate-900/50 rounded-full overflow-hidden">
                   <div
-                    className={`h-full ${
-                      index === 0 ? 'bg-slate-400' :
-                      index === 1 ? 'bg-blue-500' :
-                      index === 2 ? 'bg-purple-500' :
-                      'bg-amber-500'
-                    }`}
+                    className={`h-full ${index === 0 ? 'bg-slate-400' :
+                        index === 1 ? 'bg-blue-500' :
+                          index === 2 ? 'bg-purple-500' :
+                            'bg-amber-500'
+                      }`}
                     style={{ width: `${segment.percentage}%` }}
                   />
                 </div>

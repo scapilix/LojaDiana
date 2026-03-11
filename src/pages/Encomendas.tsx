@@ -264,7 +264,7 @@ export default function Encomendas() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Encomendas
+            Pedidos / Encomendas
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm font-bold uppercase tracking-wider">
             Histórico completo de vendas e envios ({filteredItems.length})
