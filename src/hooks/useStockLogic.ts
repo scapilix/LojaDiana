@@ -169,6 +169,16 @@ export function useStockLogic() {
       variation.total_sold += sQty;
       variation.current_stock = variation.total_purchased - variation.total_sold;
 
+      // Ensure base sizes/colors are populated from active variations
+      if (variation.size && !base.sizes?.includes(variation.size)) {
+        if (!base.sizes) base.sizes = [];
+        if (!base.sizes.includes(variation.size)) base.sizes.push(variation.size);
+      }
+      if (variation.color && !base.colors?.includes(variation.color)) {
+        if (!base.colors) base.colors = [];
+        if (!base.colors.includes(variation.color)) base.colors.push(variation.color);
+      }
+
       // Keep root tracking last purchase date
       const pDate = purchaseMap.get(vid)?.lastDate;
       if (pDate && (!base.last_purchase_date || pDate > base.last_purchase_date)) {

@@ -66,13 +66,25 @@ export default function POS() {
         // Open modal for all products to select quantity/size/color
         setSelectedProductForVariation(product);
 
-        const hasSizes = product.sizes && product.sizes.length > 0;
-        const hasColors = product.colors && product.colors.length > 0;
+        const hasSizes = (product.sizes && product.sizes.length > 0) || product.variations?.some((v: any) => v.size);
+        const hasColors = (product.colors && product.colors.length > 0) || product.variations?.some((v: any) => v.color);
 
         // Try to pre-select first valid variation or just the first options
         const firstInStock = product.variations?.find((v: any) => v.current_stock > 0);
-        setSelectedSize(firstInStock?.size || (hasSizes ? product.sizes[0] : null));
-        setSelectedColor(firstInStock?.color || (hasColors ? product.colors[0] : null));
+        
+        // Ensure we gather ALL unique values for UI
+        const uniqueSizes = Array.from(new Set([
+            ...(product.sizes || []),
+            ...(product.variations?.map((v: any) => v.size).filter(Boolean) || [])
+        ])).sort();
+        
+        const uniqueColors = Array.from(new Set([
+            ...(product.colors || []),
+            ...(product.variations?.map((v: any) => v.color).filter(Boolean) || [])
+        ])).sort();
+
+        setSelectedSize(firstInStock?.size || (uniqueSizes.length > 0 ? uniqueSizes[0] : null));
+        setSelectedColor(firstInStock?.color || (uniqueColors.length > 0 ? uniqueColors[0] : null));
 
         setVariationQuantity(1);
     };
@@ -397,76 +409,78 @@ export default function POS() {
 
                             <div className="space-y-6">
                                 {/* Sizes */}
-                                {selectedProductForVariation.sizes && selectedProductForVariation.sizes.length > 0 && (
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tamanho</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {selectedProductForVariation.sizes.map((sz: string) => {
-                                                const sizeStock = selectedProductForVariation.variations
-                                                    ?.filter((v: any) => v.size === sz)
-                                                    .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
-                                                
-                                                return (
-                                                    <button
-                                                        key={sz}
-                                                        onClick={() => setSelectedSize(sz)}
-                                                        disabled={sizeStock <= 0}
-                                                        className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
-                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                            : sizeStock <= 0
-                                                            ? 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 border-slate-100 dark:border-white/5 cursor-not-allowed'
-                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                                                            }`}
-                                                    >
-                                                        {sz}
-                                                        {sizeStock > 0 && (
+                                {(() => {
+                                    const availableSizes = Array.from(new Set([
+                                        ...(selectedProductForVariation.sizes || []),
+                                        ...(selectedProductForVariation.variations?.map((v: any) => v.size).filter(Boolean) || [])
+                                    ])).sort();
+
+                                    return availableSizes.length > 0 && (
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tamanho</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {availableSizes.map((sz: string) => {
+                                                    const sizeStock = selectedProductForVariation.variations
+                                                        ?.filter((v: any) => v.size === sz)
+                                                        .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
+                                                    
+                                                    return (
+                                                        <button
+                                                            key={sz}
+                                                            onClick={() => setSelectedSize(sz)}
+                                                            className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border ${selectedSize === sz
+                                                                ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                                }`}
+                                                        >
+                                                            {sz}
                                                             <span className={`ml-2 text-[8px] opacity-70 ${selectedSize === sz ? 'text-white' : 'text-slate-400 font-medium'}`}>
                                                                 ({sizeStock})
                                                             </span>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 {/* Colors */}
-                                {selectedProductForVariation.colors && selectedProductForVariation.colors.length > 0 && (
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cor</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {selectedProductForVariation.colors.map((c: string) => {
-                                                // If size is selected, show stock for that size + this color
-                                                // If no size is selected (not possible with logic but safety), show total color stock
-                                                const colorStock = selectedProductForVariation.variations
-                                                    ?.filter((v: any) => (!selectedSize || v.size === selectedSize) && v.color === c)
-                                                    .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
+                                {(() => {
+                                    const availableColors = Array.from(new Set([
+                                        ...(selectedProductForVariation.colors || []),
+                                        ...(selectedProductForVariation.variations?.map((v: any) => v.color).filter(Boolean) || [])
+                                    ])).sort();
 
-                                                return (
-                                                    <button
-                                                        key={c}
-                                                        onClick={() => setSelectedColor(c)}
-                                                        disabled={colorStock <= 0}
-                                                        className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
-                                                            ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
-                                                            : colorStock <= 0
-                                                            ? 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 border-slate-100 dark:border-white/5 cursor-not-allowed'
-                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                                                            }`}
-                                                    >
-                                                        {c}
-                                                        {colorStock > 0 && (
+                                    return availableColors.length > 0 && (
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cor</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {availableColors.map((c: string) => {
+                                                    const colorStock = selectedProductForVariation.variations
+                                                        ?.filter((v: any) => (!selectedSize || v.size === selectedSize) && v.color === c)
+                                                        .reduce((acc: number, v: any) => acc + v.current_stock, 0) || 0;
+
+                                                    return (
+                                                        <button
+                                                            key={c}
+                                                            onClick={() => setSelectedColor(c)}
+                                                            className={`group relative px-4 py-2 rounded-xl text-sm font-bold transition-all border capitalize ${selectedColor === c
+                                                                ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                                                                }`}
+                                                        >
+                                                            {c}
                                                             <span className={`ml-2 text-[8px] opacity-70 ${selectedColor === c ? 'text-white' : 'text-slate-400 font-medium'}`}>
                                                                 ({colorStock})
                                                             </span>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 {/* Quantity */}
                                 <div>
@@ -488,6 +502,27 @@ export default function POS() {
                                     </div>
                                     <p className={`text-[10px] font-bold mt-2 ml-1 ${currentVariationStock <= 0 ? 'text-rose-500' : 'text-slate-500'}`}>Estoque disponível: {currentVariationStock}</p>
                                 </div>
+
+                                {/* Stock Breakdown List */}
+                                {selectedProductForVariation.variations && selectedProductForVariation.variations.length > 1 && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Resumo de Stock</label>
+                                        <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                                            {selectedProductForVariation.variations.map((v: any) => (
+                                                v.current_stock > 0 && (
+                                                    <div key={v.variation_id} className="flex justify-between items-center bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-slate-100 dark:border-white/5">
+                                                        <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                                                            {v.size || '-'} / {v.color || '-'}
+                                                        </span>
+                                                        <span className="text-[10px] font-black text-purple-600">
+                                                            {v.current_stock}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <button
