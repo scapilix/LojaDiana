@@ -11,6 +11,7 @@ import {
   Star,
   Copy,
   Printer,
+  FileText,
   Phone,
   Clock
 } from 'lucide-react';
@@ -94,8 +95,8 @@ export default function Encomendas() {
 
   // Follow-up Modal State
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
-  const [showLabelModal, setShowLabelModal] = useState(false);
-  const [selectedOrderForLabel, setSelectedOrderForLabel] = useState<any>(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<any>(null);
   const [followUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
 
   const {
@@ -543,7 +544,7 @@ export default function Encomendas() {
                           </motion.tr>
                         ))}
 
-                        {/* Action Buttons for Follow-ups */}
+                        {/* Action Buttons & Status History */}
                         <tr className="bg-slate-50/50 dark:bg-slate-900/40 divide-y-0 border-t border-slate-200 dark:border-white/5">
                           <td className="px-6 py-4"></td>
                           <td colSpan={13} className="px-6 py-4">
@@ -551,13 +552,13 @@ export default function Encomendas() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedOrderForLabel(order);
-                                  setShowLabelModal(true);
+                                  setSelectedOrderForInvoice(order);
+                                  setShowInvoiceModal(true);
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group"
+                                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group shadow-sm"
                               >
-                                <Printer className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
-                                Gerar Etiqueta
+                                <FileText className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                                Ver Resumo / Fatura
                               </button>
                             </div>
 
@@ -571,12 +572,15 @@ export default function Encomendas() {
                                 <div className="space-y-2">
                                   {order.status_history.map((h: any, i: number) => (
                                     <div key={i} className="flex items-center gap-3 text-[10px]">
-                                      <span className="font-black text-slate-400 w-24">{new Date(h.timestamp).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                                      <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${h.status === 'Pendente' ? 'bg-slate-100 text-slate-600' :
+                                      <span className="font-black text-slate-400 w-24">
+                                        {new Date(h.timestamp).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                      <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${
+                                        h.status === 'Pendente' ? 'bg-slate-100 text-slate-600' :
                                         h.status === 'Pago' ? 'bg-blue-100 text-blue-600' :
-                                          h.status === 'Enviado' ? 'bg-purple-100 text-purple-600' :
-                                            'bg-emerald-100 text-emerald-600'
-                                        }`}>
+                                        h.status === 'Enviado' ? 'bg-purple-100 text-purple-600' :
+                                        'bg-emerald-100 text-emerald-600'
+                                      }`}>
                                         {h.status}
                                       </span>
                                     </div>
@@ -681,121 +685,229 @@ export default function Encomendas() {
         )}
       </AnimatePresence>
 
-      {/* Shipping Label Modal */}
+      {/* Invoice Summary Modal */}
       <AnimatePresence>
-        {showLabelModal && selectedOrderForLabel && (
+        {showInvoiceModal && selectedOrderForInvoice && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowLabelModal(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              onClick={() => setShowInvoiceModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+              className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
             >
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-6 no-print">
-                  <h3 className="text-lg font-black uppercase tracking-tighter">Etiqueta de Envio</h3>
-                  <button onClick={() => setShowLabelModal(false)} className="text-slate-400 hover:text-slate-600">
-                    <X className="w-5 h-5" />
-                  </button>
+              <div className="h-full flex flex-col">
+                <div className="p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center no-print">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-2xl flex items-center justify-center text-purple-600">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter">Resumo do Pedido</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const printable = document.getElementById('printable-invoice');
+                        if (!printable) return;
+                        
+                        const WinPrint = window.open('', '', 'width=900,height=800');
+                        WinPrint?.document.write(`
+                          <html>
+                            <head>
+                              <title>Fatura ${selectedOrderForInvoice.id_venda}</title>
+                              <style>
+                                body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.5; }
+                                .invoice-box { max-width: 800px; margin: auto; }
+                                .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; }
+                                .logo { font-size: 28px; font-weight: 900; color: #7c3aed; }
+                                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+                                .label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 4px; }
+                                .value { font-size: 14px; font-weight: 700; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+                                th { text-align: left; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid #f1f5f9; padding: 12px 8px; }
+                                td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 600; }
+                                .total-section { margin-left: auto; width: 250px; }
+                                .total-row { display: flex; justify-content: space-between; padding: 4px 0; }
+                                .grand-total { border-top: 2px solid #7c3aed; margin-top: 10px; padding-top: 10px; font-size: 18px; font-weight: 900; color: #7c3aed; }
+                                @media print { .no-print { display: none; } }
+                              </style>
+                            </head>
+                            <body>
+                              <div class="invoice-box">
+                                <div class="header">
+                                  <div class="logo">LUZ</div>
+                                  <div style="text-align: right">
+                                    <div class="label">ID VENDA</div>
+                                    <div class="value" style="font-size: 20px">#${selectedOrderForInvoice.id_venda}</div>
+                                    <div class="label" style="margin-top: 8px">DATA</div>
+                                    <div class="value">${new Date(selectedOrderForInvoice.data_venda).toLocaleDateString('pt-PT')}</div>
+                                  </div>
+                                </div>
+                                
+                                <div class="info-grid">
+                                  <div>
+                                    <div class="label">CLIENTE</div>
+                                    <div class="value">${selectedOrderForInvoice.nome_cliente}</div>
+                                    <div class="label" style="margin-top: 12px">CONTACTO</div>
+                                    <div class="value">${selectedOrderForInvoice.telefone || '-'}</div>
+                                  </div>
+                                  <div>
+                                    <div class="label">FORMA DE PAGAMENTO</div>
+                                    <div class="value">${selectedOrderForInvoice.forma_de_pagamento || '-'}</div>
+                                    <div class="label" style="margin-top: 12px">MÉTODO DE ENVIO</div>
+                                    <div class="value">${selectedOrderForInvoice.loja_ctt || 'CTT'}</div>
+                                  </div>
+                                </div>
+
+                                <table>
+                                  <thead>
+                                    <tr>
+                                      <th>Artigo</th>
+                                      <th style="text-align: center">Qtd</th>
+                                      <th style="text-align: right">Preço Un.</th>
+                                      <th style="text-align: right">Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    ${(selectedOrderForInvoice.items || []).map((item: any) => `
+                                      <tr>
+                                        <td>${item.designacao}</td>
+                                        <td style="text-align: center">${item.quantidade}</td>
+                                        <td style="text-align: right">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(item.pvp) / Number(item.quantidade))}</td>
+                                        <td style="text-align: right">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(item.pvp))}</td>
+                                      </tr>
+                                    `).join('')}
+                                  </tbody>
+                                </table>
+
+                                <div class="total-section">
+                                  <div class="total-row">
+                                    <span class="label">Subtotal</span>
+                                    <span class="value">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.pvp) - Number(selectedOrderForInvoice.portes || 0) + Number(selectedOrderForInvoice.descontos || 0))}</span>
+                                  </div>
+                                  <div class="total-row">
+                                    <span class="label">Portes</span>
+                                    <span class="value">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.portes || 0))}</span>
+                                  </div>
+                                  <div class="total-row">
+                                    <span class="label" style="color: #ef4444">Descontos</span>
+                                    <span class="value" style="color: #ef4444">-${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.descontos || 0))}</span>
+                                  </div>
+                                  <div class="total-row grand-total">
+                                    <span>TOTAL</span>
+                                    <span>${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.pvp))}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </body>
+                          </html>
+                        `);
+                        WinPrint?.document.close();
+                        WinPrint?.focus();
+                        setTimeout(() => {
+                          WinPrint?.print();
+                          WinPrint?.close();
+                        }, 500);
+                      }}
+                      className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Gerar PDF / Imprimir
+                    </button>
+                    <button onClick={() => setShowInvoiceModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
-                <div id="printable-label" className="bg-white p-8 border-2 border-dashed border-slate-300 rounded-xl text-black">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-                      <Package className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-black uppercase tracking-widest">Encomenda</p>
-                      <p className="text-sm font-black">{selectedOrderForLabel.id_venda}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Destinatário</p>
-                      <p className="text-lg font-black leading-tight uppercase">{selectedOrderForLabel.nome_cliente}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Morada de Entrega</p>
-                      <p className="text-sm font-bold leading-relaxed">{selectedOrderForLabel.morada || 'N/A'}</p>
-                      <p className="text-sm font-bold leading-relaxed">{selectedOrderForLabel.localidade || ''}</p>
-                    </div>
-
-                    <div className="pt-4 border-t border-slate-100 flex justify-between items-end">
+                <div className="p-8 overflow-y-auto max-h-[70vh] custom-scrollbar bg-slate-50/30 dark:bg-slate-900/40">
+                  <div id="printable-invoice" className="bg-white dark:bg-slate-950 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm text-slate-900 dark:text-white">
+                    {/* Visual Header */}
+                    <div className="flex justify-between items-start mb-10">
                       <div>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Contacto</p>
-                        <p className="text-sm font-black">{selectedOrderForLabel.telefone || '-'}</p>
+                        <div className="text-2xl font-black text-purple-600 dark:text-purple-400 mb-1 leading-none">LUZ</div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Invoice Summary</div>
                       </div>
                       <div className="text-right">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Envio via</p>
-                        <p className="text-xs font-black uppercase">{selectedOrderForLabel.loja_ctt || 'CTT'}</p>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">ID Venda</div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">#{selectedOrderForInvoice.id_venda}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-10 mb-10">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Dados do Cliente</p>
+                          <p className="text-base font-black uppercase">{selectedOrderForInvoice.nome_cliente}</p>
+                          <p className="text-xs font-bold text-slate-500">{selectedOrderForInvoice.telefone || 'Sem contacto'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pagamento</p>
+                          <p className="text-sm font-black text-blue-600 dark:text-blue-400">{selectedOrderForInvoice.forma_de_pagamento || '-'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4 text-right">
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Data da Venda</p>
+                          <p className="text-sm font-black">{new Date(selectedOrderForInvoice.data_venda).toLocaleDateString('pt-PT')}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Método de Envio</p>
+                          <p className="text-sm font-black text-indigo-500">{selectedOrderForInvoice.loja_ctt || 'CTT'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Items Table */}
+                    <div className="mb-10">
+                      <table className="w-full text-xs">
+                        <thead className="border-b border-slate-100 dark:border-white/5">
+                          <tr>
+                            <th className="py-3 font-black text-slate-400 uppercase text-left">Artigo</th>
+                            <th className="py-3 font-black text-slate-400 uppercase text-center">Qtd</th>
+                            <th className="py-3 font-black text-slate-400 uppercase text-right">Preço Un.</th>
+                            <th className="py-3 font-black text-slate-400 uppercase text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                          {(selectedOrderForInvoice.items || []).map((item: any, i: number) => (
+                            <tr key={i}>
+                              <td className="py-4 font-bold">{item.designacao}</td>
+                              <td className="py-4 text-center font-black">{item.quantidade}</td>
+                              <td className="py-4 text-right font-bold">{formatCurrency(Number(item.pvp) / Number(item.quantidade))}</td>
+                              <td className="py-4 text-right font-black">{formatCurrency(Number(item.pvp))}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Financial Summary */}
+                    <div className="ml-auto w-64 space-y-2 border-t-2 border-slate-100 dark:border-white/5 pt-4">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
+                        <span>Subtotal</span>
+                        <span>{formatCurrency(Number(selectedOrderForInvoice.pvp) - Number(selectedOrderForInvoice.portes || 0) + Number(selectedOrderForInvoice.descontos || 0))}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
+                        <span>Portes</span>
+                        <span>{formatCurrency(Number(selectedOrderForInvoice.portes || 0))}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-bold text-rose-500 uppercase">
+                        <span>Descontos</span>
+                        <span>-{formatCurrency(Number(selectedOrderForInvoice.descontos || 0))}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-4 text-emerald-600 dark:text-emerald-400 border-t border-slate-100 dark:border-white/5 mt-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest">Total do Pedido</span>
+                        <span className="text-2xl font-black">{formatCurrency(Number(selectedOrderForInvoice.pvp))}</span>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-8 flex gap-3 no-print">
-                  <button
-                    onClick={() => {
-                      const WinPrint = window.open('', '', 'width=900,height=650');
-                      WinPrint?.document.write(`
-                        <html>
-                          <head>
-                            <title>Etiqueta ${selectedOrderForLabel.id_venda}</title>
-                            <style>
-                              body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; padding: 40px; }
-                              .label { border: 2px solid black; padding: 40px; width: 400px; border-radius: 10px; }
-                              .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
-                              .title { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 4px; }
-                              .value { font-size: 18px; font-weight: 900; margin-bottom: 20px; line-height: 1.2; text-transform: uppercase; }
-                              .small-value { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
-                              .footer { border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; display: flex; justify-content: space-between; }
-                            </style>
-                          </head>
-                          <body>
-                            <div class="label">
-                              <div class="header">
-                                <div style="font-size: 24px; font-weight: 900;">LOJA</div>
-                                <div style="text-align: right;">
-                                  <div class="title">Encomenda</div>
-                                  <div style="font-weight: 900;">${selectedOrderForLabel.id_venda}</div>
-                                </div>
-                              </div>
-                              <div class="title">Destinatário</div>
-                              <div class="value">${selectedOrderForLabel.nome_cliente}</div>
-                              <div class="title">Morada</div>
-                              <div class="small-value">${selectedOrderForLabel.morada || 'N/A'}<br/>${selectedOrderForLabel.localidade || ''}</div>
-                              <div class="footer">
-                                <div>
-                                  <div class="title">Contacto</div>
-                                  <div style="font-weight: 900;">${selectedOrderForLabel.telefone || '-'}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                  <div class="title">Envio</div>
-                                  <div style="font-weight: 900;">${selectedOrderForLabel.loja_ctt || 'CTT'}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </body>
-                        </html>
-                      `);
-                      WinPrint?.document.close();
-                      WinPrint?.focus();
-                      WinPrint?.print();
-                      WinPrint?.close();
-                    }}
-                    className="flex-1 py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/20"
-                  >
-                    Imprimir Etiqueta
-                  </button>
                 </div>
               </div>
             </motion.div>

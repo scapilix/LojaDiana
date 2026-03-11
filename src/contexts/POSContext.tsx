@@ -38,6 +38,15 @@ export function POSProvider({ children }: { children: ReactNode }) {
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
 
+    const generateShortId = () => {
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < 5; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    };
+
     const addToCart = (item: Omit<CartItem, 'cartItemId'>) => {
         const cartItemId = `${item.ref}${item.size ? `-${item.size}` : ''}${item.color ? `-${item.color}` : ''}`;
 
@@ -145,7 +154,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             // We need to inject this order into `data.orders` for Dashboard/Stock metrics to recalculate without refreshing the page
 
             const legacyOrderFormat = {
-                id_venda: newOrder.id_venda,
+                id_venda: newOrder.id_venda || generateShortId(),
                 pvp: cartTotal,
                 lucro: cart.reduce((sum, item) => sum + ((item.pvp_cica - (item.base_price || 0)) * item.quantidade), 0),
                 nome_cliente: orderToInsert.nome_cliente,
@@ -192,7 +201,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     // Legacy fallback if `orders` table doesn't exist yet
     const finalizeLegacy = async (paymentMethod: string) => {
         const legacyOrderFormat = {
-            id_venda: `POS-${Date.now()}`,
+            id_venda: generateShortId(),
             pvp: cartTotal,
             lucro: cart.reduce((sum, item) => sum + ((item.pvp_cica - (item.base_price || 0)) * item.quantidade), 0),
             nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
