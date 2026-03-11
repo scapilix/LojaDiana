@@ -827,7 +827,6 @@ export default function BaseItems() {
 
                       <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
                         {/* Tamanhos */}
-                        {/* Tamanhos */}
                         <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/20">
                           <div className="flex items-center gap-2 mb-3">
                             <Tag className="w-4 h-4 text-emerald-500" />
@@ -861,17 +860,25 @@ export default function BaseItems() {
                             {(data.sizes || []).map(size => {
                               const isSelected = isAddingNew ? newItem.sizes?.includes(size) : editingItem?.sizes?.includes(size);
                               return (
-                                <button
-                                  type="button"
-                                  key={size}
-                                  onClick={() => handleToggleSize(size)}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${isSelected
-                                    ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
-                                    }`}
-                                >
-                                  {size}
-                                </button>
+                                <div key={size} className="relative group/tag">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleSize(size)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${isSelected
+                                      ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20 pr-8'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-emerald-300 pr-8'
+                                      }`}
+                                  >
+                                    {size}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteSize(size); }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-current transition-colors opacity-60 hover:opacity-100"
+                                  >
+                                    <X className="w-2.5 h-2.5" />
+                                  </button>
+                                </div>
                               );
                             })}
                             {(!data.sizes || data.sizes.length === 0) && (
@@ -914,17 +921,25 @@ export default function BaseItems() {
                             {(data.colors || []).map(color => {
                               const isSelected = isAddingNew ? newItem.colors?.includes(color) : editingItem?.colors?.includes(color);
                               return (
-                                <button
-                                  type="button"
-                                  key={color}
-                                  onClick={() => handleToggleColor(color)}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border capitalize ${isSelected
-                                    ? 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300'
-                                    }`}
-                                >
-                                  {color}
-                                </button>
+                                <div key={color} className="relative group/tag">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleColor(color)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border capitalize ${isSelected
+                                      ? 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/20 pr-8'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300 pr-8'
+                                      }`}
+                                  >
+                                    {color}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteColor(color); }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-current transition-colors opacity-60 hover:opacity-100"
+                                  >
+                                    <X className="w-2.5 h-2.5" />
+                                  </button>
+                                </div>
                               );
                             })}
                             {(!data.colors || data.colors.length === 0) && (
