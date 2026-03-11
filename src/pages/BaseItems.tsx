@@ -260,7 +260,7 @@ export default function BaseItems() {
       alert('Stock adicionado com sucesso!');
     } catch (error: any) {
       console.error('Error adding stock:', error);
-      alert(`Erro ao adicionar stock: ${error.message || 'Erro desconhecido'}`);
+      alert(`Erro ao adicionar stock: ${JSON.stringify(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -703,7 +703,16 @@ export default function BaseItems() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                          <div className="flex justify-between items-center mb-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                            <button
+                              type="button"
+                              onClick={() => isAddingNew ? setNewItem({ ...newItem, categoria: '' }) : setEditingItem(prev => prev ? ({ ...prev, categoria: '' }) : null)}
+                              className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors"
+                            >
+                              Limpar
+                            </button>
+                          </div>
                           {(data.categories && data.categories.length > 0) ? (
                             <select
                               value={isAddingNew ? newItem.categoria : editingItem?.categoria}
@@ -795,6 +804,13 @@ export default function BaseItems() {
                           <div className="flex items-center gap-2 mb-3">
                             <Tag className="w-4 h-4 text-emerald-500" />
                             <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Tamanhos Disponíveis</h4>
+                            <button
+                              type="button"
+                              onClick={() => isAddingNew ? setNewItem({ ...newItem, sizes: [] }) : setEditingItem(prev => prev ? ({ ...prev, sizes: [] }) : null)}
+                              className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors ml-2"
+                            >
+                              Limpar
+                            </button>
                             <div className="flex items-center gap-1 ml-auto">
                               <input
                                 type="text"
@@ -841,6 +857,13 @@ export default function BaseItems() {
                           <div className="flex items-center gap-2 mb-3">
                             <Tag className="w-4 h-4 text-blue-500" />
                             <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Cores Disponíveis</h4>
+                            <button
+                              type="button"
+                              onClick={() => isAddingNew ? setNewItem({ ...newItem, colors: [] }) : setEditingItem(prev => prev ? ({ ...prev, colors: [] }) : null)}
+                              className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors ml-2"
+                            >
+                              Limpar
+                            </button>
                             <div className="flex items-center gap-1 ml-auto">
                               <input
                                 type="text"
