@@ -338,7 +338,7 @@ export default function POS() {
                                         setCustomerSearchTerm(e.target.value);
                                         setShowCustomerSuggestions(true);
                                         if (!e.target.value) {
-                                            setSelectedCustomer({ nome: 'Cliente Avulso' });
+                                            setSelectedCustomer({ nome: '' });
                                         } else {
                                             setSelectedCustomer({ ...selectedCustomer, nome: e.target.value });
                                         }
@@ -349,10 +349,10 @@ export default function POS() {
                                     className="w-full py-2 pl-10 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-purple-500 transition-colors"
                                 />
 
-                                {(customerSearchTerm || (selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso')) && (
+                                {(customerSearchTerm || (selectedCustomer && selectedCustomer.nome)) && (
                                     <button 
                                         onClick={() => {
-                                            setSelectedCustomer({ nome: 'Cliente Avulso' });
+                                            setSelectedCustomer({ nome: '' });
                                             setCustomerSearchTerm('');
                                         }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors p-1 z-10"
