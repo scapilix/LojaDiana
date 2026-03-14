@@ -48,6 +48,9 @@ interface POSContextType {
     setSelectedCustomer: (customer: { nome: string; instagram?: string; nif?: string } | null) => void;
     finalizeSale: (options: FinalizeOptions) => Promise<boolean>;
     isProcessing: boolean;
+    shippingType: string;
+    shippingCost: number;
+    setShippingType: (type: string) => void;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -57,6 +60,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const [selectedCustomer, setSelectedCustomer] = useState<{ nome: string; instagram?: string; nif?: string } | null>({ nome: 'Cliente Avulso' });
     const [cartDiscount, setCartDiscount] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [shippingType, setShippingTypeState] = useState('Sem entrega');
+    const [shippingCost, setShippingCost] = useState(0);
 
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
@@ -173,9 +178,21 @@ export function POSProvider({ children }: { children: ReactNode }) {
         setCart((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
     };
 
+    const setShippingType = (type: string) => {
+        setShippingTypeState(type);
+        switch (type) {
+            case 'Continental': setShippingCost(5.00); break;
+            case 'Ilhas': setShippingCost(10.00); break;
+            case 'Estrangeiro': setShippingCost(15.00); break;
+            default: setShippingCost(0);
+        }
+    };
+
     const clearCart = () => {
         setCart([]);
         setCartDiscount(0);
+        setShippingTypeState('Sem entrega');
+        setShippingCost(0);
         setSelectedCustomer({ nome: 'Cliente Avulso' });
     };
 
@@ -192,7 +209,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
         return sum + (base - discount);
     }, 0);
 
-    const cartTotal = Math.max(0, cartSubtotal - cartDiscount);
+    const cartTotal = Math.max(0, cartSubtotal - cartDiscount + shippingCost);
 
     const formatItemName = (item: CartItem) => {
         let name = item.nome_artigo;
@@ -222,7 +239,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 sales_channel: 'pos',
                 is_gift: isGift || false,
                 notes: notes || null,
-                discount_total: discountTotal || cartDiscount
+                discount_total: discountTotal || cartDiscount,
+                shipping_type: shippingType,
+                shipping_cost: shippingCost
             };
 
             const { data: newOrder, error: orderError } = await supabase
@@ -281,6 +300,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 data_venda: new Date().toISOString(),
                 status: 'Concluída',
                 sales_channel: 'pos',
+                shipping_type: shippingType,
+                shipping_cost: shippingCost,
                 items: cart.map(item => ({
                     ref: item.ref,
                     designacao: formatItemName(item),
@@ -344,6 +365,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
             status: status,
             sales_channel: 'pos',
             discount_total: discountTotal || cartDiscount,
+            shipping_type: shippingType,
+            shipping_cost: shippingCost,
             items: cart.map(item => {
                 const base = item.pvp_cica * item.quantidade;
                 let itemDiscount = 0;
@@ -397,7 +420,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
             selectedCustomer,
             setSelectedCustomer,
             finalizeSale,
-            isProcessing
+            isProcessing,
+            shippingType,
+            shippingCost,
+            setShippingType
         }}>
             {children}
         </POSContext.Provider>

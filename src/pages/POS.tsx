@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand, Truck } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -10,7 +10,8 @@ import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 export default function POS() {
     const {
         cart, addToCart, updateQuantity, updateItemPrice, updateItemDiscount, updateItemVariation, removeFromCart, clearCart,
-        cartTotal, cartDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing
+        cartTotal, cartDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
+        shippingType, shippingCost, setShippingType
     } = usePOS();
 
     const { addProduct } = useData();
@@ -599,6 +600,32 @@ export default function POS() {
                                     placeholder="0.00"
                                 />
                             </div>
+
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                    <Truck className="w-3 h-3 text-slate-400" />
+                                    <span className="font-bold text-slate-400 uppercase tracking-widest text-[8px]">Entrega</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <select 
+                                        value={shippingType}
+                                        onChange={(e) => setShippingType(e.target.value)}
+                                        className="px-2 py-1 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-white/10 text-[9px] font-black outline-none focus:border-purple-500 appearance-none text-right cursor-pointer"
+                                    >
+                                        <option value="Sem entrega">Sem entrega</option>
+                                        <option value="Entrega em mão">Entrega em mão</option>
+                                        <option value="Continental">Continental (5€)</option>
+                                        <option value="Ilhas">Ilhas (10€)</option>
+                                        <option value="Estrangeiro">Estrangeiro (15€)</option>
+                                    </select>
+                                    {shippingCost > 0 && (
+                                        <span className="text-[9px] font-black text-slate-900 dark:text-white">
+                                            {formatCurrency(shippingCost)}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-white/5">
                                 <span className="font-bold text-slate-400 uppercase tracking-widest text-[9px]">Total a Pagar</span>
                                 <span className="font-black text-2xl text-slate-900 dark:text-white">{formatCurrency(cartTotal)}</span>
