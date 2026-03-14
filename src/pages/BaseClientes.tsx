@@ -64,12 +64,8 @@ export default function BaseClientes() {
       {/* Header and Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            CRM / Lista de Clientes
-          </h1>
-          <p className="text-slate-900 dark:text-slate-100 mt-2 text-sm font-black">
-            Gestão completa de base de dados ({allCustomers.length} clientes)
-          </p>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">CRM / Lista de Clientes</h1>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão completa de base de dados ({allCustomers.length} clientes)</p>
         </div>
 
         <div className="flex-1 w-full md:w-auto max-w-md relative">

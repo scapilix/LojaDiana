@@ -128,8 +128,8 @@ export default function Settings() {
                         <SettingsIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Configurações</h1>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">Gestão do Sistema & Preferências</p>
+                        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Configurações</h1>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">Gestão do Sistema & Preferências</p>
                     </div>
                 </div>
 

@@ -165,10 +165,10 @@ export default function Emprestimos() {
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter">
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">
             Crédito / Empréstimos
           </h1>
-          <p className="text-slate-700 dark:text-slate-200 font-bold">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             Controlo de dinheiro emprestado e pagamentos
           </p>
         </div>

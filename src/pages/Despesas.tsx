@@ -593,10 +593,10 @@ export default function Despesas() {
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-950 dark:text-white tracking-tighter">
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">
             Gestão de Despesas
           </h1>
-          <p className="text-slate-700 dark:text-slate-200 font-bold">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             Controlo de despesas fixas e variáveis
           </p>
         </div>
@@ -851,8 +851,8 @@ export default function Despesas() {
                     <Target className="text-white w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white tracking-tighter">Orçamento de Despesas</h2>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Defina os valores previstos para cada tipo</p>
+                    <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Orçamento de Despesas</h1>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Defina os valores previstos para cada tipo</p>
                   </div>
                 </div>
                 <button onClick={() => setIsBudgetModalOpen(false)} className="p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-2xl transition-colors">

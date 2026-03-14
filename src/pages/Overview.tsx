@@ -90,7 +90,7 @@ function Overview() {
     orderCount,
     avgTicket,
     topProducts,
-    salesByDayOfWeek,
+    salesByDate,
     filteredOrders,
     isFiltered,
     availableFilters,
@@ -104,12 +104,12 @@ function Overview() {
 
   // Daily bar chart data
   const dayChartData = useMemo(() =>
-    (salesByDayOfWeek || []).map((d: any) => ({
-      name: (d.day || d.name || '').substring(0, 3),
-      valor: d.revenue || d.value || 0,
-      pedidos: d.orders || d.count || 0,
+    (salesByDate || []).map((d: any) => ({
+      name: new Date(d.date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }),
+      valor: d.revenue || 0,
+      pedidos: d.count || 0,
     })),
-    [salesByDayOfWeek]
+    [salesByDate]
   );
 
 
@@ -183,11 +183,11 @@ function Overview() {
       <div className="glass p-8 rounded-[2rem] border-slate-200/50">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Crescimento de Vendas</h2>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest opacity-60">Acompanhamento semanal de performance</p>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Crescimento de Vendas</h2>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Acompanhamento semanal de performance</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">{formatCurrency(totalRevenue)}</p>
+            <p className="text-xl font-black text-slate-900 dark:text-white leading-none whitespace-nowrap">{formatCurrency(totalRevenue)}</p>
             <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">Últimos 7 dias (+15.2%)</p>
           </div>
         </div>

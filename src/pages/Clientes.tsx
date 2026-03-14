@@ -70,8 +70,8 @@ function Clientes() {
       className="space-y-12"
     >
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Análise de Clientes</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Insights e segmentação da base de dados</p>
+        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Análise de Clientes</h1>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Insights e segmentação da base de dados</p>
       </div>
 
       {/* Filter Bar */}

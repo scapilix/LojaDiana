@@ -96,9 +96,9 @@ export default function Portes() {
       transition={{ duration: 0.4 }}
       className="space-y-12"
     >
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Logística & Retornos</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Gestão de envios, portes e fluxos de entrega</p>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Logística & Retornos</h1>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Gestão de envios, portes e fluxo logístico</p>
       </div>
 
       {/* Filter Bar */}
@@ -317,8 +317,8 @@ export default function Portes() {
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 dark:text-white">Envios em {selectedMonth}</h3>
-                      <p className="text-sm text-slate-800 dark:text-slate-200 font-black">Detalhes dos portes cobrados</p>
+                      <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Envios em {selectedMonth}</h1>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Detalhes dos portes cobrados</p>
                     </div>
                   </div>
                   <button onClick={() => setSelectedMonth(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">

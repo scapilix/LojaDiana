@@ -429,9 +429,9 @@ export default function BaseItems() {
       className="space-y-12 pb-24 max-w-7xl mx-auto"
     >
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Gestão de Itens</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px]">Catálogo Centralizado • {products.length} Itens</p>
+        <div>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Gestão de Itens</h1>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Cadastro e edição de produtos do catálogo</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">

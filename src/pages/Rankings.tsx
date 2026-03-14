@@ -58,7 +58,7 @@ function Rankings() {
       className="space-y-4"
     >
       <div className="flex flex-col gap-1">
-        <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase flex items-center gap-2">
            <Trophy className="w-4 h-4 text-amber-500" /> Relatórios & Rankings
         </h1>
         <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Análise de performance de clientes e produtos</p>

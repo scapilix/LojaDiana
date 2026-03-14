@@ -297,8 +297,8 @@ export default function CadastroVendas() {
     >
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Registo de Vendas</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px]">Cadastro detalhado • Artigos e Faturado</p>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Registo de Vendas</h1>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Conformidade e cadastro manual de histórico</p>
         </div>
 
         {success && (
