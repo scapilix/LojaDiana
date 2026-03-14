@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, CheckCircle2, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent, LayoutGrid, List } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent, LayoutGrid, List } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -10,7 +10,7 @@ import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 export default function POS() {
     const {
         cart, addToCart, updateQuantity, updateItemPrice, updateItemDiscount, updateItemVariation, removeFromCart, clearCart,
-        cartTotal, cartDiscount, cartDiscountType, cartActualDiscount, cartSubtotal, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
+        cartTotal, cartDiscount, cartDiscountType, cartActualDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
         shippingType, shippingCost, setShippingType
     } = usePOS();
 

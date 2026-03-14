@@ -69,14 +69,6 @@ export function POSProvider({ children }: { children: ReactNode }) {
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
 
-    const generateShortId = () => {
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let result = '';
-        for (let i = 0; i < 5; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return result;
-    };
 
     const addToCart = (item: Omit<CartItem, 'cartItemId'>) => {
         const cartItemId = `${item.ref}${item.size ? `-${item.size}` : ''}${item.color ? `-${item.color}` : ''}`;
