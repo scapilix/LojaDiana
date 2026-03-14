@@ -740,7 +740,7 @@ export default function POS() {
                             setIsCheckoutModalOpen(true);
                         }}
                         disabled={cart.length === 0}
-                        className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/10"
+                        className="flex-1 py-2.5 bg-emerald-500 text-white disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-emerald-500/10 hover:bg-emerald-600"
                     >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Avançar</span>
@@ -768,9 +768,9 @@ export default function POS() {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+                            className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
                         >
-                            <div className="flex items-center justify-center gap-2 mb-8">
+                            <div className="flex items-center justify-center gap-2 mb-2">
                                 {[1, 2, 3].map((step) => (
                                     <div key={step} className={`h-1.5 rounded-full transition-all ${checkoutStep >= step ? 'w-8 bg-emerald-500' : 'w-4 bg-slate-200 dark:bg-slate-800'}`} />
                                 ))}
@@ -867,10 +867,10 @@ export default function POS() {
                             {checkoutStep === 3 && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
                                     <div className="text-center">
-                                        <h2 className="text-[10px] font-black text-slate-900 dark:text-white uppercase">Pagamento</h2>
-                                        <div className="mt-1 p-1.5 bg-primary/10 rounded-xl border border-primary/20">
-                                            <span className="block text-[7px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
-                                            <span className="text-xl font-black text-primary">{formatCurrency(cartTotal)}</span>
+                                        <h2 className="text-[9px] font-black text-slate-900 dark:text-white uppercase">Pagamento</h2>
+                                        <div className="mt-1 p-1 bg-primary/10 rounded-lg border border-primary/20">
+                                            <span className="block text-[6px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
+                                            <span className="text-lg font-black text-primary">{formatCurrency(cartTotal)}</span>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-3 gap-1.5">
