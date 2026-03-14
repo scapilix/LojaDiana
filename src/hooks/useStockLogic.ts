@@ -8,6 +8,7 @@ export interface VariationStock {
   total_purchased: number;
   total_sold: number;
   current_stock: number;
+  absolute_stock?: number;
 }
 
 export interface StockStatus {
@@ -27,6 +28,7 @@ export interface StockStatus {
   variations: VariationStock[];
   image_url?: string;
   categoria?: string;
+  absolute_stock?: number;
 }
 
 export function useStockLogic() {

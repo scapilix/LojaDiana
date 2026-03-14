@@ -77,7 +77,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             if (existing) {
                 // Obey stock limits
                 if (existing.quantidade + 1 > item.current_stock) {
-                    alert('Estoque insuficiente para adicionar mais.');
+                    alert(`Estoque insuficiente. Disponível para este item: ${item.current_stock}`);
                     return prev;
                 }
                 return prev.map((i) =>
@@ -97,19 +97,47 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     const updateItemVariation = (cartItemId: string, size?: string, color?: string) => {
-        setCart(prev => prev.map(i => {
-            if (i.cartItemId === cartItemId) {
-                // If the product has variations, find the stock for the new selection
-                let newStock = i.current_stock;
-                if (i.variations) {
-                    const vid = `${String(i.ref).trim().toUpperCase()}|${size || ''}|${color || ''}`;
-                    const v = i.variations.find((v: any) => v.variation_id === vid);
-                    newStock = v ? v.current_stock : 0;
-                }
-                return { ...i, size, color, current_stock: newStock };
+        setCart(prev => {
+            const itemIndex = prev.findIndex(i => i.cartItemId === cartItemId);
+            if (itemIndex === -1) return prev;
+
+            const item = prev[itemIndex];
+            
+            // 1. Calculate new stock for the requested variation
+            let newStock = item.current_stock;
+            if (item.variations) {
+                const vid = `${String(item.ref).trim().toUpperCase()}|${size || ''}|${color || ''}`;
+                const v = item.variations.find((v: any) => v.variation_id === vid);
+                newStock = v ? v.current_stock : 0;
             }
-            return i;
-        }));
+
+            // 2. Adjust quantity if it exceeds new stock
+            const newQty = Math.min(item.quantidade, Math.max(1, newStock));
+            if (newQty < item.quantidade) {
+                alert(`Quantidade ajustada para ${newQty} devido ao limite de stock da nova variação.`);
+            }
+
+            // 3. Calculate new cartItemId
+            const newId = `${item.ref}${size ? `-${size}` : ''}${color ? `-${color}` : ''}`;
+
+            // 4. Check for collision (if another item with this variation already exists)
+            const collisionIndex = prev.findIndex((i, idx) => i.cartItemId === newId && idx !== itemIndex);
+            
+            const newCart = [...prev];
+            
+            if (collisionIndex !== -1) {
+                // Merge quantities
+                const target = newCart[collisionIndex];
+                const totalQty = Math.min(target.quantidade + newQty, newStock);
+                newCart[collisionIndex] = { ...target, quantidade: totalQty, current_stock: newStock };
+                newCart.splice(itemIndex, 1);
+            } else {
+                // Update current item
+                newCart[itemIndex] = { ...item, cartItemId: newId, size, color, current_stock: newStock, quantidade: newQty };
+            }
+
+            return newCart;
+        });
     };
 
     const updateQuantity = (cartItemId: string, change: number) => {
@@ -119,7 +147,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                     const newQty = i.quantidade + change;
                     if (newQty < 1) return i; // Use remove instead
                     if (change > 0 && newQty > i.current_stock) {
-                        alert('Estoque máximo alcançado para este item.');
+                        alert(`Estoque máximo atingido para este item: ${i.current_stock}`);
                         return i;
                     }
                     return { ...i, quantidade: newQty };

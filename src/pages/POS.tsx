@@ -57,9 +57,50 @@ export default function POS() {
         return Array.from(cats).sort();
     }, [stockInventory]);
 
-    // Filter products based on search and category
+    const formatCurrency = (val: number) => {
+        return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
+    };
+
+    // Calculate available stock based on items already in cart
+    const stockWithCart = useMemo(() => {
+        return stockInventory.map(product => {
+            // Get all cart items for this product ref
+            const productRef = String(product.ref).trim().toUpperCase();
+            const itemsInCart = cart.filter(item => String(item.ref).trim().toUpperCase() === productRef);
+            
+            if (itemsInCart.length === 0) return product;
+
+            // Deep clone product to avoid mutation if needed (stockInventory is already a calculation)
+            const updatedProduct = { ...product };
+            
+            // Adjust variations stock
+            const updatedVariations = product.variations.map(v => {
+                const cartQty = itemsInCart
+                    .filter(item => {
+                        const vid = `${productRef}|${item.size || ''}|${item.color || ''}`;
+                        return v.variation_id === vid;
+                    })
+                    .reduce((sum, item) => sum + item.quantidade, 0);
+                
+                return {
+                    ...v,
+                    absolute_stock: v.current_stock, // Preserve real total stock
+                    current_stock: Math.max(0, v.current_stock - cartQty)
+                };
+            });
+
+            updatedProduct.variations = updatedVariations;
+            updatedProduct.absolute_stock = product.current_stock;
+            // Recalculate total product stock (sum of positive variation stocks)
+            updatedProduct.current_stock = updatedVariations.reduce((acc, v) => acc + Math.max(0, v.current_stock), 0);
+            
+            return updatedProduct;
+        });
+    }, [stockInventory, cart]);
+
+    // Filter products based on search and category (using stockWithCart)
     const filteredProducts = useMemo(() => {
-        let filtered = stockInventory;
+        let filtered = stockWithCart;
 
         if (selectedCategory) {
             filtered = filtered.filter(p => p.categoria === selectedCategory);
@@ -73,11 +114,7 @@ export default function POS() {
         }
 
         return filtered.slice(0, 100); // Limit render for performance
-    }, [stockInventory, searchTerm, selectedCategory]);
-
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
-    };
+    }, [stockWithCart, searchTerm, selectedCategory]);
 
     const handleProductClick = (item: any) => {
         if (item.current_stock <= 0) return;
@@ -85,7 +122,10 @@ export default function POS() {
         // Add to cart directly. If it has variations, it will be added with default/none 
         // and the user can pick in the side cart.
         
+        // Use absolute_stock if available, otherwise use original stockInventory lookup 
+        // to get the true limit before cart subtraction
         const firstInStock = item.variations?.find((v: any) => v.current_stock > 0);
+        const limitToRemove = firstInStock ? (firstInStock.absolute_stock ?? firstInStock.current_stock) : (item.absolute_stock ?? item.current_stock);
         
         addToCart({
             ref: item.ref,
@@ -94,12 +134,15 @@ export default function POS() {
             original_price: item.pvp || 0,
             pvp_cica: item.pvp || 0,
             base_price: item.base_price || 0,
-            current_stock: firstInStock ? firstInStock.current_stock : item.current_stock,
+            current_stock: limitToRemove,
             size: firstInStock?.size || undefined,
             color: firstInStock?.color || undefined,
             categoria: item.categoria,
             image_url: item.image_url,
-            variations: item.variations
+            variations: item.variations.map((v: any) => ({
+                ...v,
+                current_stock: v.absolute_stock ?? v.current_stock // Pass the real stock to cart for variation changes
+            }))
         });
     };
 
