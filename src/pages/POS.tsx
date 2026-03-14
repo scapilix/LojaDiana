@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -296,8 +296,8 @@ export default function POS() {
                                 key={product.ref}
                                 onClick={() => handleProductClick(product)}
                                 className={viewMode === 'grid' 
-                                    ? `relative flex flex-col items-start rounded-2xl border text-left transition-all overflow-hidden ${product.current_stock <= 0
-                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50'
+                                    ? `relative flex flex-col items-start p-2 rounded-[1.5rem] border text-left transition-all ${product.current_stock <= 0
+                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-500/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1'
                                         }`
                                     : `relative flex items-center gap-4 p-3 rounded-2xl border text-left transition-all ${product.current_stock <= 0
@@ -330,18 +330,18 @@ export default function POS() {
                                                 <Package className="w-6 h-6 text-slate-200 dark:text-slate-700" />
                                             )}
                                         </div>
-                                        <div className="w-full h-full p-3.5 bg-slate-600 dark:bg-slate-800 flex flex-col justify-between">
+                                        <div className="mt-2 w-full px-0.5 flex flex-col justify-between">
                                             <div className="space-y-0.5">
-                                                <span className="text-[11px] font-black text-white leading-tight block uppercase truncate">
+                                                <span className="text-[10px] font-black text-slate-900 dark:text-white leading-tight block uppercase truncate">
                                                     {product.name}
                                                 </span>
-                                                <span className="font-black text-lg text-white block">
+                                                <span className="font-black text-sm text-primary block">
                                                     {formatCurrency(product.pvp || 0)}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-end gap-2 mt-auto">
-                                                <span className="text-[7px] font-black text-white/60 uppercase tracking-tighter">{product.categoria}</span>
-                                                <span className="text-[7px] font-black text-white/40 uppercase tracking-tighter">REF: {product.ref}</span>
+                                            <div className="flex items-center justify-end gap-2 mt-2 pt-1 border-t border-slate-100 dark:border-white/5">
+                                                <span className="text-[7px] font-black text-purple-500 uppercase tracking-tighter">{product.categoria}</span>
+                                                <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter">REF: {product.ref}</span>
                                             </div>
                                         </div>
                                     </>
@@ -847,15 +847,63 @@ export default function POS() {
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                                             <div className="relative">
                                                 <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
-                                                <input
-                                                    type="number"
-                                                    value={cashReceived}
-                                                    onChange={(e) => setCashReceived(e.target.value)}
-                                                    placeholder="Valor recebido..."
-                                                    className="w-full py-4 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-lg font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10"
-                                                />
-                                            </div>
-                                            {parseFloat(cashReceived) > cartTotal && (
+                                                    <input
+                                                        type="number"
+                                                        value={cashReceived}
+                                                        onChange={(e) => setCashReceived(e.target.value)}
+                                                        placeholder="Valor recebido..."
+                                                        className="w-full py-4 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-lg font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-4"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-4 gap-2 bg-slate-50 dark:bg-white/5 p-3 rounded-[2rem] border border-slate-200 dark:border-white/10">
+                                                    <div className="col-span-3 grid grid-cols-3 gap-2">
+                                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map(digit => (
+                                                            <button
+                                                                key={digit}
+                                                                onClick={() => {
+                                                                    if (digit === '.' && cashReceived.includes('.')) return;
+                                                                    setCashReceived(prev => (prev === '0' && digit !== '.' ? digit.toString() : prev + digit.toString()));
+                                                                }}
+                                                                className="py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl font-black text-sm text-slate-900 dark:text-white hover:bg-slate-50 transition-all active:scale-95"
+                                                            >
+                                                                {digit}
+                                                            </button>
+                                                        ))}
+                                                        <button
+                                                            onClick={() => setCashReceived('')}
+                                                            className="py-3 bg-rose-500 text-white rounded-xl font-black text-sm hover:bg-rose-600 transition-all active:scale-95"
+                                                        >
+                                                            C
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex flex-col gap-2">
+                                                        <button
+                                                            onClick={() => setCashReceived(prev => prev.slice(0, -1))}
+                                                            className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl flex items-center justify-center hover:bg-slate-300 transition-all active:scale-95"
+                                                        >
+                                                            <Delete className="w-5 h-5" />
+                                                        </button>
+                                                        <div className="grid grid-cols-1 gap-1.5 mt-2">
+                                                            {[5, 10, 20].map(amt => (
+                                                                <button
+                                                                    key={amt}
+                                                                    onClick={() => setCashReceived(amt.toString())}
+                                                                    className="py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-xl font-black text-[10px] hover:bg-emerald-500/20 transition-all active:scale-95"
+                                                                >
+                                                                    {amt}€
+                                                                </button>
+                                                            ))}
+                                                            <button
+                                                                onClick={() => setCashReceived(cartTotal.toString())}
+                                                                className="py-2 bg-primary text-white rounded-xl font-black text-[9px] uppercase tracking-tighter hover:bg-primary/90 transition-all active:scale-95"
+                                                            >
+                                                                Total
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {parseFloat(cashReceived) > cartTotal && (
                                                 <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-emerald-200 dark:border-emerald-500/20 flex justify-between items-center">
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Troco</span>
                                                     <span className="text-xl font-black text-emerald-600">{formatCurrency(parseFloat(cashReceived) - cartTotal)}</span>
