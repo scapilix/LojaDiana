@@ -619,7 +619,7 @@ export default function POS() {
                                                                                 baseValue: item.pvp_cica * item.quantidade,
                                                                                 title: 'Desconto no Item'
                                                                             })}
-                                                                            className={`p-1 rounded-md transition-all ${item.discount ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'}`}
+                                                                            className={`p-1 rounded-md transition-all ${(item.discount || 0) > 0 ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'}`}
                                                                             title="Aplicar Desconto"
                                                                         >
                                                                             <Tag className="w-2.5 h-2.5" />
@@ -669,7 +669,7 @@ export default function POS() {
                                                         </div>
 
                                                         <div className="text-right flex flex-col items-end shrink-0">
-                                                            {item.discount > 0 && (
+                                                            {(item.discount || 0) > 0 && (
                                                                 <span className="text-[7px] font-black text-rose-500/60 line-through tracking-tighter decoration-1">
                                                                     {formatCurrency(item.pvp_cica * item.quantidade)}
                                                                 </span>
