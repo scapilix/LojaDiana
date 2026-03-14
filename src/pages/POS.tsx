@@ -296,8 +296,8 @@ export default function POS() {
                                 key={product.ref}
                                 onClick={() => handleProductClick(product)}
                                 className={viewMode === 'grid' 
-                                    ? `relative flex flex-col items-start p-2 rounded-[1.5rem] border text-left transition-all ${product.current_stock <= 0
-                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-500/5'
+                                    ? `relative flex flex-col items-start rounded-2xl border text-left transition-all overflow-hidden ${product.current_stock <= 0
+                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1'
                                         }`
                                     : `relative flex items-center gap-4 p-3 rounded-2xl border text-left transition-all ${product.current_stock <= 0
@@ -330,18 +330,18 @@ export default function POS() {
                                                 <Package className="w-6 h-6 text-slate-200 dark:text-slate-700" />
                                             )}
                                         </div>
-                                        <div className="mt-1.5 w-full px-0.5">
-                                            <div className="flex items-center justify-between gap-1 w-full overflow-hidden">
-                                                <span className="text-[7px] font-black text-primary truncate tracking-tighter uppercase">{product.ref}</span>
-                                                <span className="text-[7px] font-black text-purple-500 truncate uppercase tracking-tighter">{product.categoria}</span>
-                                            </div>
-                                            <span className="text-[9px] font-black text-slate-900 dark:text-white leading-tight line-clamp-2 mt-0.5 uppercase">
-                                                {product.name}
-                                            </span>
-                                            <div className="mt-1 flex items-center pt-1 border-t border-slate-100 dark:border-white/5">
-                                                <span className="font-black text-[10px] text-primary">
+                                        <div className="w-full h-full p-3.5 bg-slate-600 dark:bg-slate-800 flex flex-col justify-between">
+                                            <div className="space-y-0.5">
+                                                <span className="text-[11px] font-black text-white leading-tight block uppercase truncate">
+                                                    {product.name}
+                                                </span>
+                                                <span className="font-black text-lg text-white block">
                                                     {formatCurrency(product.pvp || 0)}
                                                 </span>
+                                            </div>
+                                            <div className="flex items-center justify-end gap-2 mt-auto">
+                                                <span className="text-[7px] font-black text-white/60 uppercase tracking-tighter">{product.categoria}</span>
+                                                <span className="text-[7px] font-black text-white/40 uppercase tracking-tighter">REF: {product.ref}</span>
                                             </div>
                                         </div>
                                     </>
@@ -567,13 +567,6 @@ export default function POS() {
                             <div className="flex-1 overflow-hidden flex flex-col">
                                 <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 dark:border-white/5 relative">
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Itens / Resumo</span>
-                                    <button 
-                                        onClick={() => setIsCartCollapsed(!isCartCollapsed)}
-                                        className="p-1 px-2 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5"
-                                    >
-                                        <LayoutGrid className="w-2.5 h-2.5" />
-                                        {isCartCollapsed ? 'Abrir' : 'Recolher'}
-                                    </button>
                                 </div>
 
                                 <div className={`flex-1 overflow-y-auto px-3 py-2 space-y-1.5 custom-scrollbar transition-all duration-300 ${isCartCollapsed ? 'opacity-0' : 'opacity-100'}`}>
