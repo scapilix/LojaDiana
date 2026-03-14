@@ -17,7 +17,19 @@
     --border: 214 32% 91%;
     --primary: 271 91% 55%;       /* #8c25f4 */
     --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 16% 50%;
     --accent: 271 91% 96%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 271 91% 55%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 12%;
     
     /* stitch Sidebar Light */
     --sidebar-bg: 0 0% 100%;
@@ -40,7 +52,19 @@
     --border: 271 91% 12%;      /* Darker border */
     --primary: 271 91% 55%;
     --primary-foreground: 0 0% 100%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 215 20% 60%;
+    --muted-foreground: 217 10% 55%;
     --accent: 271 91% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 271 91% 12%;      /* Darker border */
+    --input: 271 91% 12%;
+    --ring: 271 91% 55%;
+    --popover: 271 50% 6%;
+    --popover-foreground: 210 40% 98%;
     
     /* stitch Sidebar Dark */
     --sidebar-bg: 271 50% 4%;   /* Matches background for "burnt" look */
