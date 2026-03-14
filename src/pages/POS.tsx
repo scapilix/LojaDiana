@@ -252,10 +252,10 @@ export default function POS() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-2.5 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                     <div className={viewMode === 'grid' 
-                        ? "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
-                        : "flex flex-col gap-1.5"
+                        ? "grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1.5"
+                        : "flex flex-col gap-1"
                     }>
                         {filteredProducts.map((product) => (
                             <button
@@ -263,11 +263,11 @@ export default function POS() {
                                 onClick={() => handleProductClick(product)}
                                 disabled={product.current_stock <= 0}
                                 className={viewMode === 'grid' 
-                                    ? `relative flex flex-col items-start p-2 rounded-lg border text-left transition-all ${product.current_stock <= 0
+                                    ? `relative flex flex-col items-start p-1.5 rounded-lg border text-left transition-all ${product.current_stock <= 0
                                         ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg'
                                         }`
-                                    : `relative flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${product.current_stock <= 0
+                                    : `relative flex items-center gap-2 p-1.5 rounded-lg border text-left transition-all ${product.current_stock <= 0
                                         ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-md'
                                         }`
@@ -280,7 +280,7 @@ export default function POS() {
                                                 e.stopPropagation();
                                                 setZoomedProduct({ ...product, nome_artigo: product.name });
                                             }}
-                                            className="w-full aspect-square bg-white dark:bg-slate-900 rounded-lg mb-2 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 relative group/img cursor-zoom-in"
+                                            className="w-full aspect-square bg-white dark:bg-slate-900 rounded-md mb-1.5 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 relative group/img cursor-zoom-in"
                                         >
                                             {product.image_url ? (
                                                 <>

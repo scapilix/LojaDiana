@@ -55,19 +55,21 @@ function Rankings() {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.4 }}
-      className="space-y-12"
+      className="space-y-4"
     >
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Relatórios & Rankings</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Análise de performance de clientes e produtos</p>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+           <Trophy className="w-4 h-4 text-amber-500" /> Relatórios & Rankings
+        </h1>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Análise de performance de clientes e produtos</p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="relative z-50 flex flex-wrap items-center justify-between gap-4 bg-white/50 dark:bg-slate-800/40 p-3 rounded-3xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-white/10 rounded-2xl border border-purple-200 dark:border-white/5">
-            <Filter className="w-4 h-4 text-purple-800 dark:text-purple-300" />
-            <span className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Smart Filters</span>
+      {/* Filter Bar - Ultra Compact */}
+      <div className="relative z-50 flex flex-wrap items-center justify-between gap-2 bg-white/50 dark:bg-slate-800/40 p-2 rounded-xl border border-purple-100 dark:border-purple-800/20 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-white/10 rounded-lg border border-purple-200 dark:border-white/5">
+            <Filter className="w-3.5 h-3.5 text-purple-800 dark:text-purple-300" />
+            <span className="text-[9px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Filtros</span>
           </div>
 
           <SmartDateFilter
@@ -81,34 +83,21 @@ function Rankings() {
         {isFiltered && (
           <button
             onClick={() => setFilters(prev => ({ ...prev, year: '', month: '', days: [] }))}
-            className="flex items-center gap-2 px-5 py-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 mr-2"
+            className="flex items-center gap-1 px-3 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all mr-1"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
             Limpar
           </button>
         )}
       </div>
 
-      {/* Page Header */}
-      <div className="glass p-8 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
-        <div className="flex items-center gap-4 mb-2">
-          <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-            <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-slate-950 dark:text-white">Rankings</h2>
-            <p className="text-slate-900 dark:text-slate-100 text-sm mt-1 font-black italic tracking-tight">Melhores clientes e produtos em destaque</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Dual Leaderboard Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+      {/* Leaderboard Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Top Customers Leaderboard */}
-        <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
-          <div className="flex items-center gap-3 mb-8">
-            <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">Melhores Clientes</h3>
+        <div className="glass p-4 rounded-xl border-purple-100 dark:border-purple-800/20">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Melhores Clientes</h3>
           </div>
 
           <div className="space-y-4">
@@ -127,9 +116,9 @@ function Rankings() {
                 <div className="flex items-center gap-4">
                   {/* Position & Medal */}
                   <div className="flex-shrink-0">
-                    <div className={`w-14 h-14 rounded-xl ${getMedalBg(index)} flex items-center justify-center text-white font-black text-xl shadow-lg relative`}>
+                    <div className={`w-10 h-10 rounded-lg ${getMedalBg(index)} flex items-center justify-center text-white font-black text-sm shadow-md relative`}>
                       {index < 3 ? (
-                        <div className="absolute -top-2 -right-2">
+                        <div className="absolute -top-1.5 -right-1.5 transform scale-75">
                           {getMedalIcon(index)}
                         </div>
                       ) : null}
@@ -139,7 +128,7 @@ function Rankings() {
 
                   {/* Customer Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-lg text-slate-900 dark:text-white truncate">{customer.name}</h4>
+                    <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{customer.name}</h4>
                     {customer.instagram && customer.instagram !== 'N/A' && (
                       <p className="text-xs text-purple-500 font-medium truncate">@{customer.instagram.replace('@', '')}</p>
                     )}
@@ -153,12 +142,10 @@ function Rankings() {
                     </div>
                   </div>
 
-                  {/* Percentage */}
                   <div className="flex-shrink-0 text-right">
-                    <div className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400">
+                    <div className="text-sm font-black font-mono text-purple-600 dark:text-purple-400">
                       {customer.percentage.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-500">do total</div>
                   </div>
                 </div>
 
@@ -181,10 +168,10 @@ function Rankings() {
         </div>
 
         {/* Top Products Leaderboard */}
-        <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
-          <div className="flex items-center gap-3 mb-8">
-            <Trophy className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">Melhores Produtos</h3>
+        <div className="glass p-4 rounded-xl border-purple-100 dark:border-purple-800/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Melhores Produtos</h3>
           </div>
 
           <div className="space-y-4">
@@ -206,9 +193,9 @@ function Rankings() {
                   <div className="flex items-center gap-4">
                     {/* Position & Medal */}
                     <div className="flex-shrink-0">
-                      <div className={`w-14 h-14 rounded-xl ${getMedalBg(index)} flex items-center justify-center text-white font-black text-xl shadow-lg relative`}>
+                      <div className={`w-10 h-10 rounded-lg ${getMedalBg(index)} flex items-center justify-center text-white font-black text-sm shadow-md relative`}>
                         {index < 3 ? (
-                          <div className="absolute -top-2 -right-2">
+                          <div className="absolute -top-1.5 -right-1.5 transform scale-75">
                             {getMedalIcon(index)}
                           </div>
                         ) : null}
@@ -218,7 +205,7 @@ function Rankings() {
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-lg text-slate-900 dark:text-white truncate">{product.ref}</h4>
+                      <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{product.ref}</h4>
                       <div className="flex items-center gap-4 mt-1">
                         <span className="text-sm text-slate-950 dark:text-white font-black">
                           <span className="font-black text-emerald-700 dark:text-emerald-400">{product.quantity}</span> unidades
@@ -231,10 +218,9 @@ function Rankings() {
 
                     {/* Average Price */}
                     <div className="flex-shrink-0 text-right">
-                      <div className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400">
+                      <div className="text-sm font-black font-mono text-emerald-700 dark:text-emerald-400">
                         {formatCurrency(product.avgPrice)}
                       </div>
-                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">preço médio</div>
                     </div>
                   </div>
 
