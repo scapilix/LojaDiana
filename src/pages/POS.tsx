@@ -671,45 +671,42 @@ export default function POS() {
                     )}
                 </div>
 
-                <div className="px-3 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 space-y-2">
-                    <div className="p-3 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Truck className="w-4 h-4 text-primary" />
-                                <span className="font-black uppercase tracking-widest text-[9px] text-slate-500">Logística / Envio</span>
-                            </div>
-                            <span className="text-[8px] font-bold text-slate-400 uppercase">Selecionar Opção</span>
+                <div className="px-2 py-2 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                    <div className="p-2 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 group-hover:border-primary/20 transition-all font-black">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <Truck className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[8px] text-slate-500">Envio</span>
                         </div>
                         <select 
                             value={shippingType}
                             onChange={(e) => setShippingType(e.target.value)}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-[11px] font-black outline-none cursor-pointer text-slate-900 dark:text-white shadow-sm focus:ring-1 focus:ring-primary/20 transition-all"
+                            className="flex-1 bg-transparent text-[9px] outline-none cursor-pointer text-slate-900 dark:text-white text-right appearance-none"
                         >
                             <option value="Sem entrega">Sem entrega</option>
-                            <option value="Entrega em mão">Entrega em Mão</option>
-                            <option value="Continental">Portugal Continental (5€)</option>
-                            <option value="Ilhas">Ilhas Madeira/Açores (10€)</option>
-                            <option value="Estrangeiro">Internacional (15€)</option>
+                            <option value="Entrega em mão">Em Mão</option>
+                            <option value="Continental">Portugal (5€)</option>
+                            <option value="Ilhas">Ilhas (10€)</option>
+                            <option value="Estrangeiro">Inter (15€)</option>
                         </select>
                     </div>
+                </div>
 
-                    <div className="flex items-center gap-2 mt-auto">
-                        <button
-                            onClick={() => {
-                                setCheckoutStep(1);
-                                setIsCheckoutModalOpen(true);
-                            }}
-                            disabled={cart.length === 0}
-                            className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/10"
-                        >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Avançar</span>
-                        </button>
+                <div className="flex items-center gap-2 mt-auto px-2 pb-2">
+                    <button
+                        onClick={() => {
+                            setCheckoutStep(1);
+                            setIsCheckoutModalOpen(true);
+                        }}
+                        disabled={cart.length === 0}
+                        className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/10"
+                    >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Avançar</span>
+                    </button>
 
-                        <div className="bg-primary px-3 py-2 rounded-xl flex flex-col items-end min-w-[100px] shadow-lg shadow-primary/20">
-                            <span className="font-black text-white/70 uppercase tracking-tighter text-[7px] leading-none mb-1">TOTAL</span>
-                            <span className="font-black text-xs text-white leading-none whitespace-nowrap">{formatCurrency(cartTotal)}</span>
-                        </div>
+                    <div className="bg-primary px-3 py-2 rounded-xl flex flex-col items-end min-w-[100px] shadow-lg shadow-primary/20">
+                        <span className="font-black text-white/70 uppercase tracking-tighter text-[7px] leading-none mb-1">TOTAL</span>
+                        <span className="font-black text-xs text-white leading-none whitespace-nowrap">{formatCurrency(cartTotal)}</span>
                     </div>
                 </div>
             </motion.div>
@@ -1001,12 +998,12 @@ export default function POS() {
                                             {formatCurrency(discountModalConfig.type === 'total' 
                                                 ? Math.max(0, discountModalConfig.baseValue - cartActualDiscount) 
                                                 : (() => {
-                                                    const currentItem = cart.find(i => i.cartItemId === discountModalConfig.cartItemId);
+                                                    const currentItem = cart?.find(i => i.cartItemId === discountModalConfig.cartItemId);
                                                     if (!currentItem) return discountModalConfig.baseValue;
                                                     const disc = currentItem.discount_type === 'percent' 
                                                         ? (discountModalConfig.baseValue * ((currentItem.discount || 0) / 100))
                                                         : (currentItem.discount || 0);
-                                                    return Math.max(0, discountModalConfig.baseValue - disc);
+                                                    return Math.max(0, discountModalConfig.baseValue - (disc || 0));
                                                 })()
                                             )}
                                         </p>
