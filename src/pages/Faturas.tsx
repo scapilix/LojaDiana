@@ -485,28 +485,24 @@ export default function Faturas() {
           value={formatCurrency(totalSpent)}
           icon={DollarSign}
           trend={`${filteredByType.length} faturas`}
-          color="purple"
         />
         <KpiCard
           label="IVA Recuperável"
           value={formatCurrency(totalIva)}
           icon={TrendingUp}
           trend="Total de IVA"
-          color="blue"
         />
         <KpiCard
           label="Média por Fatura"
           value={formatCurrency(avgFatura)}
           icon={Tag}
           trend="Valor médio"
-          color="emerald"
         />
         <KpiCard
           label="Faturas Novas"
           value={filteredByType.filter(f => f.is_novo).length}
           icon={CheckCircle2}
           trend="Entidades novas"
-          color="orange"
         />
       </div>
 

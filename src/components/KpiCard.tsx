@@ -7,10 +7,9 @@ interface KpiCardProps {
   value: string | number;
   icon: LucideIcon;
   trend?: string;
-  color?: string;
 }
 
-export const KpiCard: React.FC<KpiCardProps> = ({ label, value, icon: Icon, trend, color = 'blue' }) => {
+export const KpiCard: React.FC<KpiCardProps> = ({ label, value, icon: Icon, trend }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}

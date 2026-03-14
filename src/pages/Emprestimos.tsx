@@ -218,21 +218,18 @@ export default function Emprestimos() {
           value={formatCurrency(totalEmprestado)}
           icon={Banknote}
           trend={`${emprestimos.length} registos`}
-          color="blue"
         />
         <KpiCard
           label="Recebido (Pago)"
           value={formatCurrency(totalPago)}
           icon={TrendingUp}
           trend={`${((totalPago / totalEmprestado || 0) * 100).toFixed(1)}% recuperado`}
-          color="emerald"
         />
         <KpiCard
           label="Pendente (A Receber)"
           value={formatCurrency(totalPendente)}
           icon={AlertCircle}
           trend={`${emprestimos.filter(e => e.estado === 'Pendente').length} por pagar`}
-          color="amber"
         />
       </div>
 

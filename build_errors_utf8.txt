@@ -1,2 +1,38 @@
-﻿src/pages/Encomendas.tsx(99,24): error TS6133: 'setFollowUpData' is declared but its value is never read.
-src/pages/Encomendas.tsx(748,29): error TS6133: 'printContent' is declared but its value is never read.
+﻿src/pages/Clientes.tsx(111,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Clientes.tsx(118,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Clientes.tsx(125,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Clientes.tsx(132,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Despesas.tsx(670,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Despesas.tsx(677,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Despesas.tsx(684,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Despesas.tsx(695,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Emprestimos.tsx(221,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Emprestimos.tsx(228,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Emprestimos.tsx(235,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Faturas.tsx(488,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Faturas.tsx(495,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Faturas.tsx(502,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Faturas.tsx(509,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Portes.tsx(138,11): error TS2322: Type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Portes.tsx(145,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Portes.tsx(152,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.
+src/pages/Portes.tsx(159,11): error TS2322: Type '{ label: string; value: number; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; trend: string; color: string; }' is not assignable to type 'IntrinsicAttributes & KpiCardProps'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & KpiCardProps'.

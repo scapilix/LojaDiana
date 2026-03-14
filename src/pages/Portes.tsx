@@ -135,28 +135,24 @@ export default function Portes() {
           value={formatCurrency(shippingMetrics.totalShippingRevenue)}
           icon={Truck}
           trend={`${shippingPercentage.toFixed(1)}% da faturação`}
-          color="purple"
         />
         <KpiCard
           label="Envios Continental"
           value={shippingMetrics.continentalCount}
           icon={Map}
           trend={formatCurrency(shippingMetrics.continentalRevenue)}
-          color="blue"
         />
         <KpiCard
           label="Envios Ilhas"
           value={shippingMetrics.ilhasCount}
           icon={Globe}
           trend={formatCurrency(shippingMetrics.ilhasRevenue)}
-          color="indigo"
         />
         <KpiCard
           label="Total Envios"
           value={shippingMetrics.shippingCount}
           icon={Box}
           trend="Volumes enviados"
-          color="emerald"
         />
       </div>
 

@@ -108,28 +108,24 @@ function Clientes() {
           value={totalCustomers}
           icon={Users}
           trend={`${orderCount} compras`}
-          color="purple"
         />
         <KpiCard
           label="Taxa de Retorno"
           value={`${repeatRate.toFixed(1)}%`}
           icon={TrendingUp}
           trend={`${repeatCustomers} clientes recorrentes`}
-          color="green"
         />
         <KpiCard
           label="Valor Médio/Cliente"
           value={formatCurrency(avgCustomerValue)}
           icon={Award}
           trend="Customer Lifetime Value"
-          color="purple"
         />
         <KpiCard
           label="Localidades"
           value={salesByLocation.length}
           icon={MapPin}
           trend="Áreas de atuação"
-          color="orange"
         />
       </div>
 

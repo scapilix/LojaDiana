@@ -667,21 +667,18 @@ export default function Despesas() {
           value={formatCurrency(totalReal)}
           icon={Wallet}
           trend={`${filteredByCategory.length} registos`}
-          color="purple"
         />
         <KpiCard
           label="Despesas Fixas"
           value={formatCurrency(totalFixedReal)}
           icon={Target}
           trend={`${fixedExpenses.length} itens`}
-          color="blue"
         />
         <KpiCard
           label="Despesas Variáveis"
           value={formatCurrency(totalVariableReal)}
           icon={TrendingDown}
           trend={`${variableExpenses.length} itens`}
-          color="emerald"
         />
         <KpiCard
           label="Aderência Orçamento"
@@ -692,7 +689,6 @@ export default function Despesas() {
               ? `Projetado: ${formatCurrency(totalProjetado)}`
               : "Sem orçamento"
           }
-          color="orange"
         />
       </div>
 
