@@ -1,12 +1,7 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Package, TrendingUp, BarChart3, DollarSign, Filter, X, Search, MessageCircle, Copy } from 'lucide-react';
-import { useDashboardData } from '../hooks/useDashboardData';
-import { useFilters } from '../contexts/FilterContext';
-import { KpiCard } from '../components/KpiCard';
-import { TopProdutos } from '../components/TopProdutos';
-import { SmartDateFilter } from '../components/SmartDateFilter';
-import { AnimatePresence } from 'framer-motion';
+import { useData } from '../contexts/DataContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, X, Search, MessageCircle, Copy } from 'lucide-react';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -14,65 +9,49 @@ const pageVariants = {
   exit: { opacity: 0, y: -20 }
 };
 
+
 function Produtos() {
-  const { filters, setFilters } = useFilters();
+  const { data } = useData();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
 
   // Quote Modal State
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedQuoteProduct, setSelectedQuoteProduct] = useState<any>(null);
 
-  const {
-    totalRevenue,
-    orderCount,
-    topProducts,
-    isFiltered,
-    availableFilters,
-    filterCounts
-  } = useDashboardData(filters);
-
   const formatCurrency = (val: number) =>
     val?.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }) || '0,00 €';
 
-  // 1. Filter products by search term
+  // 1. Combine regular catalog and manual overrides
+  const allProducts = useMemo(() => {
+    const catalog = data.products_catalog || [];
+    const manual = data.manual_products_catalog || [];
+    const merged = [...manual];
+    const manualRefs = new Set(manual.map(p => p.ref));
+    catalog.forEach(p => {
+      if (!manualRefs.has(p.ref)) merged.push(p);
+    });
+    return merged;
+  }, [data]);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) return topProducts;
-    const term = searchTerm.toLowerCase();
-    return topProducts.filter(p =>
-      p.ref.toLowerCase().includes(term) ||
-      (p.name && p.name.toLowerCase().includes(term))
-    );
-  }, [topProducts, searchTerm]);
+  // 2. Categories
+  const categories = useMemo(() => {
+    const cats = new Set(['Todos']);
+    allProducts.forEach(p => { if (p.categoria) cats.add(p.categoria); });
+    return Array.from(cats);
+  }, [allProducts]);
 
-  // 2. Derive metrics from filtered products
-  const filteredRevenue = useMemo(() => {
-    return filteredProducts.reduce((sum, p) => sum + p.revenue, 0);
-  }, [filteredProducts]);
+  // 3. Filter products
+  const filteredProductsList = useMemo(() => {
+    return allProducts.filter(p => {
+      const matchesSearch = !searchTerm || 
+        p.ref.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        p.nome_artigo?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'Todos' || p.categoria === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [allProducts, searchTerm, selectedCategory]);
 
-  const totalProductsSold = useMemo(() => {
-    return filteredProducts.reduce((sum, product) => sum + product.quantity, 0);
-  }, [filteredProducts]);
-
-  const avgProductPrice = useMemo(() => {
-    const totalQty = filteredProducts.reduce((sum, product) => sum + product.quantity, 0);
-    return totalQty > 0 ? filteredRevenue / totalQty : 0;
-  }, [filteredProducts, filteredRevenue]);
-
-  const bestSeller = useMemo(() => {
-    if (filteredProducts.length === 0) return 'N/A';
-    return filteredProducts[0].ref;
-  }, [filteredProducts]);
-
-  // 3. Product performance matrix data
-  const productMatrix = useMemo(() => {
-    return filteredProducts.map(product => ({
-      ref: product.ref,
-      quantity: product.quantity,
-      revenue: product.revenue,
-      avgPrice: product.avgPrice
-    }));
-  }, [filteredProducts]);
 
   return (
     <motion.div
@@ -83,185 +62,111 @@ function Produtos() {
       transition={{ duration: 0.4 }}
       className="space-y-12"
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Análise de Produtos</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Monitorize a performance e tendências dos seus itens</p>
+          <h1 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Gestão de Itens</h1>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest opacity-60">Catálogo e Stock em Tempo Real</p>
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="relative z-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white shadow-sm dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-white/10 backdrop-blur-xl">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-500/10 rounded-2xl border border-purple-100 dark:border-purple-500/20">
-              <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <span className="text-xs font-black text-purple-700 dark:text-purple-300 uppercase tracking-widest leading-none">Smart Filters</span>
+        {/* Categories & Search Bar */}
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Category Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    selectedCategory === cat 
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' 
+                      : 'bg-white dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white border border-slate-100 dark:border-white/5'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
 
-            <SmartDateFilter
-              filters={filters}
-              setFilters={setFilters}
-              availableFilters={availableFilters as any}
-              counts={filterCounts}
-            />
-
-            {(isFiltered || searchTerm) && (
-              <button
-                onClick={() => {
-                  setFilters(prev => ({ ...prev, year: '', month: '', days: [] }));
-                  setSearchTerm('');
-                }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 shrink-0"
-              >
-                <X className="w-3 h-3" />
-                Limpar Tudo
-              </button>
-            )}
-          </div>
-
-          <div className="relative w-full md:w-80 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Pesquisar REF ou Nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-11 pr-12 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all shadow-inner"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
-                title="Limpar pesquisa"
-              >
-                <X className="w-4 h-4 text-slate-400" />
-              </button>
-            )}
+            {/* Search */}
+            <div className="relative w-full md:w-80 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+              <input
+                type="text"
+                placeholder="Pesquisar por nome ou ref..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl py-3 pl-11 pr-12 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Product KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <KpiCard
-          label="Produtos Vendidos"
-          value={totalProductsSold}
-          icon={Package}
-          trend={`${topProducts.length} SKUs ativos`}
-          color="purple"
-        />
-        <KpiCard
-          label="Faturamento Total"
-          value={formatCurrency(filteredRevenue)}
-          icon={DollarSign}
-          trend={searchTerm ? `${filteredProducts.length} itens encontrados` : `${orderCount} transações`}
-          color="green"
-        />
-        <KpiCard
-          label="Preço Médio"
-          value={formatCurrency(avgProductPrice)}
-          icon={BarChart3}
-          trend="Ticket médio/produto"
-          color="purple"
-        />
-        <KpiCard
-          label="Best Seller"
-          value={bestSeller}
-          icon={TrendingUp}
-          trend="Produto mais vendido"
-          color="orange"
-        />
-      </div>
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+        {filteredProductsList.map((product) => (
+          <motion.div
+            layout
+            key={product.ref}
+            className="glass flex flex-col group border-slate-200/50 hover:border-primary/50 transition-all duration-500 overflow-hidden"
+          >
+            {/* Image Container */}
+            <div className="relative aspect-[4/5] overflow-hidden bg-slate-50 dark:bg-slate-900">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.nome_artigo}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-8 h-8 text-slate-200" />
+                </div>
+              )}
+              
+              {/* Badge */}
+              <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shadow-lg">
+                Em Estoque
+              </div>
 
-      {/* Product Performance Matrix */}
-      <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
-        <div className="mb-8">
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">Performance dos Produtos</h3>
-          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">
-            {searchTerm ? `Resultados para "${searchTerm}"` : 'Análise de quantidade vendida vs faturamento'}
-          </p>
-        </div>
+              {/* Hover Actions */}
+              <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex gap-2">
+                <button 
+                  onClick={() => {
+                    setSelectedQuoteProduct({
+                      ...product,
+                      name: product.nome_artigo,
+                      avgPrice: product.pvp_cica,
+                      quantity: Math.floor(Math.random() * 50) + 10 // placeholder for quantity
+                    });
+                    setShowQuoteModal(true);
+                  }}
+                  className="flex-1 bg-primary hover:bg-primary-hover text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors shadow-lg shadow-primary/20"
+                >
+                  Mensagem
+                </button>
+              </div>
+            </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-purple-200 dark:border-purple-800/30">
-                <th className="text-left pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Referência</th>
-                <th className="text-right pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Quantidade</th>
-                <th className="text-right pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Faturamento</th>
-                <th className="text-right pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Preço Médio</th>
-                <th className="text-center pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Performance</th>
-                <th className="text-center pb-4 px-4 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider w-10">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productMatrix.map((product, index) => {
-                const performanceScore = ((product.quantity / totalProductsSold) * 50) + ((product.revenue / totalRevenue) * 50);
-                return (
-                  <tr key={product.ref} className="border-b border-slate-100 dark:border-white/5 hover:bg-purple-50/50 dark:hover:bg-white/[0.02] transition-colors group">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${index === 0 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400' :
-                            index === 1 ? 'bg-slate-100 dark:bg-slate-500/20 text-slate-600 dark:text-slate-400' :
-                              index === 2 ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400' :
-                                'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400'
-                          }`}>
-                          {index + 1}
-                        </div>
-                        <span className="font-semibold text-slate-900 dark:text-white">{product.ref}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span className="font-mono font-bold text-purple-600 dark:text-purple-400">{product.quantity}</span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(product.revenue)}</span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span className="font-mono text-slate-600 dark:text-slate-400">{formatCurrency(product.avgPrice)}</span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="flex-1 max-w-[120px] h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                            style={{ width: `${Math.min(performanceScore, 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-black text-slate-800 dark:text-slate-200 w-10 text-right">
-                          {performanceScore.toFixed(0)}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <button
-                        onClick={() => {
-                          const fullProduct = filteredProducts.find(p => p.ref === product.ref);
-                          setSelectedQuoteProduct(fullProduct);
-                          setShowQuoteModal(true);
-                        }}
-                        className="p-2 hover:bg-purple-100 dark:hover:bg-purple-500/20 rounded-xl transition-colors text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100"
-                        title="Gerar Orçamento / Pitch de Venda"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Top Products */}
-      <div className="glass p-10 rounded-[2rem] border-purple-100 dark:border-purple-800/20">
-        <div className="mb-8">
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white">Top Produtos</h3>
-          <p className="text-slate-800 dark:text-slate-200 text-sm mt-1 font-black">
-            {searchTerm ? `Top resultados para "${searchTerm}"` : 'Produtos mais vendidos por quantidade'}
-          </p>
-        </div>
-        <TopProdutos products={filteredProducts} />
+            {/* Info */}
+            <div className="p-4 flex flex-col gap-1">
+              <h3 className="text-xs font-black text-slate-900 dark:text-white truncate">{product.nome_artigo || product.ref}</h3>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-sm font-black text-primary">{formatCurrency(product.pvp_cica)}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">6 UNIDADES</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
       {/* Quote Generator Script Modal */}
@@ -319,7 +224,6 @@ function Produtos() {
           </div>
         )}
       </AnimatePresence>
-
     </motion.div>
   );
 }

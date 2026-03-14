@@ -30,23 +30,23 @@
   }
 
   .dark {
-    /* stitch Dark Colors */
-    --background: 271 36% 10%;    /* #191022 */
+    /* stitch Dark Colors - More Burnt/Premium */
+    --background: 271 50% 4%;    /* #0a0612 - Darker, richer purple */
     --foreground: 210 40% 98%;
-    --card: 271 36% 12%;
+    --card: 271 50% 6%;         /* #0f0a1b */
     --card-foreground: 210 40% 98%;
     --muted: 215 20% 60%;
     --muted-foreground: 217 10% 55%;
-    --border: 271 91% 20%;
+    --border: 271 91% 12%;      /* Darker border */
     --primary: 271 91% 55%;
     --primary-foreground: 0 0% 100%;
     --accent: 271 91% 15%;
     
     /* stitch Sidebar Dark */
-    --sidebar-bg: 271 36% 10%;
+    --sidebar-bg: 271 50% 4%;   /* Matches background for "burnt" look */
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-active-bg: 271 91% 20%;
-    --sidebar-active-text: 210 40% 98%;
+    --sidebar-active-bg: 271 91% 55%; /* Solid purple state */
+    --sidebar-active-text: 0 0% 100%;
   }
 }
 
@@ -60,25 +60,31 @@ body {
   font-size: 0.8125rem;
   font-weight: 500;
   overflow-x: hidden;
+  letter-spacing: -0.01em;
 }
 
 h1, h2, h3 {
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  @apply uppercase tracking-wider;
 }
 
+h1 { font-size: 0.9rem; }
+h2 { font-size: 0.75rem; }
+h3 { font-size: 0.65rem; }
+
 .glass {
-  background-color: hsla(0, 0%, 100%, 0.8);
-  backdrop-filter: blur(12px);
+  background-color: hsla(0, 0%, 100%, 0.95);
+  backdrop-filter: blur(20px);
   border: 1px solid hsl(var(--border));
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
 }
 
 .dark .glass {
-  background-color: hsla(271, 36%, 15%, 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid hsla(271, 91%, 55%, 0.2);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  background-color: hsla(271, 36%, 12%, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid hsla(271, 91%, 55%, 0.15);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2);
 }
 
 .purple-glow {
@@ -96,4 +102,19 @@ h1, h2, h3 {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: hsla(271, 91%, 55%, 0.4);
+}
+
+/* Premium stitch Utilities */
+.kpi-accent-line {
+  @apply h-1 w-2/3 bg-primary rounded-full mt-2;
+  box-shadow: 0 0 10px hsla(271, 91%, 55%, 0.5);
+}
+
+.nav-item-active {
+  @apply bg-primary text-white shadow-lg shadow-primary/20 cursor-default;
+}
+
+.dark .glass {
+  background-color: hsla(271, 36%, 10%, 0.8);
+  border-color: hsla(271, 91%, 55%, 0.1);
 }

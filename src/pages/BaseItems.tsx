@@ -429,9 +429,9 @@ export default function BaseItems() {
       className="space-y-12 pb-24 max-w-7xl mx-auto"
     >
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Gestão de Itens</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Catálogo Centralizado ({products.length} Itens)</p>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Gestão de Itens</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px]">Catálogo Centralizado • {products.length} Itens</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -443,7 +443,7 @@ export default function BaseItems() {
                 placeholder="Pesquisar por Name ou Ref..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-bold text-sm text-slate-900 dark:text-white"
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold text-sm text-slate-900 dark:text-white"
               />
             </div>
 
@@ -472,7 +472,7 @@ export default function BaseItems() {
 
           <button
             onClick={() => setIsAddingNew(true)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 rounded-2xl transition-all flex items-center gap-2 shadow-xl shadow-purple-500/20"
+            className="px-6 py-3 bg-primary text-white font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 rounded-2xl transition-all flex items-center gap-2 shadow-xl shadow-primary/20"
           >
             <Plus className="w-4 h-4" /> Novo Artigo
           </button>
@@ -567,7 +567,7 @@ export default function BaseItems() {
                             ) : null;
                           })()}
                         </div>
-                        <span className="font-black text-[10px] text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                        <span className="font-black text-[10px] text-primary uppercase tracking-wide">
                           {product.ref}
                         </span>
                       </div>
@@ -617,7 +617,7 @@ export default function BaseItems() {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleEdit(product)}
-                        className="p-2 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:text-purple-400 dark:hover:bg-purple-500/10 transition-colors"
+                        className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>

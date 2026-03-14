@@ -190,15 +190,15 @@ function AppLayout() {
                     to={item.path}
                     title={isSidebarCollapsed ? item.label : ''}
                     className={({ isActive }) =>
-                      `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive
-                        ? 'bg-[#8c25f4]/10 text-[#8c25f4] dark:bg-[#8c25f4]/20 dark:text-white shadow-sm'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-[#8c25f4]'
+                      `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${isActive
+                        ? 'nav-item-active'
+                        : 'text-slate-500 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-primary/5 hover:text-primary'
                       } ${isSidebarCollapsed ? 'justify-center' : ''}`
                     }
                   >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isSidebarCollapsed ? '' : 'transition-transform group-hover:scale-110'}`} />
                     {!isSidebarCollapsed && (
-                      <span className="font-semibold text-sm truncate">{item.label}</span>
+                      <span className="font-bold text-xs truncate tracking-wide">{item.label}</span>
                     )}
                   </NavLink>
                 ))}
@@ -251,7 +251,7 @@ function AppLayout() {
               to={item.path}
               onClick={() => setIsMobileMenuOpen(false)} // Close on navigate
               className={({ isActive }) =>
-                `w-full flex items-center gap-4 px-5 py-3 rounded-xl ${isActive ? 'bg-purple-600 text-white' : 'text-slate-600 dark:text-slate-400'}`
+                `w-full flex items-center gap-4 px-5 py-3 rounded-xl transition-all ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`
               }
             >
               <item.icon className="w-5 h-5" />
@@ -266,20 +266,20 @@ function AppLayout() {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative bg-[hsl(var(--background))] scroll-smooth">
+      <main className="flex-1 overflow-y-auto relative bg-[hsl(var(--background))] scroll-smooth transition-all duration-300">
         {/* Compact Header */}
-        <header className="sticky top-0 z-20 h-20 px-8 flex justify-between items-center backdrop-blur-md border-b border-slate-200 dark:border-white/5 bg-white/70 dark:bg-background/70">
-          <div className="flex items-center gap-2 ml-12 lg:ml-0">
+        <header className="sticky top-0 z-20 h-14 px-6 flex justify-between items-center backdrop-blur-md border-b border-slate-100 dark:border-primary/10 bg-white/80 dark:bg-[hsl(var(--background))]/80 shadow-sm">
+          <div className="flex items-center gap-3 ml-12 lg:ml-0">
             {/* Toggle Button for Desktop */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden lg:flex p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-400 transition-colors"
+              className="hidden lg:flex p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-md text-slate-400 transition-colors"
             >
               <Menu className="w-3.5 h-3.5" />
             </button>
 
             <div className="flex flex-col">
-              <h1 className="text-lg font-bold tracking-tight capitalize bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white leading-tight">
+              <h1 className="text-[8px] font-black tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500 leading-tight">
                 {getPageTitle()}
               </h1>
             </div>

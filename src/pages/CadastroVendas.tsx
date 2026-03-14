@@ -296,9 +296,9 @@ export default function CadastroVendas() {
       className="max-w-7xl mx-auto space-y-10"
     >
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registo de Vendas</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium uppercase tracking-widest text-[10px]">Cadastro detalhado de novas encomendas e faturado</p>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Registo de Vendas</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px]">Cadastro detalhado • Artigos e Faturado</p>
         </div>
 
         {success && (
@@ -493,9 +493,9 @@ export default function CadastroVendas() {
             <button
               type="button"
               onClick={addItem}
-              className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:scale-105 transition-all shadow-lg shadow-primary/20"
             >
-              <Plus className="w-3 h-3" /> Add Item
+              <Plus className="w-3.5 h-3.5" /> Adicionar Item
             </button>
           </div>
 
@@ -735,13 +735,13 @@ export default function CadastroVendas() {
         <button
           type="submit"
           disabled={loading || isGlobalLoading}
-          className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-purple-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
+          className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
         >
           {loading ? (
             <div className="w-5 h-5 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
           ) : (
             <>
-              <Save className="w-5 h-5" /> Guardar Venda
+              <Save className="w-6 h-6" /> Guardar Venda
             </>
           )}
         </button>
