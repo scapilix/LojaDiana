@@ -381,9 +381,9 @@ export default function Settings() {
                                         
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             {[
-                                                { id: 'clean', label: 'Clean', desc: 'Minimalista & Profissional', color: 'bg-white' },
-                                                { id: 'colorido', label: 'Colorido', desc: 'Vibrante & Dinâmico', color: 'bg-gradient-to-br from-purple-500 to-indigo-600' },
-                                                { id: 'dark', label: 'Dark', desc: 'Moderno & Elegante', color: 'bg-slate-900' }
+                                                { id: 'clean', label: 'Clean', desc: 'Minimalista & Profissional', color: 'bg-[#1e293b]' },
+                                                { id: 'colorido', label: 'Colorido', desc: 'Vibrante & Dinâmico', color: 'bg-[#3b0764]' },
+                                                { id: 'dark', label: 'Dark', desc: 'Moderno & Elegante', color: 'bg-black' }
                                             ].map((theme) => (
                                                 <button
                                                     key={theme.id}
@@ -393,7 +393,7 @@ export default function Settings() {
                                                         : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 hover:border-purple-200'
                                                     }`}
                                                 >
-                                                    <div className={`w-full h-2 rounded-full ${theme.color} mb-1`} />
+                                                    <div className={`w-full h-2 rounded-full ${theme.color} mb-1 shadow-inner`} />
                                                     <div>
                                                         <p className="text-xs font-black text-slate-900 dark:text-white">{theme.label}</p>
                                                         <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{theme.desc}</p>

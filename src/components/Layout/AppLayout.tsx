@@ -143,13 +143,30 @@ function AppLayout() {
 
   const activeTheme = data.appSettings?.themeId || 'clean';
 
+  useEffect(() => {
+    // Apply theme class to body for global variable consistency
+    const body = document.body;
+    const themeClass = `theme-${activeTheme}`;
+    
+    // Remove any existing theme classes
+    const existingThemes = Array.from(body.classList).filter(c => c.startsWith('theme-'));
+    existingThemes.forEach(c => body.classList.remove(c));
+    
+    // Add new theme class
+    body.classList.add(themeClass);
+    
+    return () => {
+      body.classList.remove(themeClass);
+    };
+  }, [activeTheme]);
+
   return (
-    <div className={`flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] overflow-hidden font-sans transition-colors duration-500 theme-${activeTheme}`}>
+    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] overflow-hidden font-sans transition-colors duration-500">
       {/* Sidebar - Desktop */}
       <motion.aside
         initial={false}
         animate={{ width: isSidebarCollapsed ? 80 : 288 }}
-        className="hidden lg:flex bg-white/40 dark:bg-white/[0.02] backdrop-blur-3xl border-r border-purple-100/50 dark:border-white/[0.05] flex-col z-30 transition-all duration-300"
+        className="hidden lg:flex bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-foreground))] border-r border-white/5 flex-col z-30 transition-all duration-300 shadow-2xl"
       >
         <div className={`p-4 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           <div
@@ -182,9 +199,9 @@ function AppLayout() {
                     to={item.path}
                     title={isSidebarCollapsed ? item.label : ''}
                     className={({ isActive }) =>
-                      `w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md transition-all duration-150 group relative ${isActive
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-white/5 dark:hover:text-white'
+                      `w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 group relative ${isActive
+                        ? 'bg-[hsl(var(--sidebar-active-bg))] text-white shadow-lg shadow-purple-500/20'
+                        : 'text-white/60 hover:bg-white/10 hover:text-white'
                       } ${isSidebarCollapsed ? 'justify-center' : ''}`
                     }
                   >
@@ -258,7 +275,7 @@ function AppLayout() {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative bg-[#fdfaff] dark:bg-transparent scroll-smooth">
+      <main className="flex-1 overflow-y-auto relative bg-[hsl(var(--background))] scroll-smooth">
         {/* Background Elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]"></div>
@@ -266,7 +283,7 @@ function AppLayout() {
         </div>
 
         {/* Compact Header */}
-        <header className="sticky top-0 z-20 px-4 py-2 flex justify-between items-center backdrop-blur-xl border-b border-purple-100/50 dark:border-white/[0.05] bg-white/60 dark:bg-transparent">
+        <header className="sticky top-0 z-20 px-4 py-2 flex justify-between items-center backdrop-blur-xl border-b border-[hsl(var(--border))] bg-[hsl(var(--background)/0.8)]">
           <div className="flex items-center gap-2 ml-12 lg:ml-0">
             {/* Toggle Button for Desktop */}
             <button
