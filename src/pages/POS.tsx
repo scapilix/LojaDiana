@@ -366,7 +366,7 @@ export default function POS() {
 
             {/* Right Column - Sidebar */}
             <motion.div 
-                animate={{ width: isCartCollapsed ? '60px' : '480px' }}
+                animate={{ width: isCartCollapsed ? '60px' : '320px' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 120 }}
                 className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl shrink-0 relative"
             >
