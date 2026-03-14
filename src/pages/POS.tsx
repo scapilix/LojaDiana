@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 
 export default function POS() {
     const {
@@ -39,6 +40,7 @@ export default function POS() {
     const { allCustomers } = useDashboardData();
     const [customerSearchTerm, setCustomerSearchTerm] = useState('');
     const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
+    const [zoomedProduct, setZoomedProduct] = useState<any>(null);
 
     const filteredCustomers = useMemo(() => {
         if (!customerSearchTerm) return [];
@@ -265,13 +267,24 @@ export default function POS() {
                             >
                                 {viewMode === 'grid' ? (
                                     <>
-                                        <div className="w-full aspect-square bg-white dark:bg-slate-900 rounded-lg mb-2 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5">
+                                        <div 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setZoomedProduct({ ...product, nome_artigo: product.name });
+                                            }}
+                                            className="w-full aspect-square bg-white dark:bg-slate-900 rounded-lg mb-2 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 relative group/img cursor-zoom-in"
+                                        >
                                             {product.image_url ? (
-                                                <img 
-                                                    src={product.image_url} 
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                                <>
+                                                    <img 
+                                                        src={product.image_url} 
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover transition-transform group-hover/img:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <Expand className="w-5 h-5 text-white" />
+                                                    </div>
+                                                </>
                                             ) : (
                                                 <Package className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                                             )}
@@ -303,13 +316,24 @@ export default function POS() {
                                     </>
                                 ) : (
                                     <>
-                                        <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0">
+                                        <div 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setZoomedProduct({ ...product, nome_artigo: product.name });
+                                            }}
+                                            className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0 relative group/img cursor-zoom-in"
+                                        >
                                             {product.image_url ? (
-                                                <img 
-                                                    src={product.image_url} 
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                                <>
+                                                    <img 
+                                                        src={product.image_url} 
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover transition-transform group-hover/img:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <Expand className="w-3.5 h-3.5 text-white" />
+                                                    </div>
+                                                </>
                                             ) : (
                                                 <Package className="w-6 h-6 text-slate-300 dark:text-slate-600" />
                                             )}
@@ -460,9 +484,17 @@ export default function POS() {
                                 cart.map((item) => (
                                     <div key={item.cartItemId} className="flex flex-col gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 group relative">
                                         <div className="flex gap-3">
-                                            <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0">
+                                            <div 
+                                                onClick={() => setZoomedProduct(item)}
+                                                className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0 relative group/cartimg cursor-zoom-in"
+                                            >
                                                 {item.image_url ? (
-                                                    <img src={item.image_url} alt={item.nome_artigo} className="w-full h-full object-cover" />
+                                                    <>
+                                                        <img src={item.image_url} alt={item.nome_artigo} className="w-full h-full object-cover transition-transform group-hover/cartimg:scale-110" />
+                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/cartimg:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <Expand className="w-4 h-4 text-white" />
+                                                        </div>
+                                                    </>
                                                 ) : (
                                                     <Package className="w-6 h-6 text-slate-300 dark:text-slate-600" />
                                                 )}
@@ -881,6 +913,13 @@ export default function POS() {
                     </div>
                 )}
             </AnimatePresence>
+
+            <ImageZoomModal
+                isOpen={!!zoomedProduct}
+                onClose={() => setZoomedProduct(null)}
+                imageUrl={zoomedProduct?.image_url || ''}
+                productName={zoomedProduct?.nome_artigo || ''}
+            />
         </motion.div >
     );
 }
