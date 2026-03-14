@@ -13,7 +13,8 @@ import {
     AlertCircle,
     Loader2,
     Camera,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Palette
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
@@ -47,7 +48,8 @@ export default function Settings() {
         storeName: data.appSettings?.storeName || '',
         whatsapp: data.appSettings?.whatsapp || '',
         instagram: data.appSettings?.instagram || '',
-        heroImages: data.appSettings?.heroImages || ['', '', '']
+        heroImages: data.appSettings?.heroImages || ['', '', ''],
+        themeId: data.appSettings?.themeId || 'clean'
     });
 
     const [isUploading, setIsUploading] = useState<number | null>(null);
@@ -369,6 +371,44 @@ export default function Settings() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Appearance Section */}
+                                <div className="space-y-6 md:col-span-2">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                            <Palette className="w-3 h-3 text-purple-500" /> Aparência & Tema
+                                        </label>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            {[
+                                                { id: 'clean', label: 'Clean', desc: 'Minimalista & Profissional', color: 'bg-white' },
+                                                { id: 'colorido', label: 'Colorido', desc: 'Vibrante & Dinâmico', color: 'bg-gradient-to-br from-purple-500 to-indigo-600' },
+                                                { id: 'dark', label: 'Dark', desc: 'Moderno & Elegante', color: 'bg-slate-900' }
+                                            ].map((theme) => (
+                                                <button
+                                                    key={theme.id}
+                                                    onClick={() => setGeneralSettings({ ...generalSettings, themeId: theme.id as any })}
+                                                    className={`relative p-4 rounded-2xl border-2 transition-all text-left flex flex-col gap-2 group ${generalSettings.themeId === theme.id 
+                                                        ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-900/10' 
+                                                        : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 hover:border-purple-200'
+                                                    }`}
+                                                >
+                                                    <div className={`w-full h-2 rounded-full ${theme.color} mb-1`} />
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-900 dark:text-white">{theme.label}</p>
+                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{theme.desc}</p>
+                                                    </div>
+                                                    {generalSettings.themeId === theme.id && (
+                                                        <div className="absolute top-3 right-3">
+                                                            <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-6 md:col-span-2">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">

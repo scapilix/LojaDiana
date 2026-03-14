@@ -34,6 +34,7 @@ interface ExcelData {
     whatsapp?: string;
     instagram?: string;
     theme?: 'light' | 'dark' | 'glass';
+    themeId?: 'clean' | 'colorido' | 'dark';
     heroImages?: string[];
   };
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI

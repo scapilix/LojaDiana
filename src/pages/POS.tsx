@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -189,8 +189,8 @@ export default function POS() {
             className="h-[calc(100vh-6rem)] flex flex-col lg:flex-row gap-4"
         >
             {/* Left Column - Product Catalog */}
-            <div className="flex-1 flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
-                <div className="p-3 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 space-y-3">
+            <div className="flex-1 flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
+                <div className="p-2.5 border-b border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 space-y-2">
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -199,7 +199,7 @@ export default function POS() {
                                 placeholder="Pesquisar por Nome ou SKU..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all font-bold text-slate-900 dark:text-white text-sm"
+                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all font-bold text-slate-900 dark:text-white text-xs"
                             />
                         </div>
                         <button
@@ -252,10 +252,10 @@ export default function POS() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-2.5 custom-scrollbar">
                     <div className={viewMode === 'grid' 
-                        ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-                        : "flex flex-col gap-2"
+                        ? "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+                        : "flex flex-col gap-1.5"
                     }>
                         {filteredProducts.map((product) => (
                             <button
@@ -263,11 +263,11 @@ export default function POS() {
                                 onClick={() => handleProductClick(product)}
                                 disabled={product.current_stock <= 0}
                                 className={viewMode === 'grid' 
-                                    ? `relative flex flex-col items-start p-3 rounded-xl border text-left transition-all ${product.current_stock <= 0
+                                    ? `relative flex flex-col items-start p-2 rounded-lg border text-left transition-all ${product.current_stock <= 0
                                         ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
-                                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1'
+                                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-lg'
                                         }`
-                                    : `relative flex items-center gap-4 p-3 rounded-xl border text-left transition-all ${product.current_stock <= 0
+                                    : `relative flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${product.current_stock <= 0
                                         ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-purple-400 hover:shadow-md'
                                         }`
@@ -299,21 +299,21 @@ export default function POS() {
                                         </div>
                                         <div className="flex flex-col gap-0.5 w-full">
                                             <div className="flex items-center justify-between gap-1">
-                                                <span className="text-[8px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest truncate">
+                                                <span className="text-[7px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest truncate">
                                                     {product.ref}
                                                 </span>
-                                                <span className="text-[7px] font-bold text-slate-400 uppercase truncate">
+                                                <span className="text-[6px] font-bold text-slate-400 uppercase truncate">
                                                     {product.categoria || 'S/ Categoria'}
                                                 </span>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight line-clamp-2 mt-0.5">
+                                            <span className="text-[10px] font-bold text-slate-900 dark:text-white leading-tight line-clamp-1 mt-0.5">
                                                 {product.name}
                                             </span>
-                                            <div className="mt-2 flex items-center justify-between w-full">
-                                                <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">
+                                            <div className="mt-1 flex items-center justify-between w-full">
+                                                <span className="font-black text-xs text-emerald-600 dark:text-emerald-400">
                                                     {formatCurrency(product.pvp || 0)}
                                                 </span>
-                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${product.current_stock <= 0 ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30' :
+                                                <span className={`text-[7px] font-black px-1 py-0.5 rounded-md ${product.current_stock <= 0 ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30' :
                                                     product.current_stock <= 3 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
                                                         'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                                                     }`}>
@@ -374,27 +374,27 @@ export default function POS() {
 
             {/* Right Column - Cart & Checkout */}
             <motion.div 
-                animate={{ width: isCartCollapsed ? '64px' : '384px' }}
+                animate={{ width: isCartCollapsed ? '48px' : '360px' }}
                 transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                className="flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl shrink-0 relative"
+                className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl shrink-0 relative"
             >
-                {/* Collapse Toggle */}
-                <button 
+                {/* Collapse Toggle - Redesigned as a vertical bar */}
+                <div 
                     onClick={() => setIsCartCollapsed(!isCartCollapsed)}
-                    className="absolute -left-3 top-24 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center z-10 shadow-md hover:text-purple-600 hover:border-purple-300 transition-all"
+                    className="absolute left-0 top-0 bottom-0 w-2 hover:bg-purple-500/10 cursor-pointer group/toggle z-20 flex items-center justify-center transition-colors border-r border-transparent hover:border-purple-500/20"
                 >
-                    {isCartCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
+                    <div className="w-1 h-8 bg-slate-300 dark:bg-slate-700 rounded-full group-hover/toggle:bg-purple-500 transition-colors" />
+                </div>
 
-                <div className={`p-4 border-b border-slate-200 dark:border-white/10 bg-purple-50 dark:bg-purple-900/10 flex items-center ${isCartCollapsed ? 'flex-col gap-4' : 'justify-between'}`}>
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
-                            <ShoppingCart className="w-4 h-4" />
+                <div className={`p-3 border-b border-slate-200 dark:border-white/10 bg-purple-50/50 dark:bg-purple-900/10 flex items-center ${isCartCollapsed ? 'flex-col gap-4' : 'justify-between'}`}>
+                    <div className={`flex items-center gap-2 ${isCartCollapsed ? 'mt-8' : ''}`}>
+                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                            <ShoppingCart className="w-3.5 h-3.5" />
                         </div>
                         {!isCartCollapsed && (
                             <div>
-                                <h2 className="font-black text-sm text-slate-900 dark:text-white leading-tight">Carrinho</h2>
-                                <p className="text-[9px] font-bold text-purple-600 uppercase tracking-widest">{cart.length} itens</p>
+                                <h2 className="font-black text-xs text-slate-900 dark:text-white leading-tight">Carrinho</h2>
+                                <p className="text-[8px] font-bold text-purple-600 uppercase tracking-widest">{cart.length} itens</p>
                             </div>
                         )}
                     </div>
