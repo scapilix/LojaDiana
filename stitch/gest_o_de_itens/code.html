@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .purple-glow {
+            box-shadow: 0 0 15px rgba(140, 37, 244, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3c2d4d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg">
+<span class="material-symbols-outlined text-white">diamond</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Premium Store</h2>
+</div>
+<nav class="flex-1 px-4 space-y-2 py-4">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-medium">Catálogo</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">shopping_bag</span>
+<span class="font-medium">Pedidos</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">group</span>
+<span class="font-medium">Clientes</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">analytics</span>
+<span class="font-medium">Relatórios</span>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">settings</span>
+<span class="font-medium">Configurações</span>
+</div>
+<div class="mt-4 flex items-center gap-3 px-2">
+<div class="size-10 rounded-full bg-primary/30 flex items-center justify-center overflow-hidden border border-primary/40">
+<img class="w-full h-full object-cover" data-alt="User profile avatar male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVRwBiJxhmaIbrFAFzE_QS4sIrKHUzpyfG6mRl0RLUdJBlskdydOdGd8-X4dtpDjS1qTF1VUfJKJNUQxqNi1ft9YBvmw8wdXieLtgQ0-noUo8ldB513J3EXwjKuE_UyLTrB1Zg-C_8Gn-LhcGqoXivY70tsHEFdC01xTiTmznR1MUpe1R9viO4g24GJR9-gq7rZ9vDgtHQWIgGTQWtAur_zHOL8_Oha_fk3d8pjdiCvfkEJ8xN2jmEjGWgbTlPOVolmeNs96q5PhKG"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Ricardo Silva</span>
+<span class="text-xs text-slate-500">Administrador</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-20 border-b border-slate-200 dark:border-primary/10 px-8 flex items-center justify-between bg-white/50 dark:bg-background-dark/50 backdrop-blur-md">
+<div>
+<h1 class="text-2xl font-bold">Gestão de Itens</h1>
+<p class="text-sm text-slate-500">Gerencie seu inventário de moda premium</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100 dark:bg-primary/5 border border-transparent focus:border-primary/50 focus:ring-0 rounded-xl w-64 text-sm transition-all outline-none" placeholder="Buscar produtos..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 purple-glow transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Novo Item
+                </button>
+</div>
+</header>
+<!-- Filters Bar -->
+<div class="px-8 py-4 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-primary/10 flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-white text-xs font-bold">
+                    Todos
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-primary/20 transition-colors text-xs font-semibold">
+                    Camisetas
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-primary/20 transition-colors text-xs font-semibold">
+                    Calças
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-primary/20 transition-colors text-xs font-semibold">
+                    Acessórios
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-primary/20 transition-colors text-xs font-semibold">
+                    Calçados
+                </button>
+</div>
+<div class="h-6 w-px bg-slate-200 dark:bg-primary/20 hidden lg:block"></div>
+<div class="flex items-center gap-3">
+<select class="bg-slate-100 dark:bg-primary/10 border-none rounded-lg text-xs font-semibold py-1.5 focus:ring-1 focus:ring-primary/50 cursor-pointer">
+<option>Estoque: Todos</option>
+<option>Em estoque</option>
+<option>Baixo estoque</option>
+<option>Esgotado</option>
+</select>
+<select class="bg-slate-100 dark:bg-primary/10 border-none rounded-lg text-xs font-semibold py-1.5 focus:ring-1 focus:ring-primary/50 cursor-pointer">
+<option>Preço: Qualquer</option>
+<option>Até R$ 100</option>
+<option>R$ 100 - R$ 500</option>
+<option>Acima de R$ 500</option>
+</select>
+</div>
+<div class="ml-auto text-xs text-slate-500">
+                Mostrando <span class="font-bold text-slate-900 dark:text-slate-100">24</span> produtos
+            </div>
+</div>
+<!-- Product List -->
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Product Card 1 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Premium white minimalist t-shirt on model" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-0sYAAyyYCMKkcLCf1nNyrtc-HLjNDgRGJ4p1bt9WmBcTdGKHoSQ5owU4fF-sdQEJsJ9FCFLsGMiwsY2AIibrdYmJawx-lrs6Ob0UKkZLHXjdU3_KB9yRVziszZHTkrDK2ggi7Mjl7G6AMSDgyuIAYXrGsvCIK-2XFd808cDmyb6Xm-Gm3xPw4C5Rdce-0KTH12CPu-qkLAJl-pouVKj6BM5UOyJXe76OQTVnxyVtipLD-5RLN7iOxtbYHvbd68VwI4GMUxGIxF6y"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Camisetas</span>
+<span class="text-xs text-slate-500">#00124</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Camiseta Essential Branca</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 149,90</span>
+<span class="text-xs font-medium text-slate-500">42 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Blue luxury denim pants close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-tssvaZfAmDfIUcNHBMo5sox1pBIYk7wROsmT4t6HUJqmpMuZwUuIliOnyoFr23RZkzE3GW7qh-OIUUUKuEvTUhQAs0LG1FTiR9nPSPsG9aiEnECyYy_q3Dyr_kiJbOsQvOXCPljeSTXJMqoYayauRfz0pv8xX8Ufu-j7jeTCFkMkcXkgRrby3f7iJ1KB69g5zMkgkesx6Sys4ZsyGN6zttaAMrejOpxyATQNRJbMRphzsGzBmIXk-aqyLhcPRR5e1lyUSsGhQqjK"/>
+<div class="absolute top-3 right-3 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Baixo Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Calças</span>
+<span class="text-xs text-slate-500">#00156</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Calça Jeans Premium Slim</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 389,00</span>
+<span class="text-xs font-medium text-slate-500 text-orange-500">8 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Luxury wrist watch on leather strap" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_I5XtBM8zVAeZu1YTeJ18KTxLmK7325D1JGG3B3ifncsUYyz-2l3f-WcsS5j0OUK0yZWvMlEq2EBRlrSOakinET1s_y-x1tofNjtH5Xc9w7U9nBM7Y6Tp71FOyZggOdPglicG4krr1hvuzF4ECkn_s-3ETbP7JpL7aHoTx1ZPUOJ-kkHLewQq1f_6kgJf9CS4d4Y8IuM_qFxnK0sUjyAvLkUloTuLkI9MDhDdWgcyiM_XCIbb0Xe9cgsDW5GzFp48njPc5s-VbWVx"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Acessórios</span>
+<span class="text-xs text-slate-500">#00212</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Relógio Chrono Silver</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 1.250,00</span>
+<span class="text-xs font-medium text-slate-500">12 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5 opacity-80">
+<div class="aspect-[4/5] relative overflow-hidden grayscale">
+<img class="w-full h-full object-cover" data-alt="Beige stylish spring jacket on hanger" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHQihIrR-_lojYlPlfsVXnAD47Y9VFIyt-ZWjN5CrzEPqeUjD-rNbEtNQtq5y3Hwt95DxqVQqXWGc59lSEODDnSfKXDT_J_jjFYUrnoEusG3hxB29rwiaqOSlt8fG8nUmGjtzfOcFKTx0NXoLm08MHynrf5PXewqpWugZCu6Tf9JTz5pnfiPsFsbmjzG6jwCsTpfojIh9VLWBJVPHlBlLzAQ5znKu8uuENv34VOEAyw14jRpXqQmOfk3tdljQoDvE6Lshv-zu-GB-0"/>
+<div class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Esgotado</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40">
+<span class="text-white font-black text-xl tracking-tighter uppercase opacity-50">Sold Out</span>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-primary/5">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jaquetas</span>
+<span class="text-xs text-slate-500">#00189</span>
+</div>
+<h3 class="font-bold text-slate-400 truncate">Blazer Modern Taupe</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-slate-400">R$ 549,00</span>
+<span class="text-xs font-medium text-red-500">0 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Elegant brown leather boots" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkPoW6gTyEoD_IHQHjVRcOSeeHk7XL84T4kRDaoH-2CiW-zX6TyMMzQt0WdQ3bWjuZyym0XV_tJjhx4c2XXLi95n8_MCo7TWMQwrZKO21t4iEHOHyBOGqnDcDQ0abdkoL6_VWaqJr0uUKHojTvQf0DFMUxvuYrpkVdITBwSugFUYxWoLtQtTVjMy2cBp7yjiGTkP_z4JFXblloHAi3h0gsEr8uAfw7nP6RayRFn6WXm215JGI-lsp4Og9M7H0qHb7QCNY5-B8ZhkHl"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Calçados</span>
+<span class="text-xs text-slate-500">#00334</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Bota Chelsea Couro Nobre</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 799,00</span>
+<span class="text-xs font-medium text-slate-500">21 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Black luxury leather backpack" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUHCFekld2c9a2cPFyxj7qIoaSC3pl1K937ae0aK9zEJkFqlQByMAlsI3PwHgN2pr_3qcPsZ0lCNsf33ik8e_3sBHA_nfBEBeiFAyxzLtnpUQwXPCwJYSTymtHA5XdJ-tt1JtKpaiPC6t2747YRb1alzQAEi7izZTgA2P_mS5P76Z4054T_N6Jm-WfQpotCrXYUF-n8kQat4hdiVkXK7pgrost9zzkX3o_kQ1xYS4rO15xKPZ--Rq74H4PkGoTlaCI1ryqp_zLu2rR"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Acessórios</span>
+<span class="text-xs text-slate-500">#00421</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Mochila City Sleek Black</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 450,00</span>
+<span class="text-xs font-medium text-slate-500">15 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 7 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Stylish men t-shirt set casual look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFqNTTKPxJ6RaNLii06QBaG5oEANbaRZLYswLcVuLV4Yx4Y0_xCYq70iSiGHFRvNexAJhaZTKpvN4m-0aIpwsbISbztdEeyoqcxnjRC3flMmYiy1fvAqxV3S2zBm8g0NCUnaPRX_UhUqYaXUBdVCHX2HvQOZVOEWgqDpA-3Nwhr7803lfHMsB67VUoVGkKKVd_45FA5LaCiCjDscZtqC4YQjwP3kL0qAP-zg7ZzzxuF29jzt85EJM8Gfdaq6-C7AcplI4jtrsYCbVx"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Camisetas</span>
+<span class="text-xs text-slate-500">#00223</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Camiseta Urban Grey</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 129,90</span>
+<span class="text-xs font-medium text-slate-500">38 un.</span>
+</div>
+</div>
+</div>
+<!-- Product Card 8 -->
+<div class="group bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl dark:hover:shadow-primary/5">
+<div class="aspect-[4/5] relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Light colored cotton chinos" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0tJDMCVJG0_e6l5r2DdcMl4fhsSMDLnHB3xNFEDZgIljDzqDymojzYCCuQPdnYwyrC-v9u3NDG-2rSgtSNsQpOkZYZK6rLJjzikEaWCVAydYYikPxRMxHJo333frDSpGzWKS5RIHodYgjbqbFbm0qOml3TqBqHnSW86cmFq9TJP3eWtDk-evL1EeL8txeW8tYmkt70D07VLdfiHixTKIzxROOEuNRdzJtafSQzVL60evrctCTz19HkT2jrixoX1WJbsk-_hgbqFtY"/>
+<div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Em Estoque</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<div class="flex gap-2 w-full">
+<button class="flex-1 bg-white text-black py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">Editar</button>
+<button class="size-8 flex items-center justify-center bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm text-white">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Calças</span>
+<span class="text-xs text-slate-500">#00298</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 truncate">Calça Chino Sand</h3>
+<div class="mt-3 flex items-center justify-between">
+<span class="text-lg font-extrabold text-primary">R$ 299,00</span>
+<span class="text-xs font-medium text-slate-500">22 un.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination Placeholder -->
+<div class="mt-12 flex justify-center items-center gap-2 pb-10">
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">2</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">3</button>
+<span class="px-2">...</span>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

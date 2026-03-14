@@ -119,11 +119,20 @@ function AppLayout() {
   };
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Binary theme logic: light or dark based on isDark state
+    const body = document.body;
+    const theme = isDark ? 'dark' : 'light';
+    
+    body.classList.remove('light', 'dark');
+    body.classList.add(theme);
+    
+    // Also remove any legacy theme-xxx classes
+    const existingThemes = Array.from(body.classList).filter(c => c.startsWith('theme-'));
+    existingThemes.forEach(c => body.classList.remove(c));
+
+    return () => {
+      body.classList.remove('light', 'dark');
+    };
   }, [isDark]);
 
   useEffect(() => {
@@ -141,45 +150,27 @@ function AppLayout() {
     setIsLoading(false);
   };
 
-  const activeTheme = data.appSettings?.themeId || 'clean';
-
-  useEffect(() => {
-    // Apply theme class to body for global variable consistency
-    const body = document.body;
-    const themeClass = `theme-${activeTheme}`;
-    
-    // Remove any existing theme classes
-    const existingThemes = Array.from(body.classList).filter(c => c.startsWith('theme-'));
-    existingThemes.forEach(c => body.classList.remove(c));
-    
-    // Add new theme class
-    body.classList.add(themeClass);
-    
-    return () => {
-      body.classList.remove(themeClass);
-    };
-  }, [activeTheme]);
-
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] overflow-hidden font-sans transition-colors duration-500">
       {/* Sidebar - Desktop */}
       <motion.aside
         initial={false}
-        animate={{ width: isSidebarCollapsed ? 80 : 288 }}
-        className="hidden lg:flex bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-foreground))] border-r border-white/5 flex-col z-30 transition-all duration-300 shadow-2xl"
+        animate={{ width: isSidebarCollapsed ? 80 : 280 }}
+        className="hidden lg:flex bg-[hsl(var(--sidebar-bg))] border-r border-slate-200 dark:border-white/5 flex-col z-30 transition-all duration-300"
       >
-        <div className={`p-4 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`p-6 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           <div
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30 transform transition-all hover:scale-105 cursor-pointer flex-shrink-0"
+            className="w-10 h-10 bg-[#8c25f4] rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20 transform transition-all hover:scale-105 cursor-pointer flex-shrink-0"
           >
-            <BarChart3 className="text-white w-4 h-4" />
+            <Box className="text-white w-5 h-5" />
           </div>
           {!isSidebarCollapsed && (
             <div className="flex flex-col overflow-hidden whitespace-nowrap">
-              <span className="font-black text-xl tracking-tighter text-gradient leading-none">
+              <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">
                 {data.appSettings?.storeName || 'Gestão de Loja'}
               </span>
+              <span className="text-[10px] text-[#8c25f4] font-bold uppercase tracking-wider mt-0.5">Premium Store</span>
             </div>
           )}
         </div>
@@ -199,15 +190,15 @@ function AppLayout() {
                     to={item.path}
                     title={isSidebarCollapsed ? item.label : ''}
                     className={({ isActive }) =>
-                      `w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 group relative ${isActive
-                        ? 'bg-[hsl(var(--sidebar-active-bg))] text-white shadow-lg shadow-purple-500/20'
-                        : 'text-white/60 hover:bg-white/10 hover:text-white'
+                      `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive
+                        ? 'bg-[#8c25f4]/10 text-[#8c25f4] dark:bg-[#8c25f4]/20 dark:text-white shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-[#8c25f4]'
                       } ${isSidebarCollapsed ? 'justify-center' : ''}`
                     }
                   >
-                    <item.icon className="w-3 h-3 flex-shrink-0" />
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
                     {!isSidebarCollapsed && (
-                      <span className="font-bold text-[11px] truncate">{item.label}</span>
+                      <span className="font-semibold text-sm truncate">{item.label}</span>
                     )}
                   </NavLink>
                 ))}
@@ -276,14 +267,8 @@ function AppLayout() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative bg-[hsl(var(--background))] scroll-smooth">
-        {/* Background Elements */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/5 rounded-full blur-[100px]"></div>
-        </div>
-
         {/* Compact Header */}
-        <header className="sticky top-0 z-20 px-4 py-2 flex justify-between items-center backdrop-blur-xl border-b border-[hsl(var(--border))] bg-[hsl(var(--background)/0.8)]">
+        <header className="sticky top-0 z-20 h-20 px-8 flex justify-between items-center backdrop-blur-md border-b border-slate-200 dark:border-white/5 bg-white/70 dark:bg-background/70">
           <div className="flex items-center gap-2 ml-12 lg:ml-0">
             {/* Toggle Button for Desktop */}
             <button

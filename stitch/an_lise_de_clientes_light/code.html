@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Análise de Clientes - Dashboard</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">analytics</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Análise de Clientes</h2>
+</div>
+<div class="flex flex-1 justify-end gap-4 items-center">
+<label class="relative flex flex-col min-w-40 max-w-64 w-full">
+<div class="flex w-full items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 h-10 border border-transparent focus-within:border-primary">
+<span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+<input class="w-full border-none bg-transparent focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 text-sm" placeholder="Buscar clientes..." value=""/>
+</div>
+</label>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                        Novo Cliente
+                    </button>
+</div>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 border border-slate-200" data-alt="User profile avatar of a professional man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDLOsXvUV8WcM7XGdNshj_dQ_r3cQ1nBU65xJR0_i2AH2vWD8Hwm64tWrqJwbQzf3yiLqIR3XmVbp8g6FopXxcK7iwmaEjcW6YQeFRpyL-5oCZZld9X2-SPVoawWEcxuhOSx2nPqqLkxk_Qrv-l6RY3VKw2NyQlfZ_PU_V8Nb2IQKx4T1EuXT4NElaRpyhcrlO0oz7hZwLFEbrqze-6axPU22I8HYs71YS6L_YF9OxImmSCmCfnS6KqvqlyDzHw5Efoa3IzKBq14uYA");'></div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:flex flex-col p-4 gap-6">
+<div class="flex flex-col gap-1">
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Menu Principal</p>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">group</span>
+<span class="text-sm font-semibold">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">Vendas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Relatórios</span>
+</a>
+</div>
+<div class="flex flex-col gap-1 mt-auto">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Configurações</span>
+</a>
+<div class="p-3 bg-primary/5 rounded-xl mt-4">
+<p class="text-xs font-bold text-primary uppercase mb-1">Suporte VIP</p>
+<p class="text-xs text-slate-500 mb-3">Acesso direto a consultores dedicados.</p>
+<button class="w-full py-2 bg-white border border-primary/20 text-primary text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-colors">Contatar</button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6">
+<!-- Tabs -->
+<div class="mb-6 border-b border-slate-200 dark:border-slate-800 flex gap-8">
+<button class="pb-3 border-b-2 border-primary text-primary font-bold text-sm">Visão Geral</button>
+<button class="pb-3 border-b-2 border-transparent text-slate-500 font-medium text-sm hover:text-slate-700">Demografia</button>
+<button class="pb-3 border-b-2 border-transparent text-slate-500 font-medium text-sm hover:text-slate-700">Comportamento</button>
+</div>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total de Clientes</p>
+<span class="material-symbols-outlined text-primary/40">groups</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-slate-100">12.840</p>
+<div class="flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-green-500 text-sm">trending_up</span>
+<span class="text-green-500 text-xs font-bold">+5.2%</span>
+<span class="text-slate-400 text-xs ml-1">vs. mês anterior</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Churn Rate</p>
+<span class="material-symbols-outlined text-primary/40">person_remove</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-slate-100">2.4%</p>
+<div class="flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-red-500 text-sm">trending_down</span>
+<span class="text-red-500 text-xs font-bold">-0.8%</span>
+<span class="text-slate-400 text-xs ml-1">melhoria</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">LTV Médio</p>
+<span class="material-symbols-outlined text-primary/40">payments</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-slate-100">R$ 450,00</p>
+<div class="flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-green-500 text-sm">trending_up</span>
+<span class="text-green-500 text-xs font-bold">+12%</span>
+<span class="text-slate-400 text-xs ml-1">vs. média anual</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Satisfação (NPS)</p>
+<span class="material-symbols-outlined text-primary/40">sentiment_very_satisfied</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-slate-100">78</p>
+<div class="flex items-center gap-1 mt-2">
+<span class="text-primary text-xs font-bold">Excelente</span>
+<span class="text-slate-400 text-xs ml-1">pontuação global</span>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Demographic Chart Area -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-lg">Distribuição Demográfica</h3>
+<select class="bg-slate-50 border-slate-200 rounded-lg text-xs font-medium focus:ring-primary focus:border-primary">
+<option>Por Idade</option>
+<option>Por Região</option>
+<option>Por Gênero</option>
+</select>
+</div>
+<div class="h-64 w-full flex items-end justify-between gap-4 px-2">
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/20 rounded-t-lg h-[40%] hover:bg-primary transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-500">18-24</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/20 rounded-t-lg h-[75%] hover:bg-primary transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-500">25-34</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary rounded-t-lg h-[90%] hover:bg-primary/80 transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-900 font-bold">35-44</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/20 rounded-t-lg h-[60%] hover:bg-primary transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-500">45-54</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/20 rounded-t-lg h-[30%] hover:bg-primary transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-500">55-64</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary/20 rounded-t-lg h-[15%] hover:bg-primary transition-all cursor-pointer"></div>
+<span class="text-[10px] font-bold text-slate-500">65+</span>
+</div>
+</div>
+</div>
+<!-- Retention Donut Simulation -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+<h3 class="font-bold text-lg mb-6">Status de Retenção</h3>
+<div class="relative flex-1 flex items-center justify-center">
+<!-- SVG Circular progress representation -->
+<svg class="w-40 h-40 transform -rotate-90">
+<circle class="text-slate-100 dark:text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="text-3xl font-bold">75%</span>
+<span class="text-xs text-slate-500 font-medium uppercase">Retidos</span>
+</div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-slate-600 dark:text-slate-400">Ativos</span>
+</div>
+<span class="font-bold">9.630</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-slate-200"></div>
+<span class="text-slate-600 dark:text-slate-400">Inativos</span>
+</div>
+<span class="font-bold">3.210</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Customers Table -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div>
+<h3 class="font-bold text-lg">Top Clientes por LTV</h3>
+<p class="text-slate-500 text-sm">Clientes com maior valor vitalício na plataforma</p>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">Ver todos</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Cliente</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Última Compra</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">LTV Total</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">AB</div>
+<div>
+<p class="text-sm font-bold">Amanda Barbosa</p>
+<p class="text-xs text-slate-500">amanda.b@email.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">Premium</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Há 2 dias</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-slate-900 dark:text-slate-100">R$ 15.420,00</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">RL</div>
+<div>
+<p class="text-sm font-bold">Ricardo Lemos</p>
+<p class="text-xs text-slate-500">ricardo.lemos@tech.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary uppercase">Enterprise</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Hoje</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-slate-900 dark:text-slate-100">R$ 12.890,50</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold">MS</div>
+<div>
+<p class="text-sm font-bold">Mariana Silva</p>
+<p class="text-xs text-slate-500">mari.silva@outlook.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">Premium</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Há 1 semana</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-slate-900 dark:text-slate-100">R$ 10.150,00</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

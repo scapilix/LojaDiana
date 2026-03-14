@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Análise de Clientes | Dashboard CRM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #8c25f444;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-primary/20 bg-white dark:bg-background-dark hidden lg:flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Analytics Pro</h2>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Vendas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Relatórios</span>
+</a>
+<div class="pt-4 pb-2 px-3">
+<p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Configurações</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Gerais</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3 p-2 bg-slate-100 dark:bg-primary/5 rounded-xl">
+<div class="size-10 rounded-full bg-primary/20 overflow-hidden">
+<img alt="Profile" data-alt="User avatar male portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSzo4TDfrgUiTBjtz1HoLiGAaBEyLhwd_AuyojH4hmq9wHHyk-5lyXVUJcKSoorgSilNDDIwhsbv8O_wQUNYVVK8iuUiuufBaEfboLZF0bkc7yX6dKXMmxwpkB6y33YxOj7bl7X1xwZF_xYXzWhwUdvxH7klQUHd4gIHl-sMiJC4o7_zWw24TY9erSNhxemTTzepWkOdkqAhUsYDaoQwbtZixo3g_KNOJMH_EW7IatswDTnpIOWN2TfGeqtBBNP04aHzfZ9eInc6ay"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Ricardo Silva</p>
+<p class="text-xs text-slate-500 truncate">Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto custom-scrollbar">
+<!-- Header -->
+<header class="h-16 flex items-center justify-between px-8 border-b border-slate-200 dark:border-primary/20 sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md z-10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-white dark:bg-primary/5 border-slate-200 dark:border-primary/20 rounded-lg pl-10 pr-4 py-1.5 text-sm focus:ring-primary focus:border-primary transition-all" placeholder="Buscar clientes, LTV, transações..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-9 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-primary/10 transition-colors relative">
+<span class="material-symbols-outlined text-slate-500">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                        Novo Cliente
+                    </button>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Title & KPI -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tight">Análise de Clientes</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Visão detalhada do comportamento e valor da sua base de usuários.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/20 min-w-[140px]">
+<p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Total Ativos</p>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold">12,450</span>
+<span class="text-emerald-500 text-xs font-bold mb-1">+12%</span>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/20 min-w-[140px]">
+<p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Churn Rate</p>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold">2.4%</span>
+<span class="text-emerald-500 text-xs font-bold mb-1">-0.8%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+<!-- Demographic Chart -->
+<div class="bg-white dark:bg-primary/5 p-6 rounded-2xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold">Demografia por Idade</h3>
+<select class="bg-transparent border-none text-xs text-slate-400 focus:ring-0 cursor-pointer">
+<option>Últimos 6 meses</option>
+<option>Último ano</option>
+</select>
+</div>
+<div class="flex items-end justify-between gap-2 h-48 px-2">
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/10 rounded-t-lg relative transition-all group-hover:bg-primary/20" style="height: 40%">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">15%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">18-24</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary rounded-t-lg relative transition-all hover:brightness-110" style="height: 85%">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">42%</div>
+</div>
+<span class="text-[10px] font-bold text-primary">25-34</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/10 rounded-t-lg relative transition-all group-hover:bg-primary/20" style="height: 60%">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">24%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">35-44</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/10 rounded-t-lg relative transition-all group-hover:bg-primary/20" style="height: 35%">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">12%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">45-54</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/10 rounded-t-lg relative transition-all group-hover:bg-primary/20" style="height: 20%">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">7%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">55+</span>
+</div>
+</div>
+</div>
+<!-- Growth Area Chart -->
+<div class="bg-white dark:bg-primary/5 p-6 rounded-2xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h3 class="font-bold">Crescimento de Novos Clientes</h3>
+<p class="text-xs text-slate-500">Média de 2.4k mensais</p>
+</div>
+<div class="size-10 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">trending_up</span>
+</div>
+</div>
+<div class="h-40 w-full relative mt-4">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 40">
+<defs>
+<lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color: #8c25f4; stop-opacity: 0.3"></stop>
+<stop offset="100%" style="stop-color: #8c25f4; stop-opacity: 0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,40 L0,30 Q10,15 20,25 T40,10 T60,20 T80,5 T100,15 L100,40 Z" fill="url(#gradient)"></path>
+<path d="M0,30 Q10,15 20,25 T40,10 T60,20 T80,5 T100,15" fill="none" stroke="#8c25f4" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+<div class="flex justify-between mt-4">
+<span class="text-[10px] text-slate-400 font-bold uppercase">Jan</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Mar</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Mai</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Jul</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Set</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Nov</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Customers Table Section -->
+<div class="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<h3 class="font-bold text-lg">Top Clientes por LTV</h3>
+<div class="flex items-center gap-2">
+<button class="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">Exportar CSV</button>
+<button class="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">Filtrar</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[11px] font-bold uppercase tracking-widest text-slate-500 border-b border-slate-200 dark:border-primary/10">
+<th class="px-6 py-4">Cliente</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Lifetime Value (LTV)</th>
+<th class="px-6 py-4">Última Compra</th>
+<th class="px-6 py-4">Frequência</th>
+<th class="px-6 py-4 text-center">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-primary/10">
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="Client" data-alt="Client avatar male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHvlpHnb2pfsVLd_oqSnHxE4PD2sqYC6F3lYnrLgnQqTDnzqKYO8XRnJgMnCQlyTZjRCalYQUmWPKvXP7SrOGDe3Svlm6spoxvAYnx8TdSy2krGoUvdrhPu4UQdoXcIe141jURxmkCDiC2EgooPxkV_YCs4EVvx03OqEBX0WhfKaMF8DSIC8DKQf_NehEl_5Dy02PYkaVOUsKrLJZHyASUmMSzu_zWu3a-Qry0M8n_w2quLGXvI5-RXeMoYL5ePPecJ03foVcOoSDH"/>
+</div>
+<div>
+<p class="text-sm font-bold">Arthur Morgan</p>
+<p class="text-[11px] text-slate-500">arthur.m@gmail.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Ativo
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right font-bold text-sm">R$ 12.840,00</td>
+<td class="px-6 py-4 text-sm text-slate-500">12 Ago, 2023</td>
+<td class="px-6 py-4">
+<div class="w-24 h-1.5 bg-slate-200 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="Client" data-alt="Client avatar female" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOw78aYGnYVJnZC6JNBgSaKjyNnl7qOLrcLctxRJH9yoFrBuoIUMgX4v64uYWzhMC85xoCl_HSJkrgU7Xdt2Zc6_2SkzAzqsOCKGc2B31O2H0A_YCrtH6ySiTMpwxUpbLUUy-owZytRgfYL3XMR7__BnR2iqj0qcdVE5joPux37_7-zxs9GqcsOeXa-yxbFMUFNZhmtUjOK1Z2z2YSKlJ2bKhz2FyoDt0LdZT6pOs1nM9GeCVDqt7bIdduPibl1l-deKsDu4w1sFOy"/>
+</div>
+<div>
+<p class="text-sm font-bold">Mariana Santos</p>
+<p class="text-[11px] text-slate-500">mari.s@outlook.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Ativo
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right font-bold text-sm">R$ 8.920,50</td>
+<td class="px-6 py-4 text-sm text-slate-500">10 Ago, 2023</td>
+<td class="px-6 py-4">
+<div class="w-24 h-1.5 bg-slate-200 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 62%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="Client" data-alt="Client avatar male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC43ex_7ONdOlxfhy1lSDKd70awOq62Jg9RkwZKh_zQS_7TIwScUdr4HPRcJ48wiODJkWbxmy47gI84qbh-bJ4ADKsa8sls9P0HDn4lZY-IhgLlNeQNh7kGRlp_Z74suJKQwxZAb8RPuUCnq5yso_shmfi12AE2O1w3mWtrhO9dWWQEHFVqhyScIgWDW2-6KQlGxWrPEFgeysX0s0VcMCF34acTIA-oHgdE9E0kkFOutTWaSHF_HT0NMuFJXMuC4Jbu7FRxsJnAmyBd"/>
+</div>
+<div>
+<p class="text-sm font-bold">Fernando Lima</p>
+<p class="text-[11px] text-slate-500">fer_lima@gmail.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500">
+<span class="size-1.5 rounded-full bg-amber-500"></span>
+                                            Inativo
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right font-bold text-sm">R$ 7.150,00</td>
+<td class="px-6 py-4 text-sm text-slate-500">28 Jul, 2023</td>
+<td class="px-6 py-4">
+<div class="w-24 h-1.5 bg-slate-200 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 45%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="Client" data-alt="Client avatar female" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh_wApWqX4Jja6f0GL50FZDRUM2yrHNJWnX7knqJyr8yDV_Fbdd2IGgGf6hlM_VYem8Bn_dwGwXq1UyeVDV6OIVTBVF04itnS9vtyIAR3CcxggMs4-7ZNsPDxwnI--suf7rT36M0v5vSGWWwg6iODh3oCyhFwKC409NYX9fUTtmt0M4U13__ZVgQHbNeuI5MCgGMEGA8uc7esiOz65mchjMz2MAHfkX546s-TFmlHFHKJ9jrmivZ5rsYgcQKIrMRq11HnPBp3fg1Xt"/>
+</div>
+<div>
+<p class="text-sm font-bold">Beatriz Rocha</p>
+<p class="text-[11px] text-slate-500">bea.rocha@tech.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Ativo
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right font-bold text-sm">R$ 6.840,00</td>
+<td class="px-6 py-4 text-sm text-slate-500">05 Ago, 2023</td>
+<td class="px-6 py-4">
+<div class="w-24 h-1.5 bg-slate-200 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 38%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 flex items-center justify-between border-t border-slate-200 dark:border-primary/10">
+<p class="text-xs text-slate-500">Mostrando 1-4 de 2,450 clientes</p>
+<div class="flex gap-2">
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5 disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5 text-xs font-bold">2</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5 text-xs font-bold">3</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex h-16 items-center justify-between border-b border-primary/10 bg-white dark:bg-slate-900 px-6 shrink-0">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
+<span class="material-symbols-outlined">point_of_sale</span>
+</div>
+<div>
+<h2 class="text-lg font-bold leading-none text-slate-900 dark:text-white">Nova Venda PDV</h2>
+<span class="text-xs font-medium text-slate-500">Terminal 001 • Operador: João Silva</span>
+</div>
+</div>
+<div class="h-8 w-px bg-slate-200"></div>
+<div class="flex items-center gap-4">
+<label class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="h-10 w-80 rounded-lg border-none bg-slate-100 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50" placeholder="Buscar produto ou código de barras..." type="text"/>
+</label>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined">sync</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/20 bg-cover bg-center" data-alt="User profile avatar circle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAeEA7k0oPTqb4IEgDhhKsGTR_qADtK-NJBuY6hEjYKjWV2UdTMZDy3f94B--zEqH_fI0Z-kuSLVFwRlI_1O1JnnVeUcOxzXHTJuShIcDMjnHQNT6MYBPJ8ZtosIzDnkW7qNBLU4Tm6vVuQmnmSQA8V_yP0wVRavHdzUtXXosCESTmUIKW42oRdrnQARaYZDlmi4swuKzCu901NI0zuHvnKenp2PO-qUXP1-8OduRpLcYdxg3DfCztEiFReTIh-ZkKvJ3O3hF4jWqK9')"></div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Side: Product Grid & Categories -->
+<section class="flex flex-1 flex-col bg-white dark:bg-slate-900 overflow-hidden">
+<!-- Categories Bar -->
+<div class="flex items-center gap-2 border-b border-slate-100 px-6 py-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
+<button class="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
+<span class="material-symbols-outlined text-sm">grid_view</span> Todos
+                    </button>
+<button class="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined text-sm">local_cafe</span> Bebidas
+                    </button>
+<button class="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined text-sm">restaurant</span> Lanches
+                    </button>
+<button class="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined text-sm">cake</span> Sobremesas
+                    </button>
+<button class="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined text-sm">inventory_2</span> Diversos
+                    </button>
+</div>
+<!-- Product Grid -->
+<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+<!-- Product Card -->
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Delicious espresso coffee cup" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbdsY1TbxfFNseQGSAWoIqghY3G1rWdkqdQhQm6gXgw3Smd0Jl9P-IsM2mFAc5rgyFZ7Xe8wUR-eh7zKNjJzti8sGzhUbEkiZCYHPrsomaef1mVpJnAgLTbiO1abq66rQe8HTcJn-5nEFzXLGPFV40dNgXO_6GHA-yq5dG1a3CI1lrGKOOy5AkQPer8XkW-F00MwgWYG1r4zwe5Ghm7sX9TPrWnlvkPpQUNnGQzyrC9mCQfP-dFiePC-ZQ5BcQyykloBk1mcNmxsTq')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Café Espresso</h3>
+<p class="text-lg font-bold text-primary">R$ 6,50</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Refreshing cold soda bottle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC3pHgTgdupBTlTPXoFOfaDadNd2LpcE4n3evGg3QPfThxjkaHiXNYgGFrLTfbM3lDoN4RPZf9EZFWwFts5A9v_Ole2PdPuK15Cu3grASxpgUUHIEwPm3wTm2h28GXFnSgivtX2-kRkXk-mMvWJwwNlkQy_WlGsvLGcB0xUhjQPA__79FNS-QtTqa9t3FAa87URCsJYnE8MYTuG8xIuR6oB2iKgR-WnRh5TzsoRtCcV6HOCf0Shxlmy2114Ph2H9y1Tpp-5zF_fyEjg')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Refrigerante 350ml</h3>
+<p class="text-lg font-bold text-primary">R$ 5,00</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Artisanal cheese sandwich" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDYs9Odu0wBk_TNeNATcfo8bTS7MJFiMhcmk0UHr7BpA-zNs68jxfMbcxgFOkjy0TJ5EL2qvFdNHfxlmAKDD7rdj9kAefxPKfEAJD5necUlu4cYVnVh0oWhCgng6arS1oQe9c4eOGVWCestD5JUYmJLuHCoo3ChML0TXQ7wOaLsfmHuLrUsHI3cgckdvc0bpa6DPChzzz25-mfBpddEphHFhBqKjLj_d0NxEU12BtQkdVy7y1Nxo3V0M16-WMQQLMnTqiksvG1AWbcH')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Sanduíche Natural</h3>
+<p class="text-lg font-bold text-primary">R$ 12,00</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Slice of chocolate cake" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATpSFY2SQUCecDgBqy6WCLfT4A-uaFcPpuxhpBMk-FQoz1gVWZ0OlqOZH5bx-z79ZTFn4OC_-FIkas4jz1RffdFR7cXLamaftTT6txCOzwb8EzRanvQpqByMY_3mWeP--wHcfwg484VOLpwSwZ4uIleBAjhUoqygC6rQ_thHAQBa-UT6AocvS0JJVTK1lsOAIxHeOP2WU5U4D0i0ij6sC0Hfy2r73GMtk_NFWqhaeTwbMRA9y-3Vs6bFnK0-xiv4g91Wtd2gJc5nhh')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Bolo de Chocolate</h3>
+<p class="text-lg font-bold text-primary">R$ 8,50</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Oatmeal cookie snack" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCGA2v96TG15IZLuSPrBN9uNr8iGsVCD-yCtyA6Drfdg9EUkhZBvazGHXmDwa4jr--cFBNzQrQD0d_zxcUeC3OEjf81XZ2RPX09dkTCrHedGnuQYu5XqTVet84bakDv_xTMXF7_S8FkPSh1tCY39OHIz8K4WXnLTmyTeC1_Ea9svw3y3uJZws-1uMo_GgPSnCrRVfCAgm2hpb5Gy8gyp2CGozTQShPuMg4nJY2z5IGwDv8KMjzt4MKj-DTEO8LMjM5L27GXRwOzNiNk')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Cookie Aveia</h3>
+<p class="text-lg font-bold text-primary">R$ 4,00</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Mineral water bottle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBu3Av_JEnXSuUuPenn0vWhh0waRmAxYGX4eiEjjGHnWn78MxGKcmsJicxcHo89OQcQ5qevoqJPArb-A5WphL4J0dDa1UfdX_4moKGRVZJ0YACozzLPJvguGdzcBkRFRpgRZgbrMaWtn0wg-gLd16lxecBMtwmdFQz4CKE4QpD2Uz7sWR9ZuMCZmdPvAqQ6qyj_eJSdFLdNsAHJF4vOtv9SPSWcF-TWsfkj2-9tAOuMnOq2tuCTjawwhKW8RpX911kAY9j5yB4KV9-R')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Água Mineral 500ml</h3>
+<p class="text-lg font-bold text-primary">R$ 3,00</p>
+</div>
+</div>
+<!-- Repeat for demo -->
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Hot cappuccino cup" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpDI4ynIHpyJbrBHwwqNjz2qtdWXE-VEptT3drtgLe_4HQ-tEL0bvaFvHv_zjzRHqAS5NPSm-k8VLK17AB2AqmtU1AaNZJ65-uBA5Xj9DE-Oop6GXOIVh0Bd_OlGVriFBSpFhtcU2IUfFVRx4XEMPUwhmZDdkJQ3DduyhGYRrSTz3yfQDEddj_iSTL-DyGVisgfrxii-nxR5zV51Ct9EjNzdavuGW7ZpaOX6kiI1XOCUyJkxIuEmxcQJrp-LFj8L79SVM5kNlVdAu0')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Cappuccino G</h3>
+<p class="text-lg font-bold text-primary">R$ 9,50</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Fresh fruit salad bowl" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA340UEle3L-xQx8mZGjLHDCCH-1l9SQIn-R8L5Fj36QQuwToJ2MZvxGAF2ooTkozZbXLOeoVmJb5ZGpXbX9nLu1rHrwmKDcGq7cftdKKqPpYQ_B0JdmK9crMgQlp7JCTf9rT_DT7YhC5iv21gwcnPQ_eLRFV5mZ-lq2AK4_TLtnevmuTUrqPi352o08Q5q5TDoglPZ-PpMYuohz9Tjy5srf9X-7eE_TL_Hqmf0vdRCaMJaruCQrkom95YI_3flFlvkALyiJltJf_cF')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Salada de Frutas</h3>
+<p class="text-lg font-bold text-primary">R$ 7,00</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Cheese bread rolls" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAnIZ6X7bt7v9q2IkvH18tguSVLVwx5kXnafT1MOarCsgV6rg7w7rfBSVzfavx3K8g7D2lTkIk3vdMBfP3maRQ1mAZ2OJs2LqcM7wMZtNecEi1Nuh0YcD1RSo-aBMg8cG4sAvPBVyJtylQAzTl6OujnKMI8Q5zmSI3WlcZODHeaP4mTiW8BKjoJxXalqZ8JFFJj_Ro8wQJz8D0OA0g24jAgcd_HsaGgOyrC5Brlb3Qvmf10UaQkJgRakkk_LpJEhT1k8UOOxQsyw0tv')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Pão de Queijo</h3>
+<p class="text-lg font-bold text-primary">R$ 4,50</p>
+</div>
+</div>
+<div class="group flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer">
+<div class="aspect-square w-full rounded-lg bg-slate-100 bg-cover bg-center" data-alt="Iced tea lemon cup" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCF9XaBPknomd0h4bhAaz5s_bvhVvstrdgaF8QZKDbHqRFaN-r3t-RJvxlxspcPtoZYQGHqxIbRDr_3FF_hNOJFebbcJ7srk_0VmrroIBCbl_GptZgpG-vUmNLKo0fWf8IyTBvbKtD-nAJGBSeLECK3gdd1QFpbPSYm6lSQK4jdHqtMFA9S9y2xDjKkTRQ8SskEHv9E4Fhq8ti4LAczSNODenrDr3_O3eU7MfpAJ8ifADZqHoQ8pkm3NCTNCzAn6Hv8ojLWeGGFr0Ho')"></div>
+<div>
+<h3 class="text-sm font-bold text-slate-900">Chá Gelado Limão</h3>
+<p class="text-lg font-bold text-primary">R$ 6,00</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Side: Cart, Customer & Checkout -->
+<aside class="flex w-[400px] flex-col border-l border-slate-200 bg-background-light dark:bg-slate-900/50">
+<!-- Customer Selection -->
+<div class="p-4">
+<div class="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cliente</span>
+<span class="text-sm font-bold text-slate-900 dark:text-white">Consumidor Final</span>
+</div>
+</div>
+<button class="rounded-lg bg-slate-100 p-2 text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Cart Items List -->
+<div class="flex-1 overflow-y-auto px-4">
+<div class="flex flex-col gap-3">
+<h2 class="px-1 text-sm font-bold uppercase tracking-widest text-slate-500">Carrinho Atual</h2>
+<!-- Cart Item -->
+<div class="flex items-center justify-between gap-3 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 bg-cover" data-alt="Small espresso coffee image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBlDqQGQzHscdTZcjeSaf8b5fVWOOsUWX90eZI6_E0okb8DcRMfZGYnFmCCEa9qZ_U7V6Baikz9XBTG6btAoyZwrsYXd05Bgy41KmYEa9Hq1k-W-yNZvSXDWM3GL24Isf-BqlV-eL30VGBoUGQjQvLwULr1tgVzKeLGfkDf7ImoMLtTXuF-tzLh33C1gr9Imy43F-9dQ5nlfZfWGnk6WJR_KJx9M5OSeA_ftgbYswcflgw4zZQ2lkoJE6Ce7cvzFQumIDAcJwOIuBDs')"></div>
+<div class="flex flex-1 flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-white">Café Espresso</span>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-slate-400">1 x R$ 6,50</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="text-sm font-bold text-slate-900 dark:text-white">R$ 6,50</span>
+<div class="flex items-center rounded-lg bg-slate-100 p-1">
+<button class="h-6 w-6 text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="px-2 text-xs font-bold">1</span>
+<button class="h-6 w-6 text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-3 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800 border-2 border-primary/20">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 bg-cover" data-alt="Slice of chocolate cake small" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPZvm0w1_KZJqcSUwA5eGKdiP3CxHrrD800lQE1dsL2Lu68w8hMSbElsKGWJVEBOqraH7i1A-q9BgQ1sKMV0CXqZ7C1qfaCuo_nFPoFCM48rJxYEGDe4mQCmcWsxzgD9v1RpxHcqwgf7fYpjzo3m6cqyEXlTMV_w8hthiL5xLBfgyZwyB2AqUZ4U4hT8bnzps0DgdSq8dNSO1i4VPNKr8MzuFkF8HRqnswpPI-BMCIqrzmQUwjBNc9Cs8rFzY7xpw5XlR0RiQw4xF3')"></div>
+<div class="flex flex-1 flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-white">Bolo de Chocolate</span>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-slate-400">2 x R$ 8,50</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="text-sm font-bold text-slate-900 dark:text-white">R$ 17,00</span>
+<div class="flex items-center rounded-lg bg-slate-100 p-1">
+<button class="h-6 w-6 text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="px-2 text-xs font-bold">2</span>
+<button class="h-6 w-6 text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Summary & Actions -->
+<div class="border-t border-slate-200 bg-white p-6 dark:bg-slate-800">
+<div class="mb-6 flex flex-col gap-2">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Subtotal</span>
+<span class="font-medium text-slate-900 dark:text-white">R$ 23,50</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Desconto</span>
+<span class="font-medium text-red-500">- R$ 0,00</span>
+</div>
+<div class="mt-2 flex justify-between border-t border-dashed border-slate-200 pt-2">
+<span class="text-lg font-bold text-slate-900 dark:text-white">Total</span>
+<span class="text-2xl font-black text-primary">R$ 23,50</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-100 font-bold text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined">delete</span> Cancelar
+                        </button>
+<button class="flex h-14 items-center justify-center gap-2 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:opacity-90">
+<span class="material-symbols-outlined">payments</span> Pagar
+                        </button>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 hover:border-primary/50 hover:bg-primary/5">
+<span class="material-symbols-outlined text-slate-400">receipt</span>
+<span class="text-[10px] font-bold text-slate-500">Imprimir</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 hover:border-primary/50 hover:bg-primary/5">
+<span class="material-symbols-outlined text-slate-400">percent</span>
+<span class="text-[10px] font-bold text-slate-500">Desconto</span>
+</button>
+<button class="flex flex-1 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 hover:border-primary/50 hover:bg-primary/5">
+<span class="material-symbols-outlined text-slate-400">loyalty</span>
+<span class="text-[10px] font-bold text-slate-500">Cupom</span>
+</button>
+</div>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

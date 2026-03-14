@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-72 flex-shrink-0 flex flex-col border-r border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark">
+<div class="p-6 flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white" data-alt="Abstract purple logo pattern">
+<span class="material-symbols-outlined">shopping_basket</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-base font-bold leading-none">Gestão de Loja</h1>
+<p class="text-xs text-slate-500 dark:text-primary/60">Premium Store Admin</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Vendas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">checkroom</span>
+<span class="text-sm font-medium">Produtos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Configurações</span>
+</a>
+</nav>
+<div class="p-6 border-t border-slate-200 dark:border-primary/10">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Nova Venda
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<!-- Top Header -->
+<header class="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight">Dashboard Geral</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-primary/10 border-none rounded-lg focus:ring-2 focus:ring-primary text-sm" placeholder="Pesquisar..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-100 dark:bg-primary/10 border border-transparent hover:border-primary/30 transition-all">
+<div class="h-7 w-7 rounded-full bg-gradient-to-tr from-primary to-purple-400" data-alt="User profile abstract gradient"></div>
+<span class="text-sm font-medium pr-2">Admin</span>
+</button>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Vendas Diárias</p>
+<span class="flex items-center text-emerald-500 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span> 12.5%
+                            </span>
+</div>
+<h3 class="text-2xl font-extrabold">R$ 12.450,00</h3>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4 rounded-full"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Ticket Médio</p>
+<span class="flex items-center text-rose-500 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_down</span> 2.1%
+                            </span>
+</div>
+<h3 class="text-2xl font-extrabold">R$ 215,00</h3>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/2 rounded-full"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pedidos Hoje</p>
+<span class="flex items-center text-emerald-500 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span> 5.3%
+                            </span>
+</div>
+<h3 class="text-2xl font-extrabold">58</h3>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Main Chart Section -->
+<div class="bg-white dark:bg-primary/5 p-8 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold">Crescimento de Vendas</h4>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Acompanhamento semanal de performance</p>
+</div>
+<div class="text-right">
+<h3 class="text-3xl font-extrabold">R$ 84.200,00</h3>
+<p class="text-emerald-500 text-sm font-bold">Últimos 7 dias (+15.2%)</p>
+</div>
+</div>
+<div class="relative h-64 w-full">
+<!-- Custom SVG Chart -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 200">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#8c25f4" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#8c25f4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,160 Q100,140 200,100 T400,120 T600,60 T800,40 V200 H0 Z" fill="url(#chartGradient)"></path>
+<path d="M0,160 Q100,140 200,100 T400,120 T600,60 T800,40" fill="none" stroke="#8c25f4" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<div class="flex justify-between mt-4">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Seg</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ter</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Qua</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Qui</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sex</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sab</span>
+<span class="text-xs font-bold text-slate-500 uppercase tracking-wider text-primary">Dom</span>
+</div>
+</div>
+</div>
+<!-- Bottom Grid: Top Selling and Recent Activity -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Top Selling Products -->
+<div class="bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10">
+<h4 class="font-bold">Produtos Mais Vendidos</h4>
+</div>
+<div class="divide-y divide-slate-100 dark:divide-primary/10">
+<div class="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-primary/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-slate-200 dark:bg-primary/20 flex items-center justify-center overflow-hidden" data-alt="Stylish winter jacket">
+<span class="material-symbols-outlined text-primary">apparel</span>
+</div>
+<div>
+<p class="font-bold text-sm">Jaqueta Corta-Vento Pro</p>
+<p class="text-xs text-slate-500">124 vendas este mês</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold">R$ 299,90</p>
+<p class="text-xs text-emerald-500 font-bold">+18%</p>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-primary/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-slate-200 dark:bg-primary/20 flex items-center justify-center overflow-hidden" data-alt="Modern cotton t-shirt">
+<span class="material-symbols-outlined text-primary">apparel</span>
+</div>
+<div>
+<p class="font-bold text-sm">Camiseta Minimalist Algodão</p>
+<p class="text-xs text-slate-500">98 vendas este mês</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold">R$ 89,90</p>
+<p class="text-xs text-emerald-500 font-bold">+12%</p>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-primary/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-slate-200 dark:bg-primary/20 flex items-center justify-center overflow-hidden" data-alt="Classic denim pants">
+<span class="material-symbols-outlined text-primary">apparel</span>
+</div>
+<div>
+<p class="font-bold text-sm">Calça Jeans Slim Fit</p>
+<p class="text-xs text-slate-500">82 vendas este mês</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold">R$ 189,90</p>
+<p class="text-xs text-rose-500 font-bold">-4%</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Orders/Activity -->
+<div class="bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10 flex items-center justify-between">
+<h4 class="font-bold">Últimos Pedidos</h4>
+<button class="text-xs text-primary font-bold hover:underline">Ver todos</button>
+</div>
+<div class="p-0 overflow-x-auto">
+<table class="w-full text-left">
+<thead class="text-xs uppercase text-slate-500 bg-slate-50 dark:bg-primary/10">
+<tr>
+<th class="px-6 py-3">Cliente</th>
+<th class="px-6 py-3">Status</th>
+<th class="px-6 py-3">Data</th>
+<th class="px-6 py-3">Total</th>
+</tr>
+</thead>
+<tbody class="text-sm divide-y divide-slate-100 dark:divide-primary/10">
+<tr>
+<td class="px-6 py-4 font-medium">Carlos Oliveira</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Pago</span>
+</td>
+<td class="px-6 py-4 text-slate-500">Há 5 min</td>
+<td class="px-6 py-4 font-bold">R$ 452,00</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-medium">Mariana Costa</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold">Pendente</span>
+</td>
+<td class="px-6 py-4 text-slate-500">Há 12 min</td>
+<td class="px-6 py-4 font-bold">R$ 125,90</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-medium">Roberto J.</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Pago</span>
+</td>
+<td class="px-6 py-4 text-slate-500">Há 45 min</td>
+<td class="px-6 py-4 font-bold">R$ 2.450,00</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-medium">Ana Julia</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">Enviado</span>
+</td>
+<td class="px-6 py-4 text-slate-500">Há 1 hora</td>
+<td class="px-6 py-4 font-bold">R$ 389,00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

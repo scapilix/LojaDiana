@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8c25f4",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#191022",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="size-8 flex items-center justify-center rounded-lg bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">dashboard</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Dashboard Geral</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+<div class="text-slate-500 dark:text-slate-400 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-0 border-none bg-transparent h-full placeholder:text-slate-500 px-2 text-sm font-normal" placeholder="Buscar relatório..." value=""/>
+</div>
+</label>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 bg-cover bg-center" data-alt="Avatar do usuário administrativo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBgFKMXnXTA2RKVhytfRy3wo1NAUFikYO9xNcWmCUGYSrPcqMbxHdMzdr_kS5KhUGi7Y5qIj-k2gwqIk8UlRbY4bODGtUP6NVENtEfh8Rvg5vPepmpGtNOKNiawfGxYMrUutW3_a9q1HVdG4iqF3hq2khI6qVy30SvQl7IlKhJv0Q1kcj3bEinoTIryfMl9FWY5cnfWjX4YOz9If2HVVoN_fgCg9vG5tsByDMxbvoyghfKPu8Y0h0UCDi54v426Ceck2qKpKWvyX3Bv");'></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar -->
+<aside class="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 gap-6">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 items-center p-2 rounded-xl bg-primary/5 dark:bg-primary/10">
+<div class="h-10 w-10 rounded-lg bg-cover bg-center border border-primary/20" data-alt="Logotipo da Premium Store" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA9gNPggukzO_OYPadM-zwD9sIwdQfZLgK5n_CLZ29Et7JoIHLmgE4uQBtQVqODuaRpF6Fo4DTQqi8U7OP_vO85QBXAPW8MjiqQd0ulcqPaXk8wZpa9pRnrYmNs44DGsRtn9-wtixLG7udrLuJdw42u6ffxGJb_P7FEdR77f0YfPObUaQU56xRA7qmgaBF8-YHXd2Hx4V-XJB0rv6D35iWf05OHJvzH1KYMoHk0-veGoUxC9RXwjftH4iZhI-aDAs5c_OE2GCtf6pei");'></div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-sm font-bold leading-tight">Premium Store</h1>
+<p class="text-primary text-xs font-semibold leading-normal uppercase tracking-wider">Plano Pro</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-sm font-medium">Início</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="text-sm font-medium">Vendas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium">Produtos</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">Relatórios</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clientes</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto">
+<button class="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 px-4 text-white font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Novo Pedido</span>
+</button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Vendas Diárias</p>
+<span class="material-symbols-outlined text-slate-400">payments</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">R$ 12.450</p>
+<span class="text-emerald-500 text-sm font-bold pb-1 flex items-center"><span class="material-symbols-outlined text-sm">arrow_upward</span> 12.5%</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Ticket Médio</p>
+<span class="material-symbols-outlined text-slate-400">receipt_long</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">R$ 158,20</p>
+<span class="text-rose-500 text-sm font-bold pb-1 flex items-center"><span class="material-symbols-outlined text-sm">arrow_downward</span> 2.1%</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Pedidos Hoje</p>
+<span class="material-symbols-outlined text-slate-400">shopping_bag</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">78</p>
+<span class="text-emerald-500 text-sm font-bold pb-1 flex items-center"><span class="material-symbols-outlined text-sm">arrow_upward</span> 5.4%</span>
+</div>
+</div>
+</div>
+<!-- Charts and Top Products -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Sales Chart -->
+<div class="lg:col-span-2 flex flex-col gap-6 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Crescimento de Vendas</h3>
+<p class="text-slate-500 text-sm font-normal">Comparativo dos últimos 7 dias</p>
+</div>
+<div class="text-right">
+<p class="text-slate-900 dark:text-white text-2xl font-bold">R$ 84.200,00</p>
+<p class="text-emerald-500 text-sm font-bold flex items-center justify-end"><span class="material-symbols-outlined text-xs">add</span> 18%</p>
+</div>
+</div>
+<div class="relative h-[250px] w-full mt-4">
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 500 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#8c25f4" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#8c25f4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,120 Q50,110 100,60 T200,80 T300,40 T400,90 T500,20 V150 H0 Z" fill="url(#chartGradient)"></path>
+<path d="M0,120 Q50,110 100,60 T200,80 T300,40 T400,90 T500,20" fill="none" stroke="#8c25f4" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="flex justify-between mt-4 text-xs font-bold text-slate-400 uppercase tracking-tighter">
+<span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sab</span><span>Dom</span>
+</div>
+</div>
+</div>
+<!-- Top Selling Products -->
+<div class="flex flex-col gap-6 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Mais Vendidos</h3>
+<button class="text-primary text-xs font-bold uppercase hover:underline">Ver tudo</button>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center flex-shrink-0" data-alt="Tênis esportivo vermelho" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABlKG31uFHa0O0vYjtHVJsNzEnF9MfGC8f8Rf-pC7G9mQavIxJwIgozYOZIxQN7SXRgpQDSFub3EWukcdDaHKGqbts8vzQ_Z0q-HeEly1YaMGgsX5QKKg6veot2k5wDD2mwSkLNmGCqUrDAu_p9gfzk4cRIbgHKunssQVcmn6-jztDoElZfN-31jbqxK83vR8dWQ1ctALtFT9UQaaGzpRKlfyFzr_toS3zFEnVCxrnx4R_vDzTGtRyMBWhEPNBOxSBwhlJgzF-YpxB");'></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Sneaker Hyper X</p>
+<p class="text-xs text-slate-500">124 vendas</p>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">R$ 299</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center flex-shrink-0" data-alt="Relógio de pulso moderno" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqK2OptyIBTpcGmsWU1DEbD8p2GAhdf6PSsmwcTQYdgf3v41uwgVwlPPt8_FL1xgBQs6fiMwSO7aXjPnS1iMvyvar0a1nge3LREUoeVc_Tu0vhv6dUeRRjeaKN8f_iXK6UCdwIapvINHyGteMJ3PTO7p8mAXhWFPBaZVQ0ltkWy-_rNLy_kCrnCQjD4M4J370sAT67Jj5zkNyGoMMDM2At4o5Ghmco8vXfOWyoUKMBfQRut1xyw2KmcUagzvgmywzRY_SVL3XHttWe");'></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Smart Watch G2</p>
+<p class="text-xs text-slate-500">98 vendas</p>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">R$ 450</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center flex-shrink-0" data-alt="Headset wireless preto" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYxCxYI-Gq-XZIHsivLysIoN-4ZskHTLEF7taw-9__uDIpV5ryhxNhS8cEZPqMOIcgqIqQb6WyjFtFb_x2lNBomTgDzOWwKLVr5-Gayw5UIHtSdvzON5JyhzW9s2NcUI-Tl5rxEV7nM6qddsbgbm5P_z17QLh15AFTCvHqqf8qX0MX-q4IjAHQZ9JpRQKQ2xhTvcASu9OvNy-AHS228mTjamZfd3knb7o8p2nUT5848Yxjv9AuUSpmhJl58TW7a2MIq3bcLLku8GWo");'></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Headset Wireless</p>
+<p class="text-xs text-slate-500">85 vendas</p>
+</div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">R$ 189</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Orders Table -->
+<div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Pedidos Recentes</h3>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Filtrar</button>
+<button class="px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Exportar</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ID Pedido</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Cliente</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Valor</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">#84920</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 bg-cover" data-alt="Avatar de cliente" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4AlX3el42d4FDPQlLq92JvXS6Y58a_d5uUOOkbOxylw_5iN87jlY9t49cYo65xGCo01mEAaWbptmx70XJ0_8eb8-CfusPR5QpPq4GOBbBonWj9yMLQKlLT7TNFMou1lSYc0kg1FudfxHYDATmkx8guiExGIPXB9tpgiJ1hLciVERWCMJZavydXIkid6vLDhl6nqK-RCUshWiKFB6iCJZ8ugE4oghvwYQuPpo6KF-Ss2zE_xtoaeW-jc9JSLGwpQ4AGJN8rZUEQahl')"></div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Carlos Eduardo</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Hoje, 14:30</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-bold">Pago</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white text-right">R$ 450,00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">#84919</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 bg-cover" data-alt="Avatar de cliente" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD24xWj-eMp8XMOEUJ3spQxMaGkWjS4Y5cyO5Y2YGblgwzdhOhOnaDYqMEzdM3RSiB0t5mVy9FqZh8JfeBC53OYYaPgnS51r4_7MdRMK3bKZNEO0tWwGt1CnJrRl0dt_jS5A76gm_KwB-bjztI-R6JblCy6fHFGCchE1wCdhyYiaF2Dlot28pe-m5ki_hL57ayDN_ovOSw_5HcSU3kKwLNqWv05tsCs9o8GMj92IsEMmeCcySDcf-Hvr5HfezIdq1B1pkzZF-0rrVgW')"></div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Ana Luiza</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Hoje, 13:15</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold">Pendente</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white text-right">R$ 1.280,50</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">#84918</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 bg-cover" data-alt="Avatar de cliente" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWNG3K0VPuxEP2ZvZGe513ZBalcWzxPyS2cAxRMNulwTc6Bp7XfqsvuDjw2OgwiD57YIM0XYn-U7s-k3R-r4HB_NJSvjca9mVdgWQ8TVQC00mgEERwEbWcXAtrofLgADXPNfNCCrX9lPpvOwhdYg7-bMCysL_Oc3rJr0XQNveMCWzJjakBNGXRqp2PkUAw4BIgt0n19aQL_F5dcoKYqTD1SAF9e4TXtDOiQynMX7-bA-asBZsm_MUG5No8cZA7fRPnd7UoL6p8B17E')"></div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Marcos Vinícius</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Ontem, 18:45</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-xs font-bold">Enviado</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white text-right">R$ 89,90</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</body></html>
