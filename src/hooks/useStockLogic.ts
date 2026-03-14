@@ -27,6 +27,7 @@ export interface StockStatus {
   colors?: string[];
   variations: VariationStock[];
   image_url?: string;
+  color_images?: { [color: string]: string };
   categoria?: string;
   absolute_stock?: number;
 }
@@ -99,6 +100,7 @@ export function useStockLogic() {
         colors: catalogItem?.colors,
         variations: [],
         image_url: catalogItem?.image_url,
+        color_images: catalogItem?.color_images,
         categoria: catalogItem?.categoria
       };
     };

@@ -18,6 +18,7 @@ interface CartItem {
     discount?: number;      // Discount value
     discount_type?: 'fixed' | 'percent';
     variations?: any[];     // Added to allow changing variations in cart
+    color_images?: { [color: string]: string };
 }
 
 interface FinalizeOptions {
@@ -129,11 +130,22 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 // Merge quantities
                 const target = newCart[collisionIndex];
                 const totalQty = Math.min(target.quantidade + newQty, newStock);
-                newCart[collisionIndex] = { ...target, quantidade: totalQty, current_stock: newStock };
+                
+                // Update image for the merged item if needed
+                let finalImageUrl = target.image_url;
+                if (color && target.color_images && target.color_images[color]) {
+                    finalImageUrl = target.color_images[color];
+                }
+
+                newCart[collisionIndex] = { ...target, quantidade: totalQty, current_stock: newStock, image_url: finalImageUrl };
                 newCart.splice(itemIndex, 1);
             } else {
                 // Update current item
-                newCart[itemIndex] = { ...item, cartItemId: newId, size, color, current_stock: newStock, quantidade: newQty };
+                let finalImageUrl = item.image_url;
+                if (color && item.color_images && item.color_images[color]) {
+                    finalImageUrl = item.color_images[color];
+                }
+                newCart[itemIndex] = { ...item, cartItemId: newId, size, color, current_stock: newStock, quantidade: newQty, image_url: finalImageUrl };
             }
 
             return newCart;

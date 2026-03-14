@@ -42,6 +42,7 @@ interface ProductCatalogItem {
   published?: boolean;
   sizes?: string[];
   colors?: string[];
+  color_images?: { [color: string]: string };
 }
 
 export default function BaseItems() {
@@ -238,7 +239,8 @@ export default function BaseItems() {
         image_url: '',
         description: '',
         sizes: [],
-        colors: []
+        colors: [],
+        color_images: {}
       });
     } catch (err: any) {
       alert(err.message || 'Erro ao adicionar produto');
@@ -1010,6 +1012,75 @@ export default function BaseItems() {
                             )}
                           </div>
                         </div>
+
+                        {/* Imagens por Cor */}
+                        {((isAddingNew ? newItem.colors : editingItem?.colors)?.length || 0) > 0 && (
+                          <div className="p-4 bg-purple-50/30 dark:bg-purple-900/10 rounded-2xl border border-purple-100/50 dark:border-purple-800/20">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Camera className="w-4 h-4 text-purple-500" />
+                              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Imagens por Cor (Opcional)</h4>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(isAddingNew ? newItem.colors : editingItem?.colors)?.map(color => {
+                                const images = isAddingNew ? (newItem.color_images || {}) : (editingItem?.color_images || {});
+                                const imageUrl = images[color];
+                                return (
+                                  <div key={color} className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-white/5">
+                                    <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 relative group/colorimg overflow-hidden">
+                                      {imageUrl ? (
+                                        <>
+                                          <img src={imageUrl} alt={color} className="w-full h-full object-cover" />
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const newImages = { ...images };
+                                              delete newImages[color];
+                                              isAddingNew 
+                                                ? setNewItem({ ...newItem, color_images: newImages }) 
+                                                : setEditingItem(prev => prev ? ({ ...prev, color_images: newImages }) : null);
+                                            }}
+                                            className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover/colorimg:opacity-100 transition-opacity"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <Camera className="w-4 h-4 text-slate-300" />
+                                      )}
+                                      {!imageUrl && (
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            try {
+                                              setIsUploading(true);
+                                              const url = await uploadToSupabase(file, 'loja_artigos_cores');
+                                              if (url) {
+                                                const newImages = { ...images, [color]: url };
+                                                isAddingNew 
+                                                  ? setNewItem({ ...newItem, color_images: newImages }) 
+                                                  : setEditingItem(prev => prev ? ({ ...prev, color_images: newImages }) : null);
+                                              }
+                                            } finally {
+                                              setIsUploading(false);
+                                            }
+                                          }}
+                                          className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[10px] font-black uppercase text-slate-500">{color}</span>
+                                      <span className="text-[8px] text-slate-400 font-bold">{imageUrl ? 'Foto Definida' : 'Sem Foto'}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

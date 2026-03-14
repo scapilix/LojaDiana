@@ -127,6 +127,12 @@ export default function POS() {
         const firstInStock = item.variations?.find((v: any) => v.current_stock > 0);
         const limitToRemove = firstInStock ? (firstInStock.absolute_stock ?? firstInStock.current_stock) : (item.absolute_stock ?? item.current_stock);
         
+        const selectedColor = firstInStock?.color;
+        let finalImageUrl = item.image_url;
+        if (selectedColor && item.color_images && item.color_images[selectedColor]) {
+            finalImageUrl = item.color_images[selectedColor];
+        }
+
         addToCart({
             ref: item.ref,
             nome_artigo: item.name,
@@ -136,13 +142,14 @@ export default function POS() {
             base_price: item.base_price || 0,
             current_stock: limitToRemove,
             size: firstInStock?.size || undefined,
-            color: firstInStock?.color || undefined,
+            color: selectedColor || undefined,
             categoria: item.categoria,
-            image_url: item.image_url,
+            image_url: finalImageUrl,
             variations: item.variations.map((v: any) => ({
                 ...v,
                 current_stock: v.absolute_stock ?? v.current_stock // Pass the real stock to cart for variation changes
-            }))
+            })),
+            color_images: item.color_images
         });
     };
 

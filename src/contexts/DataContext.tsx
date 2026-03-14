@@ -17,6 +17,7 @@ interface ProductCatalogItem {
   published?: boolean;
   sizes?: string[];
   colors?: string[];
+  color_images?: { [color: string]: string };
 }
 
 interface ExcelData {
