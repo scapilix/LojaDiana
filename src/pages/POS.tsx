@@ -490,34 +490,54 @@ export default function POS() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
-                                <div className="space-y-3">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        Escolha a Cor
-                                    </p>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {Array.from(new Set(configuringProduct.variations.map((v: any) => v.color))).map((color: any) => (
-                                            <button
-                                                key={color}
-                                                onClick={() => setSelectedColorForConfig(color)}
-                                                className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
-                                            >
-                                                {configuringProduct.color_images?.[color] ? (
-                                                    <img 
-                                                        src={configuringProduct.color_images[color]} 
-                                                        className="w-full aspect-square rounded-xl object-cover shadow-md"
-                                                        alt={color}
-                                                    />
-                                                ) : (
-                                                    <div className="w-full aspect-square rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                                        <Package className="w-6 h-6 text-slate-400" />
-                                                    </div>
-                                                )}
-                                                <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter truncate w-full text-center">{color}</span>
-                                            </button>
-                                        ))}
+                                {!selectedColorForConfig ? (
+                                    <div className="space-y-3">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                            Escolha a Cor
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {Array.from(new Set(configuringProduct.variations.map((v: any) => v.color))).map((color: any) => (
+                                                <button
+                                                    key={color}
+                                                    onClick={() => setSelectedColorForConfig(color)}
+                                                    className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
+                                                >
+                                                    {configuringProduct.color_images?.[color] ? (
+                                                        <img 
+                                                            src={configuringProduct.color_images[color]} 
+                                                            className="w-full aspect-square rounded-xl object-cover shadow-md"
+                                                            alt={color}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full aspect-square rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                                            <Package className="w-6 h-6 text-slate-400" />
+                                                        </div>
+                                                    )}
+                                                    <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter truncate w-full text-center">{color}</span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-2xl border border-primary/20">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl overflow-hidden border border-primary/20">
+                                                <img src={configuringProduct.color_images?.[selectedColorForConfig] || configuringProduct.image_url} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cor Selecionada</p>
+                                                <p className="font-black text-xs text-primary uppercase">{selectedColorForConfig}</p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setSelectedColorForConfig(null)}
+                                            className="px-3 py-1.5 bg-white dark:bg-slate-800 text-[9px] font-black text-slate-500 uppercase rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 transition-all"
+                                        >
+                                            Trocar
+                                        </button>
+                                    </div>
+                                )}
 
                                 {selectedColorForConfig && (
                                     <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -619,17 +639,17 @@ export default function POS() {
                                                                                 baseValue: item.pvp_cica * item.quantidade,
                                                                                 title: 'Desconto no Item'
                                                                             })}
-                                                                            className={`p-1 rounded-md transition-all ${(item.discount || 0) > 0 ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'}`}
+                                                                            className={`p-2 rounded-xl transition-all ${(item.discount || 0) > 0 ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'}`}
                                                                             title="Aplicar Desconto"
                                                                         >
-                                                                            <Tag className="w-2.5 h-2.5" />
+                                                                            <Tag className="w-4 h-4" />
                                                                         </button>
                                                                         <button 
                                                                             onClick={() => removeFromCart(item.cartItemId)} 
-                                                                            className="p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-500/5 rounded transition-all"
+                                                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all"
                                                                             title="Remover item"
                                                                         >
-                                                                            <X className="w-2.5 h-2.5" />
+                                                                            <X className="w-4 h-4" />
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -847,10 +867,10 @@ export default function POS() {
                             {checkoutStep === 3 && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                                     <div className="text-center">
-                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase">Pagamento</h2>
-                                        <div className="mt-4 p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                                            <span className="block text-[10px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
-                                            <span className="text-4xl font-black text-primary">{formatCurrency(cartTotal)}</span>
+                                        <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase">Pagamento</h2>
+                                        <div className="mt-2 p-2 bg-primary/10 rounded-xl border border-primary/20">
+                                            <span className="block text-[8px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
+                                            <span className="text-2xl font-black text-primary">{formatCurrency(cartTotal)}</span>
                                         </div>
                                     </div>
 
@@ -891,7 +911,7 @@ export default function POS() {
                                                         value={cashReceived}
                                                         onChange={(e) => setCashReceived(e.target.value)}
                                                         placeholder="Valor recebido..."
-                                                        className="w-full py-3 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-lg font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-2"
+                                                        className="w-full py-2 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-base font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-1"
                                                     />
                                                 </div>
 
@@ -1064,11 +1084,46 @@ export default function POS() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Banknote className="w-2.5 h-2.5" /> Desconto (€)</label>
-                                        <input type="number" autoFocus value={discountModalConfig.type === 'total' ? (cartDiscountType === 'fixed' ? cartDiscount : (discountModalConfig.baseValue * (cartDiscount / 100))) : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'fixed' ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount : (discountModalConfig.baseValue * ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / 100))) || ''} onChange={(e) => { const val = parseFloat(e.target.value) || 0; if (discountModalConfig.type === 'total') { setCartDiscount(val, 'fixed'); } else { updateItemDiscount(discountModalConfig.cartItemId!, val, 'fixed'); } }} className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" />
+                                        <input 
+                                            type="number" 
+                                            autoFocus 
+                                            value={discountModalConfig.type === 'total' 
+                                                ? (cartDiscountType === 'fixed' ? cartDiscount : Number((discountModalConfig.baseValue * (cartDiscount / 100)).toFixed(2))) 
+                                                : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'fixed' 
+                                                    ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount 
+                                                    : Number((discountModalConfig.baseValue * ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / 100)).toFixed(2))) || ''
+                                            } 
+                                            onChange={(e) => { 
+                                                const val = parseFloat(e.target.value) || 0; 
+                                                if (discountModalConfig.type === 'total') { 
+                                                    setCartDiscount(val, 'fixed'); 
+                                                } else { 
+                                                    updateItemDiscount(discountModalConfig.cartItemId!, val, 'fixed'); 
+                                                } 
+                                            }} 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" 
+                                        />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Percent className="w-2.5 h-2.5" /> Desconto (%)</label>
-                                        <input type="number" value={discountModalConfig.type === 'total' ? (cartDiscountType === 'percent' ? cartDiscount : (cartDiscount / discountModalConfig.baseValue * 100)) : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'percent' ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount : ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / discountModalConfig.baseValue * 100)) || ''} onChange={(e) => { const val = parseFloat(e.target.value) || 0; if (discountModalConfig.type === 'total') { setCartDiscount(val, 'percent'); } else { updateItemDiscount(discountModalConfig.cartItemId!, val, 'percent'); } }} className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" />
+                                        <input 
+                                            type="number" 
+                                            value={discountModalConfig.type === 'total' 
+                                                ? (cartDiscountType === 'percent' ? cartDiscount : Number((cartDiscount / discountModalConfig.baseValue * 100).toFixed(2))) 
+                                                : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'percent' 
+                                                    ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount 
+                                                    : Number(((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / discountModalConfig.baseValue * 100).toFixed(2))) || ''
+                                            } 
+                                            onChange={(e) => { 
+                                                const val = parseFloat(e.target.value) || 0; 
+                                                if (discountModalConfig.type === 'total') { 
+                                                    setCartDiscount(val, 'percent'); 
+                                                } else { 
+                                                    updateItemDiscount(discountModalConfig.cartItemId!, val, 'percent'); 
+                                                } 
+                                            }} 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" 
+                                        />
                                     </div>
                                 </div>
                                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between bg-emerald-50/50 p-4 rounded-2xl">
