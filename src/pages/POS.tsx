@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash, MoreHorizontal } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -485,25 +485,25 @@ export default function POS() {
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                                         Escolha a Cor
                                     </p>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {Array.from(new Set(configuringProduct.variations.map((v: any) => v.color))).map((color: any) => (
                                             <button
                                                 key={color}
                                                 onClick={() => setSelectedColorForConfig(color)}
-                                                className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
+                                                className={`group relative flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
                                             >
                                                 {configuringProduct.color_images?.[color] ? (
                                                     <img 
                                                         src={configuringProduct.color_images[color]} 
-                                                        className="w-8 h-8 rounded-lg object-cover shadow-sm"
+                                                        className="w-full aspect-square rounded-[2rem] object-cover shadow-lg"
                                                         alt={color}
                                                     />
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                                        <Package className="w-4 h-4 text-slate-400" />
+                                                    <div className="w-full aspect-square rounded-[2rem] bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                                        <Package className="w-12 h-12 text-slate-400" />
                                                     </div>
                                                 )}
-                                                <span className="text-[8px] font-black text-slate-600 dark:text-slate-400 uppercase truncate w-full text-center tracking-tighter">{color}</span>
+                                                <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">{color}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -549,10 +549,10 @@ export default function POS() {
                                                             setSelectedColorForConfig(null);
                                                             setIsCartCollapsed(false);
                                                         }}
-                                                        className="flex flex-col items-center justify-center p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-transparent hover:border-primary transition-all group"
+                                                        className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border-2 border-transparent hover:border-primary transition-all group lg:min-h-[60px]"
                                                     >
-                                                        <span className="text-[10px] font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">{v.size}</span>
-                                                        <span className="text-[7px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">STK: {v.current_stock}</span>
+                                                        <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">{v.size}</span>
+                                                        <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">STK: {v.current_stock}</span>
                                                     </button>
                                                 ))}
                                         </div>
@@ -596,10 +596,34 @@ export default function POS() {
                                                             )}
                                                         </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex items-center justify-between gap-2">
                                                                     <p className="font-black text-[9px] text-slate-900 dark:text-white leading-tight truncate uppercase">
                                                                         {item.nome_artigo}
                                                                     </p>
+                                                                    <div className="flex items-center gap-1 shrink-0">
+                                                                        <button 
+                                                                            onClick={() => setDiscountModalConfig({
+                                                                                isOpen: true,
+                                                                                type: 'item',
+                                                                                cartItemId: item.cartItemId,
+                                                                                baseValue: item.pvp_cica * item.quantidade,
+                                                                                title: 'Desconto no Item'
+                                                                            })}
+                                                                            className={`p-1 rounded-md transition-all ${item.discount ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-500/5'}`}
+                                                                            title="Aplicar Desconto"
+                                                                        >
+                                                                            <Tag className="w-2.5 h-2.5" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => removeFromCart(item.cartItemId)} 
+                                                                            className="p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-500/5 rounded transition-all"
+                                                                            title="Remover item"
+                                                                        >
+                                                                            <X className="w-2.5 h-2.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 mt-0.5">
                                                                     {(item.current_stock <= 0 || item.ref.startsWith('MV-')) && (
                                                                         <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 rounded-full animate-pulse border border-amber-500/20">
                                                                             <AlertTriangle className="w-2 h-2 text-amber-500" />
@@ -608,13 +632,6 @@ export default function POS() {
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <button 
-                                                                onClick={() => removeFromCart(item.cartItemId)} 
-                                                                className="p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-500/5 rounded transition-all"
-                                                                title="Remover item"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
                                                         </div>
 
                                                     <div className="flex items-center gap-1.5 justify-between">
@@ -630,24 +647,26 @@ export default function POS() {
                                                             <button onClick={() => updateQuantity(item.cartItemId, 1)} className="w-4 h-4 flex items-center justify-center rounded bg-slate-200 dark:bg-white/10 text-[10px]">+</button>
                                                         </div>
 
-                                                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2 flex-1 min-w-0">
                                                             <div className="relative flex-1">
                                                                 <input 
                                                                     type="number" 
                                                                     value={item.pvp_cica}
                                                                     onChange={(e) => updateItemPrice(item.cartItemId, parseFloat(e.target.value) || 0)}
-                                                                    className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 text-[8px] font-black text-slate-900 dark:text-white focus:border-primary outline-none px-0.5"
+                                                                    className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 text-[9px] font-black text-slate-900 dark:text-white focus:border-primary outline-none px-0.5"
                                                                 />
                                                             </div>
-                                                            <div className="relative w-8 shrink-0">
-                                                                <input 
-                                                                    type="number"
-                                                                    placeholder="Desc"
-                                                                    value={item.discount || ''}
-                                                                    onChange={(e) => updateItemDiscount(item.cartItemId, parseFloat(e.target.value) || 0, 'fixed')}
-                                                                    className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 text-[8px] font-black text-rose-500 focus:border-rose-500 outline-none px-0.5 placeholder:opacity-50"
-                                                                />
-                                                            </div>
+                                                        </div>
+
+                                                        <div className="text-right flex flex-col items-end shrink-0">
+                                                            {item.discount > 0 && (
+                                                                <span className="text-[7px] font-black text-rose-500/60 line-through tracking-tighter decoration-1">
+                                                                    {formatCurrency(item.pvp_cica * item.quantidade)}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[10px] font-black text-primary leading-none">
+                                                                {formatCurrency(itemTotal)}
+                                                            </span>
                                                         </div>
 
                                                         <div className="text-right shrink-0 min-w-[40px]">
@@ -825,23 +844,33 @@ export default function POS() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-3 gap-2">
                                         {[
                                             { id: 'Dinheiro', icon: Banknote, color: 'emerald' },
+                                            { id: 'Transferência', icon: ArrowRightLeft, color: 'purple' },
                                             { id: 'MBWay', icon: Smartphone, color: 'rose' },
-                                            { id: 'Multibanco', icon: CreditCard, color: 'blue' },
-                                            { id: 'Transferência', icon: Receipt, color: 'purple' }
+                                            { id: 'Saldo Cliente', icon: Wallet, color: 'amber' },
+                                            { id: 'Referência Entidade', icon: Hash, color: 'blue' },
+                                            { id: 'Multibanco', icon: CreditCard, color: 'slate' }
                                         ].map((method) => (
                                             <button
                                                 key={method.id}
                                                 onClick={() => setPaymentMethod(method.id)}
-                                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${paymentMethod === method.id ? `border-${method.color}-500 bg-${method.color}-500/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                                className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
                                             >
-                                                <method.icon className={`w-6 h-6 ${paymentMethod === method.id ? `text-${method.color}-500` : 'text-slate-400'}`} />
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${paymentMethod === method.id ? `text-${method.color}-600` : 'text-slate-500'}`}>{method.id}</span>
+                                                <method.icon className={`w-5 h-5 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
+                                                <span className={`text-[8px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
                                             </button>
                                         ))}
                                     </div>
+
+                                    <button 
+                                        onClick={() => setPaymentMethod('Outros')}
+                                        className={`w-full py-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${paymentMethod === 'Outros' ? 'border-primary bg-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                    >
+                                        <MoreHorizontal className={`w-4 h-4 ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-400'}`} />
+                                        <span className={`text-[9px] font-black uppercase tracking-widest ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-500'}`}>Outros (...)</span>
+                                    </button>
 
                                     {paymentMethod === 'Dinheiro' && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
