@@ -42,8 +42,10 @@ interface POSContextType {
     clearCart: () => void;
     cartSubtotal: number;
     cartTotal: number;
+    cartActualDiscount: number;
     cartDiscount: number;
-    setCartDiscount: (discount: number) => void;
+    cartDiscountType: 'fixed' | 'percent';
+    setCartDiscount: (discount: number, type: 'fixed' | 'percent') => void;
     selectedCustomer: { nome: string; instagram?: string; nif?: string } | null;
     setSelectedCustomer: (customer: { nome: string; instagram?: string; nif?: string } | null) => void;
     finalizeSale: (options: FinalizeOptions) => Promise<boolean>;
@@ -59,6 +61,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<{ nome: string; instagram?: string; nif?: string } | null>({ nome: 'Cliente Avulso' });
     const [cartDiscount, setCartDiscount] = useState(0);
+    const [cartDiscountType, setCartDiscountType] = useState<'fixed' | 'percent'>('fixed');
     const [isProcessing, setIsProcessing] = useState(false);
     const [shippingType, setShippingTypeState] = useState('Sem entrega');
     const [shippingCost, setShippingCost] = useState(0);
@@ -191,6 +194,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const clearCart = () => {
         setCart([]);
         setCartDiscount(0);
+        setCartDiscountType('fixed');
         setShippingTypeState('Sem entrega');
         setShippingCost(0);
         setSelectedCustomer({ nome: 'Cliente Avulso' });
@@ -209,7 +213,11 @@ export function POSProvider({ children }: { children: ReactNode }) {
         return sum + (base - discount);
     }, 0);
 
-    const cartTotal = Math.max(0, cartSubtotal - cartDiscount + shippingCost);
+    const cartActualDiscount = cartDiscountType === 'percent' 
+        ? cartSubtotal * (cartDiscount / 100) 
+        : cartDiscount;
+
+    const cartTotal = Math.max(0, cartSubtotal - cartActualDiscount + shippingCost);
 
     const formatItemName = (item: CartItem) => {
         let name = item.nome_artigo;
@@ -239,7 +247,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 sales_channel: 'pos',
                 is_gift: isGift || false,
                 notes: notes || null,
-                discount_total: discountTotal || cartDiscount,
+                discount_total: discountTotal || cartActualDiscount,
                 shipping_type: shippingType,
                 shipping_cost: shippingCost
             };
@@ -355,7 +363,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 const sub = (item.pvp_cica * item.quantidade) - itemDiscount;
                 const cost = (item.base_price || 0) * item.quantidade;
                 return sum + (sub - cost);
-            }, 0) - (discountTotal || cartDiscount),
+            }, 0) - (discountTotal || cartActualDiscount),
             nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
             instagram: selectedCustomer?.instagram || '',
             nif: nif || selectedCustomer?.nif || '',
@@ -364,7 +372,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             data_venda: new Date().toISOString(),
             status: status,
             sales_channel: 'pos',
-            discount_total: discountTotal || cartDiscount,
+            discount_total: discountTotal || cartActualDiscount,
             shipping_type: shippingType,
             shipping_cost: shippingCost,
             items: cart.map(item => {
@@ -415,8 +423,13 @@ export function POSProvider({ children }: { children: ReactNode }) {
             clearCart,
             cartSubtotal,
             cartTotal,
+            cartActualDiscount,
             cartDiscount,
-            setCartDiscount,
+            cartDiscountType,
+            setCartDiscount: (discount: number, type: 'fixed' | 'percent') => {
+                setCartDiscount(discount);
+                setCartDiscountType(type);
+            },
             selectedCustomer,
             setSelectedCustomer,
             finalizeSale,

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand, Truck } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, ChevronLeft, CheckCircle2, LayoutGrid, List, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -10,7 +10,7 @@ import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 export default function POS() {
     const {
         cart, addToCart, updateQuantity, updateItemPrice, updateItemDiscount, updateItemVariation, removeFromCart, clearCart,
-        cartTotal, cartDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
+        cartTotal, cartDiscount, cartDiscountType, cartActualDiscount, cartSubtotal, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
         shippingType, shippingCost, setShippingType
     } = usePOS();
 
@@ -42,6 +42,13 @@ export default function POS() {
     const [customerSearchTerm, setCustomerSearchTerm] = useState('');
     const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
     const [zoomedProduct, setZoomedProduct] = useState<any>(null);
+    const [discountModalConfig, setDiscountModalConfig] = useState<{
+        isOpen: boolean;
+        type: 'item' | 'total';
+        cartItemId?: string;
+        baseValue: number;
+        title: string;
+    }>({ isOpen: false, type: 'total', baseValue: 0, title: '' });
 
     const filteredCustomers = useMemo(() => {
         if (!customerSearchTerm) return [];
@@ -579,8 +586,21 @@ export default function POS() {
                                                 <span className="font-black text-[10px] w-4 text-center">{item.quantidade}</span>
                                                 <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-2.5 h-2.5" /></button>
                                             </div>
+                                            <button 
+                                                onClick={() => setDiscountModalConfig({
+                                                    isOpen: true,
+                                                    type: 'item',
+                                                    cartItemId: item.cartItemId,
+                                                    baseValue: item.pvp_cica * item.quantidade,
+                                                    title: `Desconto: ${item.nome_artigo}`
+                                                })}
+                                                className="text-[9px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest hover:text-purple-700 transition-colors flex items-center gap-1"
+                                            >
+                                                <Tag className="w-2.5 h-2.5" />
+                                                {item.discount && item.discount > 0 ? `-${formatCurrency(item.discount_type === 'percent' ? (item.pvp_cica * item.quantidade * (item.discount / 100)) : item.discount)}` : 'Dar Desconto'}
+                                            </button>
                                             <p className="font-black text-xs text-emerald-600 dark:text-emerald-400">
-                                                {formatCurrency((item.pvp_cica * item.quantidade) - (item.discount || 0))}
+                                                {formatCurrency((item.pvp_cica * item.quantidade) - (item.discount_type === 'percent' ? (item.pvp_cica * item.quantidade * ((item.discount || 0) / 100)) : (item.discount || 0)))}
                                             </p>
                                         </div>
                                     </div>
@@ -590,15 +610,23 @@ export default function POS() {
 
                         {/* Totals & Checkout Button */}
                         <div className="p-4 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="font-bold text-slate-400 uppercase tracking-widest text-[8px]">Desconto Total (€)</span>
-                                <input 
-                                    type="number"
-                                    value={cartDiscount || ''}
-                                    onChange={(e) => setCartDiscount(parseFloat(e.target.value) || 0)}
-                                    className="w-20 px-2 py-1 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-white/10 text-[10px] font-black text-right outline-none focus:border-purple-500"
-                                    placeholder="0.00"
-                                />
+                            <div className="flex items-center justify-between group cursor-pointer" 
+                                 onClick={() => setDiscountModalConfig({
+                                     isOpen: true,
+                                     type: 'total',
+                                     baseValue: cartSubtotal,
+                                     title: 'Desconto no Carrinho'
+                                 })}>
+                                <div className="flex items-center gap-1.5">
+                                    <Tag className="w-3 h-3 text-slate-400 group-hover:text-purple-500 transition-colors" />
+                                    <span className="font-bold text-slate-400 uppercase tracking-widest text-[8px] group-hover:text-purple-500 transition-colors">Desconto Total</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[10px] font-black text-slate-900 dark:text-white">
+                                        {formatCurrency(cartActualDiscount)}
+                                    </span>
+                                    <ChevronRight className="w-2.5 h-2.5 text-slate-300 group-hover:text-purple-500" />
+                                </div>
                             </div>
 
                             <div className="flex items-center justify-between">
@@ -941,6 +969,116 @@ export default function POS() {
                 )}
             </AnimatePresence>
 
+
+            <AnimatePresence>
+                {discountModalConfig.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-white/10 p-6 shadow-2xl w-full max-w-sm"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                        <Tag className="w-5 h-5" />
+                                    </div>
+                                    <h2 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">{discountModalConfig.title}</h2>
+                                </div>
+                                <button onClick={() => setDiscountModalConfig(prev => ({ ...prev, isOpen: false }))} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                                    <X className="w-5 h-5 text-slate-400" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-white/5 space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor Base</p>
+                                    <p className="font-black text-xl text-slate-900 dark:text-white">{formatCurrency(discountModalConfig.baseValue)}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                                            <Banknote className="w-2.5 h-2.5" /> Desconto (€)
+                                        </label>
+                                        <input 
+                                            type="number"
+                                            autoFocus
+                                            value={discountModalConfig.type === 'total' 
+                                                ? (cartDiscountType === 'fixed' ? cartDiscount : (discountModalConfig.baseValue * (cartDiscount / 100)))
+                                                : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'fixed' 
+                                                    ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount 
+                                                    : (discountModalConfig.baseValue * ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / 100))
+                                                  ) || ''
+                                            }
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                if (discountModalConfig.type === 'total') {
+                                                    setCartDiscount(val, 'fixed');
+                                                } else {
+                                                    updateItemDiscount(discountModalConfig.cartItemId!, val, 'fixed');
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1">
+                                            <Percent className="w-2.5 h-2.5" /> Desconto (%)
+                                        </label>
+                                        <input 
+                                            type="number"
+                                            value={discountModalConfig.type === 'total'
+                                                ? (cartDiscountType === 'percent' ? cartDiscount : (cartDiscount / discountModalConfig.baseValue * 100))
+                                                : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'percent'
+                                                    ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount
+                                                    : ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / discountModalConfig.baseValue * 100)
+                                                  ) || ''
+                                            }
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                if (discountModalConfig.type === 'total') {
+                                                    setCartDiscount(val, 'percent');
+                                                } else {
+                                                    updateItemDiscount(discountModalConfig.cartItemId!, val, 'percent');
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg"
+                                            placeholder="0%"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-emerald-50/50 dark:bg-emerald-500/5 p-4 rounded-2xl">
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Novo Valor Final</p>
+                                        <p className="font-black text-2xl text-emerald-600 dark:text-emerald-400 truncate">
+                                            {formatCurrency(
+                                                discountModalConfig.type === 'total' 
+                                                ? Math.max(0, discountModalConfig.baseValue - cartActualDiscount)
+                                                : Math.max(0, discountModalConfig.baseValue - (
+                                                    cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'percent'
+                                                    ? (discountModalConfig.baseValue * ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / 100))
+                                                    : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0)
+                                                  ))
+                                            )}
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setDiscountModalConfig(prev => ({ ...prev, isOpen: false }))}
+                                        className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+                                    >
+                                        Confirmar
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
             <ImageZoomModal
                 isOpen={!!zoomedProduct}
                 onClose={() => setZoomedProduct(null)}
