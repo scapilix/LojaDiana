@@ -424,20 +424,30 @@ export default function POS() {
                                 <div className="flex-1 relative">
                                     <input
                                         type="text"
-                                        value={customerSearchTerm || selectedCustomer?.nome || ''}
+                                        value={customerSearchTerm || (selectedCustomer?.nome === 'Cliente Avulso' ? '' : selectedCustomer?.nome) || ''}
                                         onChange={(e) => {
-                                            setCustomerSearchTerm(e.target.value);
+                                            const val = e.target.value;
+                                            setCustomerSearchTerm(val);
                                             setShowCustomerSuggestions(true);
-                                            if (!e.target.value) {
-                                                setSelectedCustomer({ nome: '' });
-                                            } else {
-                                                setSelectedCustomer({ ...selectedCustomer, nome: e.target.value });
-                                            }
+                                            setSelectedCustomer({ ...selectedCustomer, nome: val || 'Cliente Avulso' });
                                         }}
-                                        onFocus={() => setShowCustomerSuggestions(true)}
-                                        onBlur={() => setTimeout(() => setShowCustomerSuggestions(false), 200)}
-                                        placeholder="Cliente..."
-                                        className="w-full py-1 bg-transparent border-0 text-[10px] font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
+                                        onFocus={(e) => {
+                                            if (selectedCustomer?.nome === 'Cliente Avulso' && !customerSearchTerm) {
+                                                setCustomerSearchTerm('');
+                                            }
+                                            setShowCustomerSuggestions(true);
+                                            e.target.select();
+                                        }}
+                                        onBlur={() => {
+                                            setTimeout(() => {
+                                                setShowCustomerSuggestions(false);
+                                                if (!customerSearchTerm && (!selectedCustomer?.nome || selectedCustomer?.nome === '')) {
+                                                    setSelectedCustomer({ ...selectedCustomer, nome: 'Cliente Avulso' });
+                                                }
+                                            }, 200);
+                                        }}
+                                        placeholder="Cliente Avulso"
+                                        className="w-full py-1 bg-transparent border-0 text-[10px] font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400 placeholder:opacity-50"
                                     />
                                     <AnimatePresence>
                                         {showCustomerSuggestions && filteredCustomers.length > 0 && (
@@ -827,9 +837,9 @@ export default function POS() {
                                             </div>
                                         </button>
                                     </div>
-                                    <div className="flex gap-4 pt-4">
-                                        <button onClick={() => setCheckoutStep(1)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all">Voltar</button>
-                                        <button onClick={() => setCheckoutStep(3)} className="flex-1 py-4 bg-primary text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Próximo</button>
+                                    <div className="flex gap-4 pt-2">
+                                        <button onClick={() => setCheckoutStep(1)} className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Voltar</button>
+                                        <button onClick={() => setCheckoutStep(3)} className="flex-1 py-3 bg-primary text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Próximo</button>
                                     </div>
                                 </motion.div>
                             )}
@@ -856,20 +866,20 @@ export default function POS() {
                                             <button
                                                 key={method.id}
                                                 onClick={() => setPaymentMethod(method.id)}
-                                                className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                                className={`p-2 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
                                             >
-                                                <method.icon className={`w-5 h-5 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
-                                                <span className={`text-[8px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
+                                                <method.icon className={`w-4 h-4 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
+                                                <span className={`text-[7px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
                                             </button>
                                         ))}
                                     </div>
 
                                     <button 
                                         onClick={() => setPaymentMethod('Outros')}
-                                        className={`w-full py-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${paymentMethod === 'Outros' ? 'border-primary bg-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                        className={`w-full py-2 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${paymentMethod === 'Outros' ? 'border-primary bg-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
                                     >
-                                        <MoreHorizontal className={`w-4 h-4 ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-400'}`} />
-                                        <span className={`text-[9px] font-black uppercase tracking-widest ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-500'}`}>Outros (...)</span>
+                                        <MoreHorizontal className={`w-3.5 h-3.5 ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-400'}`} />
+                                        <span className={`text-[8px] font-black uppercase tracking-widest ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-500'}`}>Outros (...)</span>
                                     </button>
 
                                     {paymentMethod === 'Dinheiro' && (
@@ -881,7 +891,7 @@ export default function POS() {
                                                         value={cashReceived}
                                                         onChange={(e) => setCashReceived(e.target.value)}
                                                         placeholder="Valor recebido..."
-                                                        className="w-full py-4 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-lg font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-4"
+                                                        className="w-full py-3 pl-12 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl text-lg font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-2"
                                                     />
                                                 </div>
 
@@ -894,7 +904,7 @@ export default function POS() {
                                                                     if (digit === '.' && cashReceived.includes('.')) return;
                                                                     setCashReceived(prev => (prev === '0' && digit !== '.' ? digit.toString() : prev + digit.toString()));
                                                                 }}
-                                                                className="py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl font-black text-sm text-slate-900 dark:text-white hover:bg-slate-50 transition-all active:scale-95"
+                                                                className="py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl font-black text-xl text-slate-900 dark:text-white hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
                                                             >
                                                                 {digit}
                                                             </button>
