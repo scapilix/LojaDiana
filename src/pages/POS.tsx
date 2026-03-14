@@ -25,7 +25,7 @@ export default function POS() {
     // Modals
     const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3>(1);
-    const [isCartCollapsed, setIsCartCollapsed] = useState(true);
+    const [isCartCollapsed, setIsCartCollapsed] = useState(false);
     const [isManualItemModalOpen, setIsManualItemModalOpen] = useState(false);
 
     // Checkout Details
@@ -244,12 +244,12 @@ export default function POS() {
 
                 <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                     {viewMode === 'list' && filteredProducts.length > 0 && (
-                        <div className="mx-2 mb-2 px-3 py-1.5 grid grid-cols-[32px_2fr_1fr_1fr_1fr] items-center gap-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5 sticky top-0 z-10 backdrop-blur-md">
+                        <div className="mx-2 mb-3 px-4 py-2 grid grid-cols-[32px_2fr_1fr_1fr_1fr] items-center gap-4 bg-slate-100/80 dark:bg-white/10 rounded-xl border border-slate-200 dark:border-white/10 sticky top-0 z-10 backdrop-blur-xl shadow-sm">
                             <div className="w-8 h-8 opacity-0" />
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Artigo / Referência</span>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">STK</span>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">Custo</span>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-right">Preço</span>
+                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest">Artigo / Referência</span>
+                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center">Stock</span>
+                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center">Custo</span>
+                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-right">Venda</span>
                         </div>
                     )}
                     <div className={viewMode === 'grid' 
