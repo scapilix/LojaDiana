@@ -634,22 +634,24 @@ export default function POS() {
                         </select>
                     </div>
 
-                    <div className="bg-primary p-2 rounded-lg flex items-center justify-between shadow-lg shadow-primary/20">
-                        <span className="font-black text-white uppercase tracking-tighter text-[9px]">TOTAL FINAL</span>
-                        <span className="font-black text-sm text-white">{formatCurrency(cartTotal)}</span>
-                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
+                        <button
+                            onClick={() => {
+                                setCheckoutStep(1);
+                                setIsCheckoutModalOpen(true);
+                            }}
+                            disabled={cart.length === 0}
+                            className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/10"
+                        >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Avançar</span>
+                        </button>
 
-                    <button
-                        onClick={() => {
-                            setCheckoutStep(1);
-                            setIsCheckoutModalOpen(true);
-                        }}
-                        disabled={cart.length === 0}
-                        className="w-full py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-20 font-black text-[10px] uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <CheckCircle2 className="w-3 h-3" />
-                        Avançar
-                    </button>
+                        <div className="bg-primary px-3 py-2 rounded-xl flex flex-col items-end min-w-[100px] shadow-lg shadow-primary/20">
+                            <span className="font-black text-white/70 uppercase tracking-tighter text-[7px] leading-none mb-1">TOTAL</span>
+                            <span className="font-black text-xs text-white leading-none whitespace-nowrap">{formatCurrency(cartTotal)}</span>
+                        </div>
+                    </div>
                 </div>
             </motion.div>
 
