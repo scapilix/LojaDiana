@@ -155,15 +155,15 @@ function AppLayout() {
       {/* Sidebar - Desktop */}
       <motion.aside
         initial={false}
-        animate={{ width: isSidebarCollapsed ? 80 : 280 }}
+        animate={{ width: isSidebarCollapsed ? 64 : 200 }}
         className="hidden lg:flex bg-[hsl(var(--sidebar-bg))] border-r border-slate-200 dark:border-white/5 flex-col z-30 transition-all duration-300"
       >
-        <div className={`p-6 flex items-center gap-3 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`p-4 flex items-center gap-2 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           <div
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className="w-10 h-10 bg-[#8c25f4] rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20 transform transition-all hover:scale-105 cursor-pointer flex-shrink-0"
           >
-            <Box className="text-white w-5 h-5" />
+            <Box className="text-white w-4 h-4" />
           </div>
           {!isSidebarCollapsed && (
             <div className="flex flex-col overflow-hidden whitespace-nowrap">
@@ -207,12 +207,6 @@ function AppLayout() {
           ))}
         </nav>
 
-        <div className={`p-4 mt-auto border-t border-purple-100/50 dark:border-white/5 ${isSidebarCollapsed ? 'px-2' : 'px-4'}`}>
-          <ExcelImport
-            onDataImported={handleDataImport}
-            variant={isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar'}
-          />
-        </div>
       </motion.aside>
 
       {/* Mobile Menu Button - Unchanged */}

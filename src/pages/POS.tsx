@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -260,18 +260,22 @@ export default function POS() {
                             <button
                                 key={product.ref}
                                 onClick={() => handleProductClick(product)}
-                                disabled={product.current_stock <= 0}
                                 className={viewMode === 'grid' 
                                     ? `relative flex flex-col items-start p-2 rounded-[1.5rem] border text-left transition-all ${product.current_stock <= 0
-                                        ? 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 opacity-80'
+                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-500/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1'
                                         }`
                                     : `relative flex items-center gap-4 p-3 rounded-2xl border text-left transition-all ${product.current_stock <= 0
-                                        ? 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 opacity-80'
+                                        ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-500/5'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-md'
                                         }`
                                 }
                             >
+                                {product.current_stock <= 0 && (
+                                    <div className="absolute top-2 right-2 z-10 p-1 bg-amber-500 rounded-full shadow-lg animate-pulse">
+                                        <AlertTriangle className="w-2.5 h-2.5 text-white" />
+                                    </div>
+                                )}
                                 {viewMode === 'grid' ? (
                                     <>
                                         <div 
@@ -526,13 +530,14 @@ export default function POS() {
                         <>
 
                             <div className="flex-1 overflow-hidden flex flex-col">
-                                <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">ITENS NO CARRINHO</span>
+                                <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 dark:border-white/5 relative">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Itens / Resumo</span>
                                     <button 
                                         onClick={() => setIsCartCollapsed(!isCartCollapsed)}
-                                        className="text-[8px] font-black text-primary uppercase tracking-widest hover:underline"
+                                        className="p-1 px-2 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5"
                                     >
-                                        {isCartCollapsed ? 'Expandir' : 'Recolher'}
+                                        <LayoutGrid className="w-2.5 h-2.5" />
+                                        {isCartCollapsed ? 'Abrir' : 'Recolher'}
                                     </button>
                                 </div>
 
@@ -562,11 +567,27 @@ export default function POS() {
                                                                 <Package className="w-3 h-3 text-slate-300 dark:text-slate-600" />
                                                             )}
                                                         </div>
-                                                        <p className="flex-1 font-black text-[8px] text-slate-900 dark:text-white leading-tight truncate uppercase">{item.nome_artigo}</p>
-                                                        <button onClick={() => removeFromCart(item.cartItemId)} className="p-0.5 text-slate-300 hover:text-rose-500 transition-colors">
-                                                            <X className="w-2.5 h-2.5" />
-                                                        </button>
-                                                    </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="font-black text-[9px] text-slate-900 dark:text-white leading-tight truncate uppercase">
+                                                                        {item.nome_artigo}
+                                                                    </p>
+                                                                    {(item.current_stock <= 0 || item.ref.startsWith('MV-')) && (
+                                                                        <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 rounded-full animate-pulse border border-amber-500/20">
+                                                                            <AlertTriangle className="w-2 h-2 text-amber-500" />
+                                                                            <span className="text-[6px] font-black text-amber-500 uppercase">Atenção</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => removeFromCart(item.cartItemId)} 
+                                                                className="p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-500/5 rounded transition-all"
+                                                                title="Remover item"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
 
                                                     <div className="flex items-center gap-1.5 justify-between">
                                                         <div className="flex items-center gap-1 bg-white/50 dark:bg-black/20 px-1 rounded-md shrink-0">
@@ -616,21 +637,24 @@ export default function POS() {
                 </div>
 
                 <div className="px-3 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 space-y-2">
-                    <div className="flex items-center justify-between px-1">
-                        <div className="flex items-center gap-1.5 opacity-50">
-                            <Truck className="w-2.5 h-2.5" />
-                            <span className="font-bold uppercase tracking-widest text-[7px]">Entrega</span>
+                    <div className="p-3 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Truck className="w-4 h-4 text-primary" />
+                                <span className="font-black uppercase tracking-widest text-[9px] text-slate-500">Logística / Envio</span>
+                            </div>
+                            <span className="text-[8px] font-bold text-slate-400 uppercase">Selecionar Opção</span>
                         </div>
                         <select 
                             value={shippingType}
                             onChange={(e) => setShippingType(e.target.value)}
-                            className="bg-transparent text-[8px] font-black outline-none appearance-none text-right cursor-pointer text-slate-600 dark:text-slate-300"
+                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-[11px] font-black outline-none cursor-pointer text-slate-900 dark:text-white shadow-sm focus:ring-1 focus:ring-primary/20 transition-all"
                         >
                             <option value="Sem entrega">Sem entrega</option>
-                            <option value="Entrega em mão">Mão</option>
-                            <option value="Continental">Cont. (5€)</option>
-                            <option value="Ilhas">Ilhas (10€)</option>
-                            <option value="Estrangeiro">Est. (15€)</option>
+                            <option value="Entrega em mão">Entrega em Mão</option>
+                            <option value="Continental">Portugal Continental (5€)</option>
+                            <option value="Ilhas">Ilhas Madeira/Açores (10€)</option>
+                            <option value="Estrangeiro">Internacional (15€)</option>
                         </select>
                     </div>
 
