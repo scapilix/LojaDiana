@@ -495,25 +495,25 @@ export default function POS() {
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                                         Escolha a Cor
                                     </p>
-                                    <div className="grid grid-cols-1 gap-4">
+                                    <div className="grid grid-cols-2 gap-3">
                                         {Array.from(new Set(configuringProduct.variations.map((v: any) => v.color))).map((color: any) => (
                                             <button
                                                 key={color}
                                                 onClick={() => setSelectedColorForConfig(color)}
-                                                className={`group relative flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
+                                                className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${selectedColorForConfig === color ? 'border-primary bg-primary/5' : 'border-transparent bg-slate-50 dark:bg-white/5 hover:border-slate-200 dark:hover:border-white/10'}`}
                                             >
                                                 {configuringProduct.color_images?.[color] ? (
                                                     <img 
                                                         src={configuringProduct.color_images[color]} 
-                                                        className="w-full aspect-square rounded-[2rem] object-cover shadow-lg"
+                                                        className="w-full aspect-square rounded-xl object-cover shadow-md"
                                                         alt={color}
                                                     />
                                                 ) : (
-                                                    <div className="w-full aspect-square rounded-[2rem] bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                                        <Package className="w-12 h-12 text-slate-400" />
+                                                    <div className="w-full aspect-square rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                                        <Package className="w-6 h-6 text-slate-400" />
                                                     </div>
                                                 )}
-                                                <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">{color}</span>
+                                                <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter truncate w-full text-center">{color}</span>
                                             </button>
                                         ))}
                                     </div>
