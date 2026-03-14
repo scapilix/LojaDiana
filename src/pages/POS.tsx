@@ -134,12 +134,44 @@ export default function POS() {
     }, [stockWithCart, searchTerm, selectedCategory]);
 
     const handleProductClick = (item: any) => {
-        if (item.variations && item.variations.length > 0) {
+        // If it has multiple variations, show the config view
+        if (item.variations && item.variations.length > 1) {
             setConfiguringProduct(item);
             setSelectedColorForConfig(null);
             return;
         }
 
+        // If it has exactly 1 variation, add it directly with variation details
+        if (item.variations && item.variations.length === 1) {
+            const v = item.variations[0];
+            let finalImageUrl = item.image_url;
+            if (v.color && item.color_images && item.color_images[v.color]) {
+                finalImageUrl = item.color_images[v.color];
+            }
+
+            addToCart({
+                ref: item.ref,
+                nome_artigo: item.name,
+                quantidade: 1,
+                original_price: item.pvp || 0,
+                pvp_cica: item.pvp || 0,
+                base_price: item.base_price || 0,
+                current_stock: v.absolute_stock ?? v.current_stock,
+                size: v.size,
+                color: v.color,
+                categoria: item.categoria,
+                image_url: finalImageUrl,
+                variations: item.variations.map((v: any) => ({
+                    ...v,
+                    current_stock: v.absolute_stock ?? v.current_stock
+                })),
+                color_images: item.color_images
+            });
+            setIsCartCollapsed(false);
+            return;
+        }
+
+        // Else (0 variations), add simple item
         addToCart({
             ref: item.ref,
             nome_artigo: item.name,
@@ -148,11 +180,14 @@ export default function POS() {
             pvp_cica: item.pvp || 0,
             base_price: item.base_price || 0,
             current_stock: item.absolute_stock ?? item.current_stock,
+            size: '',
+            color: '',
             categoria: item.categoria,
             image_url: item.image_url,
             variations: [],
             color_images: item.color_images
         });
+        setIsCartCollapsed(false);
     };
 
     const handleFinalizeSale = async () => {
