@@ -86,8 +86,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
             if (existing) {
                 // Obey stock limits
                 if (existing.quantidade + 1 > item.current_stock) {
-                    alert(`Estoque insuficiente. Disponível para este item: ${item.current_stock}`);
-                    return prev;
+                    console.warn(`Estoque insuficiente. Disponível para este item: ${item.current_stock}`);
+                    // Allow addition as per user request, just log it or alert if we want visibility
                 }
                 return prev.map((i) =>
                     i.cartItemId === cartItemId ? { ...i, quantidade: i.quantidade + 1 } : i
@@ -123,7 +123,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             // 2. Adjust quantity if it exceeds new stock
             const newQty = Math.min(item.quantidade, Math.max(1, newStock));
             if (newQty < item.quantidade) {
-                alert(`Quantidade ajustada para ${newQty} devido ao limite de stock da nova variação.`);
+                console.warn(`Quantidade excedeu o limite de stock da nova variação.`);
             }
 
             // 3. Calculate new cartItemId
@@ -167,8 +167,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                     const newQty = i.quantidade + change;
                     if (newQty < 1) return i; // Use remove instead
                     if (change > 0 && newQty > i.current_stock) {
-                        alert(`Estoque máximo atingido para este item: ${i.current_stock}`);
-                        return i;
+                        console.warn(`Estoque ultrapassado para este item: ${i.current_stock}`);
                     }
                     return { ...i, quantidade: newQty };
                 }
@@ -299,7 +298,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             // We need to inject this order into `data.orders` for Dashboard/Stock metrics to recalculate without refreshing the page
 
             const legacyOrderFormat = {
-                id_venda: newOrder.id_venda || generateShortId(),
+                id_venda: `#${data.orders?.length || 0}`,
                 pvp: cartTotal,
                 lucro: cart.reduce((sum, item) => sum + ((item.pvp_cica - (item.base_price || 0)) * item.quantidade), 0),
                 nome_cliente: orderToInsert.nome_cliente,
@@ -348,7 +347,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     // Legacy fallback if `orders` table doesn't exist yet
     const finalizeLegacy = async (paymentMethod: string, status = 'Concluída', nif?: string, notes?: string, discountTotal?: number) => {
         const legacyOrderFormat = {
-            id_venda: generateShortId(),
+            id_venda: `#${data.orders?.length || 0}`,
             pvp: cartTotal,
             lucro: cart.reduce((sum, item) => {
                 const base = item.pvp_cica * item.quantidade;

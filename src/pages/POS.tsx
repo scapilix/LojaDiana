@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, CheckCircle2, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent } from 'lucide-react';
+import { Search, Plus, Minus, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, ChevronRight, CheckCircle2, FilePlus, Gift, Calculator, Receipt, Expand, Truck, Tag, Percent, LayoutGrid, List } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -18,7 +18,12 @@ export default function POS() {
     const stockInventory = useStockLogic();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const viewMode = 'grid';
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [variationModalConfig, setVariationModalConfig] = useState<{
+        isOpen: boolean;
+        product: any;
+        selectedColor: string | null;
+    }>({ isOpen: false, product: null, selectedColor: null });
     
     // Modals
     const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -35,7 +40,14 @@ export default function POS() {
     const [saleStatus, setSaleStatus] = useState<'Concluída' | 'Draft/Espera'>('Concluída');
 
     // Manual Item State
-    const [manualItem, setManualItem] = useState({ name: '', price: '', category: '', registerProduct: false });
+    const [manualItem, setManualItem] = useState({ 
+        name: '', 
+        price: '', 
+        category: '', 
+        ref: `MV-${Date.now().toString().slice(-6)}`,
+        cost: '',
+        registerProduct: false 
+    });
 
     // Customer Search State
     const { allCustomers } = useDashboardData();
@@ -127,20 +139,16 @@ export default function POS() {
     }, [stockWithCart, searchTerm, selectedCategory]);
 
     const handleProductClick = (item: any) => {
-        if (item.current_stock <= 0) return;
-
-        // Add to cart directly. If it has variations, it will be added with default/none 
-        // and the user can pick in the side cart.
+        // As per user request, selling without stock shows a warning (handled in context/hooks)
+        // but we show the variations pop-up anyway if they exist
         
-        // Use absolute_stock if available, otherwise use original stockInventory lookup 
-        // to get the true limit before cart subtraction
-        const firstInStock = item.variations?.find((v: any) => v.current_stock > 0);
-        const limitToRemove = firstInStock ? (firstInStock.absolute_stock ?? firstInStock.current_stock) : (item.absolute_stock ?? item.current_stock);
-        
-        const selectedColor = firstInStock?.color;
-        let finalImageUrl = item.image_url;
-        if (selectedColor && item.color_images && item.color_images[selectedColor]) {
-            finalImageUrl = item.color_images[selectedColor];
+        if (item.variations && item.variations.length > 0) {
+            setVariationModalConfig({
+                isOpen: true,
+                product: item,
+                selectedColor: null
+            });
+            return;
         }
 
         addToCart({
@@ -150,15 +158,10 @@ export default function POS() {
             original_price: item.pvp || 0,
             pvp_cica: item.pvp || 0,
             base_price: item.base_price || 0,
-            current_stock: limitToRemove,
-            size: firstInStock?.size || undefined,
-            color: selectedColor || undefined,
+            current_stock: item.absolute_stock ?? item.current_stock,
             categoria: item.categoria,
-            image_url: finalImageUrl,
-            variations: item.variations.map((v: any) => ({
-                ...v,
-                current_stock: v.absolute_stock ?? v.current_stock // Pass the real stock to cart for variation changes
-            })),
+            image_url: item.image_url,
+            variations: [],
             color_images: item.color_images
         });
     };
@@ -202,13 +205,29 @@ export default function POS() {
                                 className="w-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl py-3.5 pl-11 pr-12 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
                             />
                         </div>
-                        <button
-                            onClick={() => setIsManualItemModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-3.5 bg-primary hover:bg-primary-hover text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
-                        >
-                            <FilePlus className="w-4 h-4" />
-                            <span>Adicionar Manual</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <div className="flex bg-white dark:bg-white/5 p-1 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+                                >
+                                    <LayoutGrid className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+                                >
+                                    <List className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => setIsManualItemModalOpen(true)}
+                                className="flex items-center gap-2 px-6 py-3.5 bg-primary hover:bg-primary-hover text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                            >
+                                <FilePlus className="w-4 h-4" />
+                                <span>Adicionar Manual</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Category Filter */}
@@ -237,8 +256,8 @@ export default function POS() {
 
                 <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                     <div className={viewMode === 'grid' 
-                        ? "grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1.5"
-                        : "flex flex-col gap-1"
+                        ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3"
+                        : "flex flex-col gap-2 px-2"
                     }>
                         {filteredProducts.map((product) => (
                             <button
@@ -246,12 +265,12 @@ export default function POS() {
                                 onClick={() => handleProductClick(product)}
                                 disabled={product.current_stock <= 0}
                                 className={viewMode === 'grid' 
-                                    ? `relative flex flex-col items-start p-1.5 rounded-lg border text-left transition-all ${product.current_stock <= 0
-                                        ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
-                                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-lg'
+                                    ? `relative flex flex-col items-start p-2 rounded-[1.5rem] border text-left transition-all ${product.current_stock <= 0
+                                        ? 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 opacity-80'
+                                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1'
                                         }`
-                                    : `relative flex items-center gap-2 p-1.5 rounded-lg border text-left transition-all ${product.current_stock <= 0
-                                        ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5'
+                                    : `relative flex items-center gap-4 p-3 rounded-2xl border text-left transition-all ${product.current_stock <= 0
+                                        ? 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 opacity-80'
                                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:border-primary/40 hover:shadow-md'
                                         }`
                                 }
@@ -280,24 +299,20 @@ export default function POS() {
                                                 <Package className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                                             )}
                                         </div>
-                                        <div className="flex flex-col gap-0.5 w-full mt-2">
+                                        <div className="flex flex-col gap-0.5 w-full mt-3">
                                             <div className="flex items-center justify-between gap-1">
-                                                <span className="text-[8px] font-black text-primary uppercase tracking-widest truncate">
-                                                    {product.ref}
+                                                <span className="text-[9px] font-black text-slate-400 flex items-center gap-1.5">
+                                                    <span className="text-primary truncate">{product.ref}</span>
+                                                    <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                                    <span className="text-purple-500 truncate">{product.categoria}</span>
                                                 </span>
                                             </div>
-                                            <span className="text-[11px] font-black text-slate-900 dark:text-white leading-tight line-clamp-1 mt-0.5">
+                                            <span className="text-[13px] font-black text-slate-900 dark:text-white leading-tight line-clamp-2 mt-1">
                                                 {product.name}
                                             </span>
-                                            <div className="mt-2 flex items-center justify-between w-full">
-                                                <span className="font-black text-sm text-primary">
+                                            <div className="mt-3 flex items-center justify-between w-full pt-3 border-t border-slate-100 dark:border-white/5">
+                                                <span className="font-black text-lg text-primary">
                                                     {formatCurrency(product.pvp || 0)}
-                                                </span>
-                                                <span className={`text-[8px] font-black px-2 py-0.5 rounded-md ${product.current_stock <= 0 ? 'bg-rose-500/10 text-rose-500' :
-                                                    product.current_stock <= 3 ? 'bg-amber-500/10 text-amber-500' :
-                                                        'bg-primary/10 text-primary'
-                                                    }`}>
-                                                    STK: {product.current_stock}
                                                 </span>
                                             </div>
                                         </div>
@@ -309,33 +324,34 @@ export default function POS() {
                                                 e.stopPropagation();
                                                 setZoomedProduct({ ...product, nome_artigo: product.name });
                                             }}
-                                            className="w-12 h-12 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0 relative group/img cursor-zoom-in"
+                                            className="w-16 h-16 bg-white dark:bg-slate-900 rounded-xl flex items-center justify-center overflow-hidden border border-slate-100 dark:border-white/5 shrink-0 cursor-zoom-in"
                                         >
                                             {product.image_url ? (
-                                                <>
-                                                    <img 
-                                                        src={product.image_url} 
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover transition-transform group-hover/img:scale-110"
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <Expand className="w-3.5 h-3.5 text-white" />
-                                                    </div>
-                                                </>
+                                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <Package className="w-6 h-6 text-slate-300 dark:text-slate-600" />
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[9px] font-black text-primary uppercase tracking-widest">{product.ref}</span>
-                                                <span className="text-[8px] font-bold text-slate-400 uppercase">{product.categoria}</span>
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <span className="text-[10px] font-black text-primary truncate">
+                                                    {product.ref}
+                                                </span>
+                                                <span className="text-[10px] font-black text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
+                                                    {product.categoria}
+                                                </span>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">{product.name}</span>
+                                            <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                                                {product.name}
+                                            </h3>
                                         </div>
-                                        <div className="text-right shrink-0">
-                                            <div className="font-black text-sm text-primary">{formatCurrency(product.pvp || 0)}</div>
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">{product.current_stock} un em stock</div>
+                                        <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                STK: {product.current_stock}
+                                            </p>
+                                            <p className="text-base font-black text-primary">
+                                                {formatCurrency(product.pvp || 0)}
+                                            </p>
                                         </div>
                                     </>
                                 )}
@@ -565,10 +581,10 @@ export default function POS() {
                                         </div>
 
                                         <div className="flex items-center justify-between pt-1">
-                                            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-white/10 scale-90 origin-left">
-                                                <button onClick={() => updateQuantity(item.cartItemId, -1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-2.5 h-2.5" /></button>
+                                            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-white/10 scale-90 origin-left">
+                                                <button onClick={() => updateQuantity(item.cartItemId, -1)} className="p-0.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Minus className="w-2.5 h-2.5" /></button>
                                                 <span className="font-black text-[10px] w-4 text-center">{item.quantidade}</span>
-                                                <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-2.5 h-2.5" /></button>
+                                                <button onClick={() => updateQuantity(item.cartItemId, 1)} className="p-0.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><Plus className="w-2.5 h-2.5" /></button>
                                             </div>
                                             <button 
                                                 onClick={() => setDiscountModalConfig({
@@ -596,24 +612,6 @@ export default function POS() {
                         {/* Totals & Checkout Button */}
                         <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 space-y-4">
                             <div className="space-y-2.5">
-                                <div className="flex items-center justify-between group cursor-pointer" 
-                                     onClick={() => setDiscountModalConfig({
-                                         isOpen: true,
-                                         type: 'total',
-                                         baseValue: cartSubtotal,
-                                         title: 'Desconto no Carrinho'
-                                     })}>
-                                    <div className="flex items-center gap-2">
-                                        <Tag className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
-                                        <span className="font-bold text-slate-400 uppercase tracking-widest text-[9px] group-hover:text-primary transition-colors">Desconto</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-black text-rose-500">
-                                            -{formatCurrency(cartActualDiscount)}
-                                        </span>
-                                        <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-primary" />
-                                    </div>
-                                </div>
 
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -655,7 +653,7 @@ export default function POS() {
                                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:dark:bg-slate-800 text-white font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                             >
                                 <CheckCircle2 className="w-4 h-4" />
-                                Finalizar Pedido
+                                Avançar
                             </button>
                         </div>
                     </>
@@ -892,15 +890,50 @@ export default function POS() {
                                         placeholder="Ex: Ajuste ou Item Especial"
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço (€)</label>
-                                    <input 
-                                        type="number"
-                                        value={manualItem.price}
-                                        onChange={(e) => setManualItem({ ...manualItem, price: e.target.value })}
-                                        className="w-full p-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
-                                        placeholder="0.00"
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Referência</label>
+                                        <input 
+                                            type="text"
+                                            value={manualItem.ref}
+                                            onChange={(e) => setManualItem({ ...manualItem, ref: e.target.value })}
+                                            className="w-full p-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                                            placeholder="REF-123"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                                        <input 
+                                            type="text"
+                                            value={manualItem.category}
+                                            onChange={(e) => setManualItem({ ...manualItem, category: e.target.value })}
+                                            className="w-full p-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                                            placeholder="Ex: Roupa"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço Venda (€)</label>
+                                        <input 
+                                            type="number"
+                                            value={manualItem.price}
+                                            onChange={(e) => setManualItem({ ...manualItem, price: e.target.value })}
+                                            className="w-full p-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preço Custo (€)</label>
+                                        <input 
+                                            type="number"
+                                            value={manualItem.cost}
+                                            onChange={(e) => setManualItem({ ...manualItem, cost: e.target.value })}
+                                            className="w-full p-3 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
@@ -924,11 +957,13 @@ export default function POS() {
                                         if (manualItem.registerProduct) {
                                             try {
                                                 await addProduct({
-                                                    ref: `AV-${Date.now().toString().slice(-6)}`,
+                                                    ref: manualItem.ref,
                                                     nome_artigo: manualItem.name,
                                                     pvp_cica: price,
+                                                    base_price: parseFloat(manualItem.cost) || 0,
+                                                    categoria: manualItem.category,
                                                     iva: 23, // Default
-                                                    lucro_meu_faturado: 0,
+                                                    lucro_meu_faturado: price - (parseFloat(manualItem.cost) || 0),
                                                     fornecedor: 'Manual POS',
                                                     published: true
                                                 });
@@ -938,15 +973,16 @@ export default function POS() {
                                         }
 
                                         addToCart({
-                                            ref: manualItem.registerProduct ? `AV-${Date.now().toString().slice(-6)}` : 'AVULSO',
+                                            ref: manualItem.ref,
                                             nome_artigo: manualItem.name,
                                             quantidade: 1,
                                             original_price: price,
                                             pvp_cica: price,
+                                            base_price: parseFloat(manualItem.cost) || 0,
                                             current_stock: 999
                                         });
                                         setIsManualItemModalOpen(false);
-                                        setManualItem({ name: '', price: '', category: '', registerProduct: false });
+                                        setManualItem({ name: '', price: '', category: '', ref: `MV-${Date.now().toString().slice(-6)}`, cost: '', registerProduct: false });
                                     }}
                                     className="flex-[2] py-3 bg-purple-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl"
                                 >
@@ -1068,6 +1104,126 @@ export default function POS() {
                     </div>
                 )}
             </AnimatePresence>
+            {/* Variation Selection Modal */}
+            <AnimatePresence>
+                {variationModalConfig.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            onClick={() => setVariationModalConfig({ isOpen: false, product: null, selectedColor: null })}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-200 dark:border-white/10"
+                        >
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        {variationModalConfig.product?.name}
+                                    </h2>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Seleção de Variação
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setVariationModalConfig({ isOpen: false, product: null, selectedColor: null })}
+                                    className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-slate-400" />
+                                </button>
+                            </div>
+
+                            {!variationModalConfig.selectedColor ? (
+                                <div className="space-y-6">
+                                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Escolha a Cor</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {Array.from(new Set(variationModalConfig.product?.variations.map((v: any) => v.color))).map((color: any) => (
+                                            <button
+                                                key={color}
+                                                onClick={() => setVariationModalConfig(prev => ({ ...prev, selectedColor: color }))}
+                                                className="group relative flex flex-col items-center gap-3 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border-2 border-transparent hover:border-primary transition-all active:scale-95"
+                                            >
+                                                {variationModalConfig.product?.color_images?.[color] ? (
+                                                    <img 
+                                                        src={variationModalConfig.product.color_images[color]} 
+                                                        className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-xl"
+                                                        alt={color}
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                                        <Package className="w-8 h-8 text-slate-400" />
+                                                    </div>
+                                                )}
+                                                <span className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest">{color}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 mb-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-black text-[10px]">1</div>
+                                        <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Cor selecionada: {variationModalConfig.selectedColor}</p>
+                                        <button 
+                                            onClick={() => setVariationModalConfig(prev => ({ ...prev, selectedColor: null }))}
+                                            className="ml-auto text-[10px] font-black text-primary hover:underline uppercase"
+                                        >
+                                            Alterar
+                                        </button>
+                                    </div>
+                                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Escolha o Tamanho</p>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {variationModalConfig.product?.variations
+                                            .filter((v: any) => v.color === variationModalConfig.selectedColor)
+                                            .map((v: any) => (
+                                                <button
+                                                    key={v.size}
+                                                    onClick={() => {
+                                                        const p = variationModalConfig.product;
+                                                        let finalImageUrl = p.image_url;
+                                                        if (v.color && p.color_images && p.color_images[v.color]) {
+                                                            finalImageUrl = p.color_images[v.color];
+                                                        }
+
+                                                        addToCart({
+                                                            ref: p.ref,
+                                                            nome_artigo: p.name,
+                                                            quantidade: 1,
+                                                            original_price: p.pvp || 0,
+                                                            pvp_cica: p.pvp || 0,
+                                                            base_price: p.base_price || 0,
+                                                            current_stock: v.absolute_stock ?? v.current_stock,
+                                                            size: v.size,
+                                                            color: v.color,
+                                                            categoria: p.categoria,
+                                                            image_url: finalImageUrl,
+                                                            variations: p.variations.map((v: any) => ({
+                                                                ...v,
+                                                                current_stock: v.absolute_stock ?? v.current_stock
+                                                            })),
+                                                            color_images: p.color_images
+                                                        });
+                                                        setVariationModalConfig({ isOpen: false, product: null, selectedColor: null });
+                                                    }}
+                                                    className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border-2 border-transparent hover:border-primary transition-all active:scale-95 group"
+                                                >
+                                                    <span className="text-lg font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">{v.size}</span>
+                                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">STK: {v.current_stock}</span>
+                                                </button>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             <ImageZoomModal
                 isOpen={!!zoomedProduct}
                 onClose={() => setZoomedProduct(null)}
