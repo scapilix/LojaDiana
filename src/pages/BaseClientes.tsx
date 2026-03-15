@@ -335,7 +335,7 @@ export default function BaseClientes() {
                                   type="number" 
                                   value={newBalance}
                                   onChange={(e) => setNewBalance(parseFloat(e.target.value) || 0)}
-                                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-7 pr-3 text-sm font-black outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-7 pr-3 text-sm font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/20"
                                 />
                              </div>
                              <button 
