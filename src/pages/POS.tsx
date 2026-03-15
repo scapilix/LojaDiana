@@ -880,7 +880,7 @@ export default function POS() {
                             )}
 
                                     {checkoutStep === 3 && (
-                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 py-4">
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10 py-8">
                                             <div className="text-center relative">
                                                 <h2 className="text-[8px] font-black text-slate-900 dark:text-white uppercase leading-none">Pagamento</h2>
                                                 <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2">
