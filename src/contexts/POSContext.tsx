@@ -229,9 +229,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
         try {
             // Update customer balance if used
             if (balanceUsed > 0 && selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso') {
-                const updatedCustomers = (data.customers || []).map(c => {
-                    if (c.name === selectedCustomer.nome) {
-                        return { ...c, saldo: Math.max(0, (c.saldo || 0) - balanceUsed) };
+                const currentCustomers = data.customers || [];
+                const updatedCustomers = currentCustomers.map(c => {
+                    if (c.nome_cliente === selectedCustomer.nome) {
+                        return { ...c, saldo: Math.max(0, (parseFloat(c.saldo) || 0) - balanceUsed) };
                     }
                     return c;
                 });

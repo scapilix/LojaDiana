@@ -216,6 +216,8 @@ export default function POS() {
                 setPaymentMethod('');
                 setCashReceived('');
                 setBalanceUsed(0);
+                setSelectedCustomer({ nome: 'Cliente Avulso', saldo: 0 });
+                setCustomerSearchTerm('');
             }
         });
         if (success) {
