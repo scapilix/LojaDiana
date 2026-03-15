@@ -783,7 +783,7 @@ export default function POS() {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
+                            className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[95vh] overflow-y-auto custom-scrollbar"
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
                                 {[1, 2, 3].map((step) => (
@@ -880,7 +880,7 @@ export default function POS() {
                             )}
 
                                     {checkoutStep === 3 && (
-                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 py-2">
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 py-4">
                                             <div className="text-center relative">
                                                 <h2 className="text-[8px] font-black text-slate-900 dark:text-white uppercase leading-none">Pagamento</h2>
                                                 <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2">
