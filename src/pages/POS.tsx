@@ -64,10 +64,20 @@ export default function POS() {
     const filteredCustomers = useMemo(() => {
         if (!customerSearchTerm) return [];
         const term = customerSearchTerm.toLowerCase();
-        return allCustomers.filter(c => 
-            (c.name && c.name.toLowerCase().includes(term)) || 
-            (c.instagram && c.instagram.toLowerCase().includes(term))
-        ).slice(0, 5);
+        
+        // Filter customers who have the term as a consecutive sequence of letters
+        const filtered = allCustomers.filter(c => {
+            const nameMatch = c.name && c.name.toLowerCase().includes(term);
+            const instaMatch = c.instagram && c.instagram.toLowerCase().includes(term);
+            return nameMatch || instaMatch;
+        });
+
+        // Sort to prioritize those that start with the term
+        return filtered.sort((a, b) => {
+            const aNameStarts = a.name?.toLowerCase().startsWith(term) ? 1 : 0;
+            const bNameStarts = b.name?.toLowerCase().startsWith(term) ? 1 : 0;
+            return bNameStarts - aNameStarts;
+        }).slice(0, 5);
     }, [allCustomers, customerSearchTerm]);
 
     const categories = useMemo(() => {
@@ -287,7 +297,7 @@ export default function POS() {
                             <div className="w-8 h-8 opacity-0" />
                             <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest">Artigo / Referência</span>
                             <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center">Stock</span>
-                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center">Custo</span>
+                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center">Categoria</span>
                             <span className="text-[9px] font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest text-right">Venda</span>
                         </div>
                     )}
@@ -382,8 +392,8 @@ export default function POS() {
                                                 <div className="text-[9px] font-black text-slate-900 dark:text-white">{product.current_stock}</div>
                                             </div>
                                             <div className="text-center group-hover:bg-slate-50 dark:group-hover:bg-white/5 rounded-lg py-1 transition-colors">
-                                                <div className="text-[9px] font-black text-slate-600 dark:text-slate-400 font-mono tracking-tighter">
-                                                    {formatCurrency(product.base_price || 0)}
+                                                <div className="text-[8px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tighter truncate px-1">
+                                                    {product.categoria || '-'}
                                                 </div>
                                             </div>
                                             <div className="text-right">
@@ -870,7 +880,7 @@ export default function POS() {
                             )}
 
                                     {checkoutStep === 3 && (
-                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2">
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 py-2">
                                             <div className="text-center relative">
                                                 <h2 className="text-[8px] font-black text-slate-900 dark:text-white uppercase leading-none">Pagamento</h2>
                                                 <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2">
@@ -1182,6 +1192,12 @@ export default function POS() {
                 imageUrl={zoomedProduct?.image_url || ''}
                 productName={zoomedProduct?.nome_artigo || zoomedProduct?.name || ''}
             />
+
+            <datalist id="categoryList">
+                {categories.map(cat => (
+                    <option key={cat} value={cat} />
+                ))}
+            </datalist>
         </motion.div>
     );
 }
