@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, X, Search, Instagram, Mail, Phone, MapPin, ShoppingBag, Clock, Calendar, ChevronsRight, Users } from 'lucide-react';
+import { Filter, X, Search, Instagram, Mail, Phone, MapPin, ShoppingBag, Clock, Calendar, ChevronsRight, Users, Wallet, Save } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
+import { useData } from '../contexts/DataContext';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -23,6 +24,10 @@ export default function BaseClientes() {
     availableFilters,
     filterCounts
   } = useDashboardData(filters);
+
+  const { updateCustomer } = useData();
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [newBalance, setNewBalance] = useState<number>(0);
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
@@ -121,7 +126,7 @@ export default function BaseClientes() {
                 <th scope="col" className="px-4 py-3">Localidade</th>
                 <th scope="col" className="px-4 py-3">Contactos</th>
                 <th scope="col" className="px-4 py-3 text-right">Vendas</th>
-                <th scope="col" className="px-4 py-3 text-right">Total</th>
+                <th scope="col" className="px-4 py-3 text-right">Saldo</th>
                 <th scope="col" className="px-4 py-3 text-center">Ações</th>
               </tr>
             </thead>
@@ -229,8 +234,8 @@ export default function BaseClientes() {
                       {customer.orders}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-right font-bold text-slate-900 dark:text-white">
-                    {formatCurrency(customer.revenue)}
+                  <td className="px-4 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(customer.saldo || 0)}
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button className="text-xs font-semibold text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors">
@@ -288,16 +293,66 @@ export default function BaseClientes() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-3 mb-6">
                       <div className="p-4 bg-purple-100 dark:bg-purple-900/40 rounded-2xl border border-purple-200 dark:border-purple-800/20">
-                        <div className="text-purple-800 dark:text-purple-300 font-black text-xs uppercase mb-1">Total Gasto</div>
-                        <div className="text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(selectedCustomer.revenue)}</div>
+                        <div className="text-purple-800 dark:text-purple-300 font-black text-[8px] uppercase mb-1 leading-none">Total Gasto</div>
+                        <div className="text-lg font-black text-slate-900 dark:text-white leading-none">{formatCurrency(selectedCustomer.revenue)}</div>
                       </div>
                       <div className="p-4 bg-blue-100 dark:bg-blue-900/40 rounded-2xl border border-blue-200 dark:border-blue-800/20">
-                        <div className="text-blue-800 dark:text-blue-300 font-black text-xs uppercase mb-1">Compras</div>
-                        <div className="text-2xl font-black text-slate-900 dark:text-white">{selectedCustomer.orders}</div>
+                        <div className="text-blue-800 dark:text-blue-300 font-black text-[8px] uppercase mb-1 leading-none">Compras</div>
+                        <div className="text-lg font-black text-slate-900 dark:text-white leading-none">{selectedCustomer.orders}</div>
+                      </div>
+                      <div className="p-4 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl border border-emerald-200 dark:border-emerald-800/20 group relative overflow-hidden">
+                        <div className="text-emerald-800 dark:text-emerald-300 font-black text-[8px] uppercase mb-1 leading-none">Saldo</div>
+                        <div className="flex items-end gap-2">
+                          <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none">{formatCurrency(selectedCustomer.saldo || 0)}</div>
+                          <button 
+                            onClick={() => { setIsEditingBalance(true); setNewBalance(selectedCustomer.saldo || 0); }}
+                            className="bg-emerald-500 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <ChevronsRight className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
+
+                    <AnimatePresence>
+                      {isEditingBalance && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-slate-500 uppercase flex items-center gap-1.5"><Wallet className="w-3 h-3"/> Ajustar Saldo</span>
+                            <button onClick={() => setIsEditingBalance(false)} className="text-slate-400 hover:text-rose-500"><X className="w-4 h-4"/></button>
+                          </div>
+                          <div className="flex gap-2">
+                             <div className="flex-1 relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">€</span>
+                                <input 
+                                  type="number" 
+                                  value={newBalance}
+                                  onChange={(e) => setNewBalance(parseFloat(e.target.value) || 0)}
+                                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-7 pr-3 text-sm font-black outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                             </div>
+                             <button 
+                               onClick={async () => {
+                                 await updateCustomer(selectedCustomer.name, { saldo: newBalance });
+                                 setSelectedCustomer({ ...selectedCustomer, saldo: newBalance });
+                                 setIsEditingBalance(false);
+                               }}
+                               className="px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center gap-2 transition-all active:scale-95"
+                             >
+                               <Save className="w-4 h-4" />
+                               <span className="text-[10px] font-black uppercase">Salvar</span>
+                             </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Contact Info Detail */}
                     <div className="space-y-4 mb-8">

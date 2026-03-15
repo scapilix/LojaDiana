@@ -17,6 +17,8 @@ export interface DashboardMetrics {
     city: string;
     email: string;
     phone: string;
+    nif?: string;
+    saldo: number;
     orders: number;
     revenue: number;
     history: Order[];
@@ -373,6 +375,8 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
         city: dbC?.localidade || '-',
         email: dbC?.email_cliente || '-',
         phone: dbC?.telefone_cliente || '-',
+        nif: dbC?.nif || '-',
+        saldo: parseFloat(dbC?.saldo) || 0,
         history: data.history,
         _key: key, // internal use for dedup logic
         _source: 'ACTIVE_ORDER'
@@ -402,6 +406,8 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
           city: dbC.localidade || '-',
           email: dbC.email_cliente || '-',
           phone: dbC.telefone_cliente || '-',
+          nif: dbC.nif || '-',
+          saldo: parseFloat(dbC.saldo) || 0,
           history: [],
           _key: key,
           _source: 'DB_INACTIVE'

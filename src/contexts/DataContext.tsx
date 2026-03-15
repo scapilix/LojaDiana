@@ -66,6 +66,7 @@ interface DataContextType {
   addProduct: (product: ProductCatalogItem) => Promise<void>;
   deleteProduct: (ref: string) => Promise<void>;
   addCustomer: (customer: any) => Promise<void>;
+  updateCustomer: (customerName: string, updates: any) => Promise<void>;
   addSale: (sale: any) => Promise<void>;
   updateProduct: (ref: string, updates: Partial<ProductCatalogItem>) => Promise<void>;
   updateSaleStatus: (idVenda: string, status: string) => Promise<void>;
@@ -238,6 +239,25 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       setData(prev => ({ ...prev, customers: newCustomers }));
     } catch (err) {
       console.error('Error adding customer:', err);
+      throw err;
+    }
+  };
+
+  const updateCustomer = async (customerName: string, updates: any) => {
+    try {
+      const currentCustomers = data.customers || [];
+      const newCustomers = currentCustomers.map(c => 
+        c.nome_cliente === customerName ? { ...c, ...updates } : c
+      );
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'import_customers', value: newCustomers });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, customers: newCustomers }));
+    } catch (err) {
+      console.error('Error updating customer:', err);
       throw err;
     }
   };
@@ -466,7 +486,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     <DataContext.Provider value={{
       data, setData, isLoading, setIsLoading,
       addPurchase, addProduct, deleteProduct,
-      addCustomer, addSale, updateProduct,
+      addCustomer, updateCustomer, addSale, updateProduct,
       updateSaleStatus, updateCategories, updateSizes, updateColors, updateAppSettings,
       updateAllProductsVisibility,
       refreshPurchases,

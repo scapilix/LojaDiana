@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash, MoreHorizontal } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -45,6 +45,8 @@ export default function POS() {
         cost: '',
         registerProduct: false 
     });
+
+    const [balanceUsed, setBalanceUsed] = useState<number>(0);
 
     // Customer Search State
     const { allCustomers } = useDashboardData();
@@ -197,11 +199,13 @@ export default function POS() {
             nif: nif || selectedCustomer?.nif,
             isGift,
             notes: saleNotes,
+            balanceUsed: balanceUsed,
             onSaleComplete: () => {
                 setIsCheckoutModalOpen(false);
                 setCheckoutStep(1);
                 setPaymentMethod('');
                 setCashReceived('');
+                setBalanceUsed(0);
             }
         });
         if (success) {
@@ -456,9 +460,10 @@ export default function POS() {
                                                 className="absolute left-[-20px] right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
                                             >
                                                 {filteredCustomers.map((c, i) => (
-                                                    <button key={i} type="button" onClick={() => { setSelectedCustomer({ nome: c.name, instagram: c.instagram !== '-' ? c.instagram : undefined }); setCustomerSearchTerm(c.name); setShowCustomerSuggestions(false); }}
+                                                    <button key={i} type="button" onClick={() => { setSelectedCustomer({ nome: c.name, instagram: c.instagram !== '-' ? c.instagram : undefined, nif: c.nif, saldo: c.saldo || 0 }); setCustomerSearchTerm(c.name); setShowCustomerSuggestions(false); }}
                                                             className="w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b last:border-0 border-slate-100 dark:border-white/5">
                                                         <div className="font-black text-[9px] text-slate-900 dark:text-white truncate">{c.name}</div>
+                                                        {c.saldo > 0 && <div className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">Saldo: {formatCurrency(c.saldo)}</div>}
                                                     </button>
                                                 ))}
                                             </motion.div>
@@ -864,108 +869,132 @@ export default function POS() {
                                 </motion.div>
                             )}
 
-                            {checkoutStep === 3 && (
-                                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
-                                    <div className="text-center">
-                                        <h2 className="text-[9px] font-black text-slate-900 dark:text-white uppercase">Pagamento</h2>
-                                        <div className="mt-1 p-1 bg-primary/10 rounded-lg border border-primary/20">
-                                            <span className="block text-[6px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
-                                            <span className="text-lg font-black text-primary">{formatCurrency(cartTotal)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-1.5">
-                                        {[
-                                            { id: 'Dinheiro', icon: Banknote, color: 'emerald' },
-                                            { id: 'Transferência', icon: ArrowRightLeft, color: 'purple' },
-                                            { id: 'MBWay', icon: Smartphone, color: 'rose' },
-                                            { id: 'Saldo Cliente', icon: Wallet, color: 'amber' },
-                                            { id: 'Referência Entidade', icon: Hash, color: 'blue' },
-                                            { id: 'Multibanco', icon: CreditCard, color: 'slate' }
-                                        ].map((method) => (
-                                            <button
-                                                key={method.id}
-                                                onClick={() => setPaymentMethod(method.id)}
-                                                className={`p-1.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
-                                            >
-                                                <method.icon className={`w-3.5 h-3.5 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
-                                                <span className={`text-[6.5px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <button 
-                                        onClick={() => setPaymentMethod('Outros')}
-                                        className={`w-full py-1.5 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${paymentMethod === 'Outros' ? 'border-primary bg-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
-                                    >
-                                        <MoreHorizontal className={`w-3.5 h-3.5 ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-400'}`} />
-                                        <span className={`text-[7px] font-black uppercase tracking-widest ${paymentMethod === 'Outros' ? 'text-primary' : 'text-slate-500'}`}>Outros (...)</span>
-                                    </button>
-                                    {paymentMethod === 'Dinheiro' && (
-                                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-                                            <div className="relative">
-                                                <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
-                                                    <input
-                                                        type="number"
-                                                        value={cashReceived}
-                                                        onChange={(e) => setCashReceived(e.target.value)}
-                                                        placeholder="Valor recebido..."
-                                                        className="w-full py-1.5 pl-10 pr-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-sm font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 mb-0.5"
-                                                    />
+                                    {checkoutStep === 3 && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2">
+                                            <div className="text-center relative">
+                                                <h2 className="text-[8px] font-black text-slate-900 dark:text-white uppercase leading-none">Pagamento</h2>
+                                                <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2">
+                                                    <div className="text-left">
+                                                        <span className="block text-[5px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
+                                                        <span className="text-base font-black text-primary leading-none">{formatCurrency(cartTotal)}</span>
+                                                    </div>
+                                                    {parseFloat(cashReceived) > (cartTotal - balanceUsed) && (
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[5px] font-black text-emerald-500 uppercase tracking-widest leading-none">Troco</span>
+                                                            <span className="text-sm font-black text-emerald-600 leading-none">{formatCurrency(parseFloat(cashReceived) - (cartTotal - balanceUsed))}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="grid grid-cols-4 gap-1.5 bg-slate-50 dark:bg-white/5 p-2 rounded-[1.5rem] border border-slate-200 dark:border-white/10">
-                                                    <div className="col-span-3 grid grid-cols-3 gap-1.5">
-                                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map(digit => (
-                                                            <button
-                                                                key={digit}
-                                                                onClick={() => {
-                                                                    if (digit === '.' && cashReceived.includes('.')) return;
-                                                                    setCashReceived(prev => (prev === '0' && digit !== '.' ? digit.toString() : prev + digit.toString()));
-                                                                }}
-                                                                className="py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl font-black text-lg text-slate-900 dark:text-white hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
-                                                            >
-                                                                {digit}
-                                                            </button>
-                                                        ))}
-                                                        <button
-                                                            onClick={() => setCashReceived('')}
-                                                            className="py-2.5 bg-rose-500 text-white rounded-xl font-black text-lg hover:bg-rose-600 transition-all active:scale-95 shadow-lg shadow-rose-500/20"
+                                            </div>
+
+                                            {selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso' && (selectedCustomer.saldo || 0) > 0 && (
+                                                <div className="p-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[7px] font-black text-emerald-600 uppercase tracking-widest">Saldo Disponível: {formatCurrency(selectedCustomer.saldo || 0)}</span>
+                                                        <button 
+                                                            onClick={() => setBalanceUsed(balanceUsed > 0 ? 0 : Math.min(selectedCustomer.saldo || 0, cartTotal))}
+                                                            className="text-[7px] font-black text-emerald-600 uppercase underline"
                                                         >
-                                                            C
+                                                            {balanceUsed > 0 ? 'Remover' : 'Usar Saldo'}
                                                         </button>
                                                     </div>
-                                                    <div className="flex flex-col gap-2">
-                                                        <button
-                                                            onClick={() => setCashReceived(prev => prev.slice(0, -1))}
-                                                            className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl flex items-center justify-center hover:bg-slate-300 transition-all active:scale-95"
-                                                        >
-                                                            <Delete className="w-5 h-5" />
-                                                        </button>
-                                                        <div className="grid grid-cols-1 gap-1.5 mt-2">
-                                                            {[5, 10, 20].map(amt => (
+                                                    {balanceUsed > 0 && (
+                                                        <div className="relative">
+                                                            <Wallet className="absolute left-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-emerald-500" />
+                                                            <input
+                                                                type="number"
+                                                                max={selectedCustomer.saldo}
+                                                                value={balanceUsed}
+                                                                onChange={(e) => setBalanceUsed(Math.min(selectedCustomer.saldo || 0, parseFloat(e.target.value) || 0))}
+                                                                className="w-full py-1 pl-6 pr-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-600 outline-none"
+                                                                placeholder="Quanto usar?"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="grid grid-cols-3 gap-1">
+                                                {[
+                                                    { id: 'Dinheiro', icon: Banknote },
+                                                    { id: 'Transferência', icon: ArrowRightLeft },
+                                                    { id: 'MBWay', icon: Smartphone },
+                                                    { id: 'Saldo Cliente', icon: Wallet },
+                                                    { id: 'Ref. Entidade', icon: Hash },
+                                                    { id: 'Multibanco', icon: CreditCard }
+                                                ].map((method) => (
+                                                    <button
+                                                        key={method.id}
+                                                        onClick={() => setPaymentMethod(method.id)}
+                                                        className={`p-1.5 rounded-lg border-2 transition-all flex flex-col items-center gap-0.5 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                                    >
+                                                        <method.icon className={`w-3 h-3 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
+                                                        <span className={`text-[6px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {paymentMethod === 'Dinheiro' && (
+                                                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
+                                                    <div className="relative">
+                                                        <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-500" />
+                                                        <input
+                                                            type="number"
+                                                            value={cashReceived}
+                                                            onChange={(e) => setCashReceived(e.target.value)}
+                                                            placeholder="Valor recebido..."
+                                                            className="w-full py-1 pl-8 pr-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-xs font-black text-emerald-600 outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-4 gap-1 bg-slate-50 dark:bg-white/5 p-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                                                        <div className="col-span-3 grid grid-cols-3 gap-1">
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map(digit => (
                                                                 <button
-                                                                    key={amt}
-                                                                    onClick={() => setCashReceived(amt.toString())}
-                                                                    className="py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-xl font-black text-[10px] hover:bg-emerald-500/20 transition-all active:scale-95"
+                                                                    key={digit}
+                                                                    onClick={() => {
+                                                                        if (digit === '.' && cashReceived.includes('.')) return;
+                                                                        setCashReceived(prev => (prev === '0' && digit !== '.' ? digit.toString() : prev + digit.toString()));
+                                                                    }}
+                                                                    className="py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg font-black text-sm text-slate-900 dark:text-white hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
                                                                 >
-                                                                    {amt}€
+                                                                    {digit}
                                                                 </button>
                                                             ))}
                                                             <button
-                                                                onClick={() => setCashReceived(cartTotal.toString())}
-                                                                className="py-2 bg-primary text-white rounded-xl font-black text-[9px] uppercase tracking-tighter hover:bg-primary/90 transition-all active:scale-95"
+                                                                onClick={() => setCashReceived('')}
+                                                                className="py-1.5 bg-rose-500 text-white rounded-lg font-black text-sm hover:bg-rose-600 transition-all active:scale-95"
                                                             >
-                                                                Total
+                                                                C
                                                             </button>
                                                         </div>
+                                                        <div className="flex flex-col gap-1">
+                                                            <button
+                                                                onClick={() => setCashReceived(prev => prev.slice(0, -1))}
+                                                                className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-300 transition-all active:scale-95"
+                                                            >
+                                                                <Delete className="w-4 h-4" />
+                                                            </button>
+                                                            <div className="grid grid-cols-1 gap-1">
+                                                                {[5, 10, 20].map(amt => (
+                                                                    <button
+                                                                        key={amt}
+                                                                        onClick={() => setCashReceived(amt.toString())}
+                                                                        className="py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-lg font-black text-[8px] hover:bg-emerald-500/20 transition-all active:scale-95"
+                                                                    >
+                                                                        {amt}€
+                                                                    </button>
+                                                                ))}
+                                                                <button
+                                                                    onClick={() => setCashReceived((cartTotal - balanceUsed).toString())}
+                                                                    className="py-1 bg-primary text-white rounded-lg font-black text-[8px] uppercase tracking-tighter hover:bg-primary/90 transition-all active:scale-95"
+                                                                >
+                                                                    Total
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                {parseFloat(cashReceived) > cartTotal && (
-                                                <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-emerald-200 dark:border-emerald-500/20 flex justify-between items-center">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Troco</span>
-                                                    <span className="text-xl font-black text-emerald-600">{formatCurrency(parseFloat(cashReceived) - cartTotal)}</span>
-                                                </div>
+                                                </motion.div>
                                             )}
-                                        </motion.div>
-                                    )}
 
                                     <div className="flex gap-4 pt-2">
                                         <button onClick={() => setCheckoutStep(2)} className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all">Anterior</button>

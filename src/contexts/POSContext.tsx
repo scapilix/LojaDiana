@@ -46,9 +46,9 @@ interface POSContextType {
     cartDiscount: number;
     cartDiscountType: 'fixed' | 'percent';
     setCartDiscount: (discount: number, type: 'fixed' | 'percent') => void;
-    selectedCustomer: { nome: string; instagram?: string; nif?: string } | null;
-    setSelectedCustomer: (customer: { nome: string; instagram?: string; nif?: string } | null) => void;
-    finalizeSale: (options: FinalizeOptions) => Promise<boolean>;
+    selectedCustomer: { nome: string; instagram?: string; nif?: string; saldo?: number } | null;
+    setSelectedCustomer: (customer: { nome: string; instagram?: string; nif?: string; saldo?: number } | null) => void;
+    finalizeSale: (options: FinalizeOptions & { balanceUsed?: number }) => Promise<boolean>;
     isProcessing: boolean;
     shippingType: string;
     shippingCost: number;
@@ -59,7 +59,7 @@ const POSContext = createContext<POSContextType | undefined>(undefined);
 
 export function POSProvider({ children }: { children: ReactNode }) {
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [selectedCustomer, setSelectedCustomer] = useState<{ nome: string; instagram?: string; nif?: string } | null>({ nome: 'Cliente Avulso' });
+    const [selectedCustomer, setSelectedCustomer] = useState<{ nome: string; instagram?: string; nif?: string; saldo?: number } | null>({ nome: 'Cliente Avulso', saldo: 0 });
     const [cartDiscount, setCartDiscount] = useState(0);
     const [cartDiscountType, setCartDiscountType] = useState<'fixed' | 'percent'>('fixed');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -188,7 +188,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
         setCartDiscountType('fixed');
         setShippingTypeState('Sem entrega');
         setShippingCost(0);
-        setSelectedCustomer({ nome: 'Cliente Avulso' });
+        setSelectedCustomer({ nome: 'Cliente Avulso', saldo: 0 });
     };
 
     const cartSubtotal = cart.reduce((sum, item) => {
@@ -221,24 +221,40 @@ export function POSProvider({ children }: { children: ReactNode }) {
         return name;
     };
 
-    const finalizeSale = async (options: FinalizeOptions) => {
-        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete } = options;
+    const finalizeSale = async (options: FinalizeOptions & { balanceUsed?: number }) => {
+        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete, balanceUsed = 0 } = options;
         if (cart.length === 0) return false;
 
         setIsProcessing(true);
         try {
+            // Update customer balance if used
+            if (balanceUsed > 0 && selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso') {
+                const updatedCustomers = (data.customers || []).map(c => {
+                    if (c.name === selectedCustomer.nome) {
+                        return { ...c, saldo: Math.max(0, (c.saldo || 0) - balanceUsed) };
+                    }
+                    return c;
+                });
+
+                await supabase
+                    .from('loja_app_state')
+                    .upsert({ key: 'import_customers', value: updatedCustomers });
+                
+                setData(prev => ({ ...prev, customers: updatedCustomers }));
+            }
+
             // 1. Insert into relational `orders` table
             const orderToInsert = {
                 nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
                 instagram: selectedCustomer?.instagram || null,
                 nif: nif || selectedCustomer?.nif || null,
-                total: cartTotal,
-                forma_de_pagamento: paymentMethod,
+                total: cartTotal - balanceUsed,
+                forma_de_pagamento: balanceUsed > 0 ? `${paymentMethod} + Saldo` : paymentMethod,
                 status: status,
                 sales_channel: 'pos',
                 is_gift: isGift || false,
                 notes: notes || null,
-                discount_total: discountTotal || cartActualDiscount,
+                discount_total: (discountTotal || cartActualDiscount) + balanceUsed,
                 shipping_type: shippingType,
                 shipping_cost: shippingCost
             };
