@@ -67,8 +67,8 @@ export default function POS() {
         
         // Filter customers who have the term as a consecutive sequence of letters
         const filtered = allCustomers.filter(c => {
-            const nameMatch = c.name && c.name.toLowerCase().includes(term);
-            const instaMatch = c.instagram && c.instagram.toLowerCase().includes(term);
+            const nameMatch = c.name && c.name.toLowerCase().startsWith(term);
+            const instaMatch = c.instagram && c.instagram.toLowerCase().startsWith(term);
             return nameMatch || instaMatch;
         });
 
