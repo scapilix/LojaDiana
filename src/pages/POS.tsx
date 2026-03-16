@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
