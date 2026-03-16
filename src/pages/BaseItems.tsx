@@ -124,11 +124,16 @@ export default function BaseItems() {
 
   const filteredProducts = useMemo(() => {
     // Index stockInventory for O(1) lookup during filter
-    const stockMap = new Map(stockInventory.map(s => [s.ref, s]));
+    // We use a simple for loop for maximum speed
+    const stockMap = new Map();
+    for (let i = 0; i < stockInventory.length; i++) {
+      stockMap.set(stockInventory[i].ref, stockInventory[i]);
+    }
 
+    const term = searchTerm.toLowerCase();
+    
     let result = products.filter(p => {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch = p.nome_artigo.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term);
+      const matchesSearch = !term || p.nome_artigo.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term);
       const matchesCategory = selectedCategory === '' || p.categoria === selectedCategory;
       
       // Stock Filter
@@ -144,12 +149,16 @@ export default function BaseItems() {
       return matchesSearch && matchesCategory && matchesStock;
     });
 
-    // Sort by Featured first, then alphabetical or by creation? (Let's keep Featured first)
-    return result.sort((a, b) => {
+    // Stable sort: Featured first, then Name
+    const sorted = [...result].sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
-      return 0;
+      const nameA = a.nome_artigo || '';
+      const nameB = b.nome_artigo || '';
+      return nameA.localeCompare(nameB);
     });
+
+    return sorted;
   }, [products, searchTerm, selectedCategory, stockFilter, stockInventory]);
 
 
@@ -294,6 +303,8 @@ export default function BaseItems() {
         description: '',
         color_images: {},
         additional_images: [],
+        sizes: [],
+        colors: [],
         published: true
       });
     } catch (err: any) {
@@ -1477,10 +1488,10 @@ export default function BaseItems() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                          {data.purchases
-                            ?.filter(p => p.ref === editingItem?.ref)
+                          {useMemo(() => (data.purchases || [])
+                            .filter(p => p.ref === editingItem?.ref)
                             .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
-                            .slice(0, 10)
+                            .slice(0, 10), [data.purchases, editingItem?.ref])
                             .map((purchase, idx) => (
                               <tr key={purchase.id || idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
                                 {editingStockId === purchase.id ? (

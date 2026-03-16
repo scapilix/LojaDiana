@@ -153,44 +153,56 @@ export function useStockLogic() {
     purchaseMap.forEach((_, vid) => allVariationIds.add(vid));
     salesMap.forEach((_, vid) => allVariationIds.add(vid));
 
+    // Create a variation lookup map per base product for O(1) access
+    const variationLookupPerBase = new Map<string, Map<string, VariationStock>>();
+    baseProductsMap.forEach((base, ref) => {
+      const vMap = new Map<string, VariationStock>();
+      base.variations.forEach(v => vMap.set(v.variation_id, v));
+      variationLookupPerBase.set(ref, vMap);
+    });
+
     allVariationIds.forEach(vid => {
-      const [ref, sizeStr, colorStr] = vid.split('|');
-      const size = sizeStr || undefined;
-      const color = colorStr || undefined;
+      const parts = vid.split('|');
+      const ref = parts[0];
+      const size = parts[1] || undefined;
+      const color = parts[2] || undefined;
 
       if (!baseProductsMap.has(ref)) {
         baseProductsMap.set(ref, getInitBaseProduct(ref));
+        variationLookupPerBase.set(ref, new Map());
       }
 
       const base = baseProductsMap.get(ref)!;
-      let variation = base.variations.find(v => v.variation_id === vid);
+      const vMap = variationLookupPerBase.get(ref)!;
+      let variation = vMap.get(vid);
 
       // If this variation was sold/purchased but isn't strictly in catalog combos, add it ad-hoc
       if (!variation) {
         variation = { variation_id: vid, size, color, total_purchased: 0, total_sold: 0, current_stock: 0 };
         base.variations.push(variation);
+        vMap.set(vid, variation);
       }
 
       // Apply quantities
-      const pQty = purchaseMap.get(vid)?.qty || 0;
+      const pData = purchaseMap.get(vid);
       const sQty = salesMap.get(vid) || 0;
 
-      variation.total_purchased += pQty;
+      variation.total_purchased += pData?.qty || 0;
       variation.total_sold += sQty;
       variation.current_stock = variation.total_purchased - variation.total_sold;
 
       // Ensure base sizes/colors are populated from active variations
-      if (variation.size && !base.sizes?.includes(variation.size)) {
+      if (variation.size) {
         if (!base.sizes) base.sizes = [];
         if (!base.sizes.includes(variation.size)) base.sizes.push(variation.size);
       }
-      if (variation.color && !base.colors?.includes(variation.color)) {
+      if (variation.color) {
         if (!base.colors) base.colors = [];
         if (!base.colors.includes(variation.color)) base.colors.push(variation.color);
       }
 
       // Keep root tracking last purchase date
-      const pDate = purchaseMap.get(vid)?.lastDate;
+      const pDate = pData?.lastDate;
       if (pDate && (!base.last_purchase_date || pDate > base.last_purchase_date)) {
         base.last_purchase_date = pDate;
       }
