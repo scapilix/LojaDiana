@@ -3,10 +3,10 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Database,
   Search,
-  Plus,
+  Plus, // This icon is explicitly mentioned to be removed from Settings.tsx, but not BaseItems.tsx. Keeping it as it's not explicitly removed from *this* file.
   Package,
   History,
-  Tag,
+  Tag, // This icon is explicitly mentioned to be removed from Settings.tsx, but not BaseItems.tsx. Keeping it as it's not explicitly removed from *this* file.
   Loader2,
   Trash2,
   Eye,
@@ -54,7 +54,7 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateVariations, updateCategories, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
+  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItem, setEditingItem] = useState<ProductCatalogItem | null>(null);

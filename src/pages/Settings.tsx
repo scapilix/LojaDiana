@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Settings as SettingsIcon,
-    Plus,
     Trash2,
     Save,
-    Tag,
     Store,
     MessageCircle,
     Instagram,
