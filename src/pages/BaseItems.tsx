@@ -166,6 +166,11 @@ export default function BaseItems() {
     return sorted;
   }, [products, searchTerm, selectedCategory, stockFilter, stockInventory]);
 
+  const recentPurchases = useMemo(() => (data.purchases || [])
+    .filter(p => p.ref === editingItem?.ref)
+    .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
+    .slice(0, 10), [data.purchases, editingItem?.ref]);
+
 
   const formatCurrency = (val: number) => {
     if (val === undefined || val === null) return '-';
@@ -1357,11 +1362,7 @@ export default function BaseItems() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                          {useMemo(() => (data.purchases || [])
-                            .filter(p => p.ref === editingItem?.ref)
-                            .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
-                            .slice(0, 10), [data.purchases, editingItem?.ref])
-                            .map((purchase, idx) => (
+                          {recentPurchases.map((purchase, idx) => (
                               <tr key={purchase.id || idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
                                 {editingStockId === purchase.id ? (
                                   <>
