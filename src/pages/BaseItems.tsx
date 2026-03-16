@@ -18,12 +18,18 @@ import {
   Camera,
   Expand,
   Globe,
-  GlobeLock
+  GlobeLock,
+  CheckSquare,
+  Square,
+  Filter,
+  Star,
+  StarOff
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
 import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 import { supabase } from '../lib/supabase';
+import { useStockLogic } from '../hooks/useStockLogic';
 
 interface ProductCatalogItem {
   ref: string;
@@ -40,6 +46,7 @@ interface ProductCatalogItem {
   promo_start?: string;
   promo_end?: string;
   published?: boolean;
+  featured?: boolean;
   sizes?: string[];
   colors?: string[];
   color_images?: { [color: string]: string };
@@ -59,6 +66,9 @@ export default function BaseItems() {
   const [isMigrating, setIsMigrating] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'stock'>('details');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
+  const [stockFilter, setStockFilter] = useState<string>('');
+  const stockInventory = useStockLogic();
 
   const [stockFormData, setStockFormData] = useState({
     quantidade: 1,
@@ -109,13 +119,30 @@ export default function BaseItems() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    let result = products.filter(p => {
       const term = searchTerm.toLowerCase();
       const matchesSearch = p.nome_artigo.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term);
       const matchesCategory = selectedCategory === '' || p.categoria === selectedCategory;
+      
+      // Stock Filter
+      if (stockFilter !== '') {
+        const stockInfo = stockInventory.find(s => s.ref === p.ref);
+        if (stockFilter === 'out') return stockInfo?.status === 'out' || !stockInfo;
+        if (stockFilter === 'no_control') return !stockInfo || stockInfo.total_purchased === 0;
+        if (stockFilter === 'ok') return stockInfo?.status === 'ok';
+        if (stockFilter === 'low') return stockInfo?.status === 'low' || stockInfo?.status === 'critical';
+      }
+
       return matchesSearch && matchesCategory;
     });
-  }, [products, searchTerm, selectedCategory]);
+
+    // Sort by Featured first, then alphabetical or by creation? (Let's keep Featured first)
+    return result.sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return 0;
+    });
+  }, [products, searchTerm, selectedCategory, stockFilter, stockInventory]);
 
 
   const formatCurrency = (val: number) => {
@@ -414,6 +441,49 @@ export default function BaseItems() {
     }
   };
 
+  // Selection & Bulk Actions
+  const toggleSelectAll = () => {
+    if (selectedRefs.size === filteredProducts.length) {
+      setSelectedRefs(new Set());
+    } else {
+      setSelectedRefs(new Set(filteredProducts.map(p => p.ref)));
+    }
+  };
+
+  const toggleSelection = (ref: string) => {
+    const newSelection = new Set(selectedRefs);
+    if (newSelection.has(ref)) {
+      newSelection.delete(ref);
+    } else {
+      newSelection.add(ref);
+    }
+    setSelectedRefs(newSelection);
+  };
+
+  const handleBulkUpdate = async (updates: Partial<ProductCatalogItem>) => {
+    if (selectedRefs.size === 0) return;
+    setIsSubmitting(true);
+    try {
+      const refs = Array.from(selectedRefs);
+      for (const ref of refs) {
+        await updateProduct(ref, updates);
+      }
+      setSelectedRefs(new Set());
+      alert('Ação concluída com sucesso!');
+    } catch (err) {
+      alert('Erro ao realizar ação em massa');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkCategoryChange = async () => {
+    const newCategory = prompt('Introduza a nova categoria para os itens selecionados:');
+    if (newCategory) {
+      await handleBulkUpdate({ categoria: newCategory });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -457,6 +527,21 @@ export default function BaseItems() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+
+            <div className="relative group">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
+              <select
+                value={stockFilter}
+                onChange={(e) => setStockFilter(e.target.value)}
+                className="pl-11 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-bold text-sm text-slate-900 dark:text-white appearance-none cursor-pointer min-w-[180px]"
+              >
+                <option value="">Todos os Stocks</option>
+                <option value="out">Sem stock</option>
+                <option value="no_control">Sem controlo de stock</option>
+                <option value="ok">Stock OK</option>
+                <option value="low">Stock Baixo / Mínimo</option>
+              </select>
+            </div>
           </div>
 
           {(data.products_catalog?.length || 0) > 0 && (
@@ -521,11 +606,76 @@ export default function BaseItems() {
         </div>
       </div>
 
+      <AnimatePresence>
+        {selectedRefs.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-[2rem] shadow-2xl flex items-center gap-6"
+          >
+            <div className="flex flex-col border-r border-white/10 pr-6 mr-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selecionados</span>
+              <span className="text-sm font-black text-white">{selectedRefs.size} itens</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleBulkCategoryChange}
+                className="px-4 py-2 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all flex items-center gap-2"
+              >
+                Categoria
+              </button>
+              <button
+                onClick={() => handleBulkUpdate({ published: true })}
+                className="px-4 py-2 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500/80 transition-all flex items-center gap-2"
+              >
+                Publicar
+              </button>
+              <button
+                onClick={() => handleBulkUpdate({ published: false })}
+                className="px-4 py-2 hover:bg-slate-500/20 hover:text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500/80 transition-all flex items-center gap-2"
+              >
+                Remover
+              </button>
+              <button
+                onClick={() => handleBulkUpdate({ featured: true })}
+                className="px-4 py-2 hover:bg-amber-500/20 hover:text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest text-amber-500/80 transition-all flex items-center gap-2"
+              >
+                Destacar
+              </button>
+              <button
+                onClick={() => handleBulkUpdate({ featured: false })}
+                className="px-4 py-2 hover:bg-slate-500/20 hover:text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500/80 transition-all flex items-center gap-2"
+              >
+                Retirar Destaque
+              </button>
+            </div>
+
+            <button
+              onClick={() => setSelectedRefs(new Set())}
+              className="ml-4 p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="glass overflow-hidden rounded-[2.5rem] border-purple-100 dark:border-purple-800/20">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
               <tr>
+                <th className="px-6 py-3.5 italic text-[10px] text-slate-400">
+                  <button onClick={toggleSelectAll} className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                    {selectedRefs.size === filteredProducts.length && filteredProducts.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Square className="w-4 h-4 text-slate-300" />
+                    )}
+                  </button>
+                </th>
                 <th className="px-4 py-3.5 italic text-[10px] text-slate-400">Item</th>
                 <th className="px-4 py-3.5 text-right italic text-[10px] text-slate-400">PVP</th>
                 <th className="px-4 py-3.5 text-right italic text-[10px] text-slate-400">Base</th>
@@ -538,7 +688,16 @@ export default function BaseItems() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {filteredProducts.map((product, index) => (
-                <tr key={`${product.ref}-${index}`} className="group hover:bg-purple-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                <tr key={`${product.ref}-${index}`} className={`group hover:bg-purple-50/50 dark:hover:bg-white/[0.02] transition-colors ${selectedRefs.has(product.ref) ? 'bg-purple-50/30 dark:bg-purple-500/5' : ''}`}>
+                  <td className="px-6 py-2">
+                    <button onClick={() => toggleSelection(product.ref)} className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                      {selectedRefs.has(product.ref) ? (
+                        <CheckSquare className="w-4 h-4 text-primary" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-300" />
+                      )}
+                    </button>
+                  </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-200 dark:border-white/10 shrink-0 relative group/img cursor-zoom-in" onClick={() => product.image_url && setZoomedProduct(product)}>
@@ -556,6 +715,9 @@ export default function BaseItems() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-slate-900 dark:text-white">{product.nome_artigo || '-'}</span>
+                          {product.featured && (
+                            <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                          )}
                           {(() => {
                             const now = new Date();
                             const today = now.toISOString().split('T')[0];
@@ -615,6 +777,12 @@ export default function BaseItems() {
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => updateProduct(product.ref, { featured: !product.featured })}
+                        className={`p-2 rounded-lg transition-colors ${product.featured ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10' : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10'}`}
+                      >
+                        {product.featured ? <Star className="w-3.5 h-3.5" /> : <StarOff className="w-3.5 h-3.5" />}
+                      </button>
                       <button
                         onClick={() => handleEdit(product)}
                         className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors"

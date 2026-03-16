@@ -14,10 +14,11 @@ interface ProductCatalogItem {
   promo_price?: number;
   promo_start?: string;
   promo_end?: string;
-  published?: boolean;
   sizes?: string[];
   colors?: string[];
   color_images?: { [color: string]: string };
+  published?: boolean;
+  featured?: boolean;
 }
 
 interface ExcelData {
