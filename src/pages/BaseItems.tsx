@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Database,
   Search,
@@ -47,6 +47,7 @@ interface ProductCatalogItem {
   promo_end?: string;
   published?: boolean;
   featured?: boolean;
+  additional_images?: string[];
   sizes?: string[];
   colors?: string[];
   color_images?: { [color: string]: string };
@@ -93,9 +94,12 @@ export default function BaseItems() {
     categoria: '',
     promo_price: 0,
     promo_start: '',
-    promo_end: '',
-    published: true
-  });
+        sizes: [],
+        colors: [],
+        color_images: {},
+        additional_images: [],
+        published: true
+      });
 
   // Combine catalogs and handle overrides
   const products = useMemo(() => {
@@ -201,18 +205,37 @@ export default function BaseItems() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'edit' | 'new') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'edit' | 'new', isMain: boolean = true) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     try {
       setIsUploading(true);
-      const url = await uploadToSupabase(file, 'loja_artigos');
-      if (url) {
+      const urls: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadToSupabase(files[i], 'loja_artigos');
+        if (url) urls.push(url);
+      }
+
+      if (urls.length > 0) {
         if (target === 'edit') {
-          setEditingItem(prev => prev ? ({ ...prev, image_url: url }) : null);
+          setEditingItem(prev => {
+            if (!prev) return null;
+            if (isMain) {
+              return { ...prev, image_url: urls[0], additional_images: [...(prev.additional_images || []), ...urls.slice(1)] };
+            } else {
+              return { ...prev, additional_images: [...(prev.additional_images || []), ...urls] };
+            }
+          });
         } else {
-          setNewItem(prev => ({ ...prev, image_url: url }));
+          setNewItem(prev => {
+            if (isMain) {
+              return { ...prev, image_url: urls[0], additional_images: [...(prev.additional_images || []), ...urls.slice(1)] };
+            } else {
+              return { ...prev, additional_images: [...(prev.additional_images || []), ...urls] };
+            }
+          });
         }
       }
     } catch (error) {
@@ -265,9 +288,9 @@ export default function BaseItems() {
         fornecedor: '',
         image_url: '',
         description: '',
-        sizes: [],
-        colors: [],
-        color_images: {}
+        color_images: {},
+        additional_images: [],
+        published: true
       });
     } catch (err: any) {
       alert(err.message || 'Erro ao adicionar produto');
@@ -883,31 +906,107 @@ export default function BaseItems() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left Column: Image & Promotion */}
                     <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Imagem do Produto</label>
-                        <div className="relative aspect-video w-full rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-colors hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5">
-                          {(isAddingNew ? newItem.image_url : editingItem?.image_url) ? (
-                            <>
-                              <img src={isAddingNew ? newItem.image_url : editingItem?.image_url} alt="Preview" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  isAddingNew ? setNewItem({ ...newItem, image_url: '' }) : setEditingItem(prev => prev ? ({ ...prev, image_url: '' }) : null)
-                                }}
-                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
-                              <Camera className="w-5 h-5 text-slate-400" />
-                              <span className="text-[9px] font-bold text-slate-400 uppercase">Enviar Imagem</span>
+                      <div className="space-y-4">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Galeria de Imagens (Até 7)</label>
+                        
+                        {/* Main Image */}
+                        <div className="space-y-2">
+                          <div className="relative aspect-video w-full rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-colors hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5">
+                            {(isAddingNew ? newItem.image_url : editingItem?.image_url) ? (
+                              <>
+                                <img src={isAddingNew ? newItem.image_url : editingItem?.image_url} alt="Main" className="w-full h-full object-cover" />
+                                <div className="absolute top-2 left-2 px-2 py-0.5 bg-purple-600 text-white text-[8px] font-black uppercase rounded-lg shadow-xl">Principal</div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isAddingNew) {
+                                      setNewItem({ ...newItem, image_url: '' });
+                                    } else {
+                                      setEditingItem(prev => prev ? ({ ...prev, image_url: '' }) : null);
+                                    }
+                                  }}
+                                  className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                                <Camera className="w-5 h-5 text-slate-400" />
+                                <span className="text-[9px] font-bold text-slate-400 uppercase text-center">Selecionar<br/>Foto Principal</span>
+                              </div>
+                            )}
+                            <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit', true)} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
+                        </div>
+
+                        {/* Secondary Images Grid */}
+                        <Reorder.Group 
+                          axis="x" 
+                          values={(isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []} 
+                          onReorder={(newOrder) => {
+                            if (isAddingNew) {
+                              setNewItem({ ...newItem, additional_images: newOrder });
+                            } else {
+                              setEditingItem(prev => prev ? ({ ...prev, additional_images: newOrder }) : null);
+                            }
+                          }}
+                          className="flex flex-wrap gap-3"
+                        >
+                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).map((url, idx) => (
+                            <Reorder.Item 
+                              key={url} 
+                              value={url}
+                              className="relative w-20 h-20 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 overflow-hidden cursor-grab active:cursor-grabbing group shrink-0"
+                            >
+                              <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const currentMain = isAddingNew ? newItem.image_url : editingItem?.image_url;
+                                    const currentGallery = (isAddingNew ? newItem.additional_images : editingItem?.additional_images) || [];
+                                    const newGallery = currentGallery.filter(u => u !== url);
+                                    if (currentMain) newGallery.unshift(currentMain);
+                                    
+                                    if (isAddingNew) {
+                                      setNewItem({ ...newItem, image_url: url, additional_images: newGallery });
+                                    } else {
+                                      setEditingItem(prev => prev ? ({ ...prev, image_url: url, additional_images: newGallery }) : null);
+                                    }
+                                  }}
+                                  className="p-1 bg-white/20 hover:bg-white/40 text-white rounded-md transition-colors"
+                                  title="Tornar Principal"
+                                >
+                                  <Star className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (isAddingNew) {
+                                      setNewItem({ ...newItem, additional_images: newItem.additional_images?.filter(u => u !== url) });
+                                    } else {
+                                      setEditingItem(prev => prev ? ({ ...prev, additional_images: prev.additional_images?.filter(u => u !== url) }) : null);
+                                    }
+                                  }}
+                                  className="p-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded-md transition-colors"
+                                  title="Remover"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </Reorder.Item>
+                          ))}
+                          
+                          {/* Add More Spot */}
+                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).length < 6 && (
+                            <div className="relative w-20 h-20 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-500/5 transition-colors cursor-pointer group">
+                              <Plus className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
+                              <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit', false)} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
                             </div>
                           )}
-                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit')} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
-                        </div>
+                        </Reorder.Group>
                       </div>
 
                       <div className="p-4 bg-rose-50/50 dark:bg-rose-500/5 rounded-2xl border border-rose-100 dark:border-rose-500/10 space-y-4">
