@@ -99,6 +99,7 @@ export default function Settings() {
                         Loja & Contactos
                     </button>
                 </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-6">
                 <AnimatePresence mode="wait">
