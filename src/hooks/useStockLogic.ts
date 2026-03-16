@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useData } from '../contexts/DataContext';
+import { useData, ProductCatalogItem } from '../contexts/DataContext';
 
 export interface VariationStock {
   variation_id: string;
@@ -76,14 +76,20 @@ export function useStockLogic() {
       }
     });
 
-    // 3. Build Base Products Map
+    // Build Base Products Map
     const baseProductsMap = new Map<string, StockStatus>();
+
+    // Pre-create lookups for catalog items to avoid repetitive .find calls
+    const catalogLookup = new Map<string, ProductCatalogItem>();
+    (data.products_catalog || []).forEach(p => catalogLookup.set(String(p.ref).trim().toUpperCase(), p));
+    (data.manual_products_catalog || []).forEach(p => {
+      const ref = String(p.ref).trim().toUpperCase();
+      catalogLookup.set(ref, { ...(catalogLookup.get(ref) || {}), ...p } as ProductCatalogItem);
+    });
 
     // Helper to initialize a base product
     const getInitBaseProduct = (ref: string): StockStatus => {
-      const baseCatalogItem = data.products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
-      const manualCatalogItem = data.manual_products_catalog?.find(p => String(p.ref).trim().toUpperCase() === ref);
-      const catalogItem = baseCatalogItem || manualCatalogItem;
+      const catalogItem = catalogLookup.get(ref);
 
       return {
         ref,

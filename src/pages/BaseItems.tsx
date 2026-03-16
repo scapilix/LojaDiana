@@ -123,21 +123,25 @@ export default function BaseItems() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    // Index stockInventory for O(1) lookup during filter
+    const stockMap = new Map(stockInventory.map(s => [s.ref, s]));
+
     let result = products.filter(p => {
       const term = searchTerm.toLowerCase();
       const matchesSearch = p.nome_artigo.toLowerCase().includes(term) || p.ref.toLowerCase().includes(term);
       const matchesCategory = selectedCategory === '' || p.categoria === selectedCategory;
       
       // Stock Filter
+      let matchesStock = true;
       if (stockFilter !== '') {
-        const stockInfo = stockInventory.find(s => s.ref === p.ref);
-        if (stockFilter === 'out') return stockInfo?.status === 'out' || !stockInfo;
-        if (stockFilter === 'no_control') return !stockInfo || stockInfo.total_purchased === 0;
-        if (stockFilter === 'ok') return stockInfo?.status === 'ok';
-        if (stockFilter === 'low') return stockInfo?.status === 'low' || stockInfo?.status === 'critical';
+        const stockInfo = stockMap.get(p.ref);
+        if (stockFilter === 'out') matchesStock = stockInfo?.status === 'out' || !stockInfo;
+        else if (stockFilter === 'no_control') matchesStock = !stockInfo || stockInfo.total_purchased === 0;
+        else if (stockFilter === 'ok') matchesStock = stockInfo?.status === 'ok';
+        else if (stockFilter === 'low') matchesStock = stockInfo?.status === 'low' || stockInfo?.status === 'critical';
       }
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && matchesStock;
     });
 
     // Sort by Featured first, then alphabetical or by creation? (Let's keep Featured first)

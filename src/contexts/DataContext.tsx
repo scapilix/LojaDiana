@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface ProductCatalogItem {
+export interface ProductCatalogItem {
   ref: string;
   nome_artigo: string;
   pvp_cica: number;
