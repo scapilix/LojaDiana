@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, User, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -439,11 +439,11 @@ export default function POS() {
                                 <span className="bg-primary/10 text-primary text-[7px] font-black px-1 rounded-full">{cart.length}</span>
                             </div>
                             <div className="flex-1 flex items-center gap-1.5 transition-all">
-                                <User className="w-2.5 h-2.5 text-slate-400" />
+                                <Instagram className="w-2.5 h-2.5 text-slate-400" />
                                 <div className="flex-1 relative">
                                     <input
                                         type="text"
-                                        value={customerSearchTerm || (selectedCustomer?.nome === 'Cliente Avulso' ? '' : selectedCustomer?.nome) || ''}
+                                        value={customerSearchTerm || (selectedCustomer?.nome === 'Cliente Avulso' ? '' : (selectedCustomer?.instagram ? `@${selectedCustomer.instagram}` : selectedCustomer?.nome)) || ''}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             setCustomerSearchTerm(val);
@@ -465,7 +465,7 @@ export default function POS() {
                                                 }
                                             }, 200);
                                         }}
-                                        placeholder="Cliente Avulso"
+                                        placeholder="Instagram / Nome"
                                         className="w-full py-1 bg-transparent border-0 text-[10px] font-black text-slate-900 dark:text-white outline-none placeholder:text-slate-400 placeholder:opacity-50"
                                     />
                                     <AnimatePresence>
@@ -475,9 +475,12 @@ export default function POS() {
                                                 className="absolute left-[-20px] right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
                                             >
                                                 {filteredCustomers.map((c, i) => (
-                                                    <button key={i} type="button" onClick={() => { setSelectedCustomer({ nome: c.name, instagram: c.instagram !== '-' ? c.instagram : undefined, nif: c.nif, saldo: c.saldo || 0 }); setCustomerSearchTerm(c.name); setShowCustomerSuggestions(false); }}
+                                                    <button key={i} type="button" onClick={() => { setSelectedCustomer({ nome: c.name, instagram: (c.instagram && c.instagram !== '-') ? c.instagram : undefined, nif: c.nif, saldo: c.saldo || 0 }); setCustomerSearchTerm(''); setShowCustomerSuggestions(false); }}
                                                             className="w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b last:border-0 border-slate-100 dark:border-white/5">
-                                                        <div className="font-black text-[9px] text-slate-900 dark:text-white truncate">{c.name}</div>
+                                                        <div className="font-black text-[9px] text-slate-900 dark:text-white truncate">
+                                                            {(c.instagram && c.instagram !== '-') ? `@${c.instagram}` : c.name}
+                                                        </div>
+                                                        {c.instagram && c.instagram !== '-' && <div className="text-[7px] text-slate-400 truncate">{c.name}</div>}
                                                         {c.saldo > 0 && <div className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">Saldo: {formatCurrency(c.saldo)}</div>}
                                                     </button>
                                                 ))}
