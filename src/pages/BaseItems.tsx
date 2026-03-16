@@ -54,7 +54,7 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, addPurchase, addProduct, deleteProduct, updateProduct, deletePurchase, updatePurchase, updateSizes, updateColors, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
+  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateSizes, updateColors, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [newSizeInput, setNewSizeInput] = useState('');
@@ -503,9 +503,7 @@ export default function BaseItems() {
     setIsSubmitting(true);
     try {
       const refs = Array.from(selectedRefs);
-      for (const ref of refs) {
-        await updateProduct(ref, updates);
-      }
+      await bulkUpdateProducts(refs, updates);
       setSelectedRefs(new Set());
       alert('Ação concluída com sucesso!');
     } catch (err) {
@@ -922,7 +920,7 @@ export default function BaseItems() {
                     {/* Left Column: Image & Promotion */}
                     <div className="space-y-6">
                       <div className="space-y-4">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Galeria de Imagens (Até 7)</label>
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Galeria de Imagens (Até 4)</label>
                         
                         {/* Main Image */}
                         <div className="space-y-2">
@@ -1015,7 +1013,7 @@ export default function BaseItems() {
                           ))}
                           
                           {/* Add More Spot */}
-                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).length < 6 && (
+                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).length < 3 && (
                             <div className="relative w-20 h-20 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-500/5 transition-colors cursor-pointer group">
                               <Plus className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
                               <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit', false)} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />

@@ -82,6 +82,7 @@ interface DataContextType {
   updatePurchase: (id: number, updates: Partial<Purchase>) => Promise<void>;
   clearAllItems: () => Promise<void>;
   clearAllOrders: () => Promise<void>;
+  bulkUpdateProducts: (refs: string[], updates: Partial<ProductCatalogItem>) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -326,6 +327,42 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const bulkUpdateProducts = async (refs: string[], updates: Partial<ProductCatalogItem>) => {
+    try {
+      const currentManual = [...(data.manual_products_catalog || [])];
+      const excelProducts = data.products_catalog || [];
+      const updatedManualItems = [...currentManual];
+      const refsNotInManual = new Set(refs);
+
+      // 1. Update items already in manual catalog
+      updatedManualItems.forEach((p, idx) => {
+        if (refsNotInManual.has(p.ref)) {
+          updatedManualItems[idx] = { ...p, ...updates };
+          refsNotInManual.delete(p.ref);
+        }
+      });
+
+      // 2. For refs still in the set, check excel catalog and add to manual
+      if (refsNotInManual.size > 0) {
+        excelProducts.forEach(ep => {
+          if (refsNotInManual.has(ep.ref)) {
+            updatedManualItems.unshift({ ...ep, ...updates });
+          }
+        });
+      }
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'manual_products_catalog', value: updatedManualItems });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, manual_products_catalog: updatedManualItems }));
+    } catch (err) {
+      console.error('Error in bulk update:', err);
+      throw err;
+    }
+  };
+
   const updateSaleStatus = async (idVenda: string, status: string) => {
     try {
       const currentOrders = [...(data.orders || [])];
@@ -495,7 +532,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       deletePurchase,
       updatePurchase,
       clearAllItems,
-      clearAllOrders
+      clearAllOrders,
+      bulkUpdateProducts
     }}>
       {children}
     </DataContext.Provider>
