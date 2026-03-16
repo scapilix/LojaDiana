@@ -16,6 +16,7 @@ import Encomendas from '../pages/Encomendas';
 import Loja from '../pages/Loja';
 import Settings from '../pages/Settings';
 import POS from '../pages/POS';
+import Variacoes from '../pages/Variacoes';
 
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
@@ -64,6 +65,7 @@ function AppRoutes() {
                   <Route path="cadastro-vendas" element={<CadastroVendas />} />
                   <Route path="encomendas" element={<Encomendas />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="variacoes" element={<Variacoes />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

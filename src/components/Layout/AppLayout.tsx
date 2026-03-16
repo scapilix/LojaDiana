@@ -22,7 +22,8 @@ import {
   ClipboardList,
   ShoppingBag,
   Settings,
-  Store
+  Store,
+  Layers
 } from 'lucide-react';
 
 
@@ -74,6 +75,7 @@ const navGroups = [
   {
     label: 'Sistema',
     items: [
+      { id: 'variacoes', label: 'Variações', icon: Layers, path: '/variacoes' },
       { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
       { id: 'loja', label: 'Ver Loja Online', icon: ShoppingBag, path: '/loja' },
     ]

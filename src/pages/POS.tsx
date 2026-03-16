@@ -82,13 +82,16 @@ export default function POS() {
 
     const categories = useMemo(() => {
         const cats = new Set<string>();
-        stockInventory.forEach(p => {
-            if (p.categoria) cats.add(p.categoria);
-        });
-        // Include categories from settings
+        // First, add all categories defined in the "Variáveis" section
         if (data.categories) {
-            data.categories.forEach(cat => cats.add(cat));
+            data.categories.forEach(cat => {
+                if (cat?.trim()) cats.add(cat.trim());
+            });
         }
+        // Then, add any categories that might exist in products but not in the global list
+        stockInventory.forEach(p => {
+            if (p.categoria?.trim()) cats.add(p.categoria.trim());
+        });
         return Array.from(cats).sort();
     }, [stockInventory, data.categories]);
 

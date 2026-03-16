@@ -54,11 +54,9 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateSizes, updateColors, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
+  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateVariations, updateCategories, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [newSizeInput, setNewSizeInput] = useState('');
-  const [newColorInput, setNewColorInput] = useState('');
   const [editingItem, setEditingItem] = useState<ProductCatalogItem | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,11 +114,18 @@ export default function BaseItems() {
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    products.forEach(p => {
-      if (p.categoria) cats.add(p.categoria);
+    // Only include non-empty categories from products
+    stockInventory.forEach(p => {
+        if (p.categoria?.trim()) cats.add(p.categoria.trim());
     });
+    // Include categories from settings (variations page)
+    if (data.categories) {
+        data.categories.forEach(cat => {
+            if (cat?.trim()) cats.add(cat.trim());
+        });
+    }
     return Array.from(cats).sort();
-  }, [products]);
+  }, [stockInventory, data.categories]);
 
   const filteredProducts = useMemo(() => {
     // Index stockInventory for O(1) lookup during filter
@@ -383,85 +388,22 @@ export default function BaseItems() {
     }
   };
 
-  const handleToggleSize = (size: string) => {
+  const handleToggleVariation = (varId: string, option: string) => {
+    const field = varId === 'sizes' ? 'sizes' : (varId === 'colors' ? 'colors' : null);
+    if (!field) return;
+
     if (isAddingNew) {
-      const currentSizes = newItem.sizes || [];
+      const currentValues = newItem[field] || [];
       setNewItem({
         ...newItem,
-        sizes: currentSizes.includes(size) ? currentSizes.filter(s => s !== size) : [...currentSizes, size]
+        [field]: currentValues.includes(option) ? currentValues.filter(v => v !== option) : [...currentValues, option]
       });
     } else if (editingItem) {
-      const currentSizes = editingItem.sizes || [];
+      const currentValues = editingItem[field] || [];
       setEditingItem({
         ...editingItem,
-        sizes: currentSizes.includes(size) ? currentSizes.filter(s => s !== size) : [...currentSizes, size]
+        [field]: currentValues.includes(option) ? currentValues.filter(v => v !== option) : [...currentValues, option]
       });
-    }
-  };
-
-  const handleToggleColor = (color: string) => {
-    if (isAddingNew) {
-      const currentColors = newItem.colors || [];
-      setNewItem({
-        ...newItem,
-        colors: currentColors.includes(color) ? currentColors.filter(c => c !== color) : [...currentColors, color]
-      });
-    } else if (editingItem) {
-      const currentColors = editingItem.colors || [];
-      setEditingItem({
-        ...editingItem,
-        colors: currentColors.includes(color) ? currentColors.filter(c => c !== color) : [...currentColors, color]
-      });
-    }
-  };
-
-  const handleQuickAddSize = async () => {
-    if (!newSizeInput.trim()) return;
-    const newSize = newSizeInput.trim().toUpperCase();
-    const currentGlobalSizes = data.sizes || [];
-    if (!currentGlobalSizes.includes(newSize)) {
-      await updateSizes([...currentGlobalSizes, newSize]);
-    }
-    handleToggleSize(newSize);
-    setNewSizeInput('');
-  };
-
-  const handleQuickAddColor = async () => {
-    if (!newColorInput.trim()) return;
-    const newColor = newColorInput.trim();
-    const currentGlobalColors = data.colors || [];
-    if (!currentGlobalColors.includes(newColor)) {
-      await updateColors([...currentGlobalColors, newColor]);
-    }
-    handleToggleColor(newColor);
-    setNewColorInput('');
-  };
-
-  const handleDeleteSize = async (sizeToDelete: string) => {
-    if (!confirm(`Deseja remover o tamanho "${sizeToDelete}" da lista global?`)) return;
-    const currentGlobalSizes = data.sizes || [];
-    const newGlobalSizes = currentGlobalSizes.filter(s => s !== sizeToDelete);
-    await updateSizes(newGlobalSizes);
-    
-    // Also remove from current item if selected
-    if (isAddingNew && newItem.sizes?.includes(sizeToDelete)) {
-      setNewItem({ ...newItem, sizes: newItem.sizes.filter(s => s !== sizeToDelete) });
-    } else if (editingItem && editingItem.sizes?.includes(sizeToDelete)) {
-      setEditingItem({ ...editingItem, sizes: editingItem.sizes.filter(s => s !== sizeToDelete) });
-    }
-  };
-
-  const handleDeleteColor = async (colorToDelete: string) => {
-    if (!confirm(`Deseja remover a cor "${colorToDelete}" da lista global?`)) return;
-    const currentGlobalColors = data.colors || [];
-    const newGlobalColors = currentGlobalColors.filter(c => c !== colorToDelete);
-    await updateColors(newGlobalColors);
-
-    // Also remove from current item if selected
-    if (isAddingNew && newItem.colors?.includes(colorToDelete)) {
-      setNewItem({ ...newItem, colors: newItem.colors.filter(c => c !== colorToDelete) });
-    } else if (editingItem && editingItem.colors?.includes(colorToDelete)) {
-      setEditingItem({ ...editingItem, colors: editingItem.colors.filter(c => c !== colorToDelete) });
     }
   };
 
@@ -1171,127 +1113,56 @@ export default function BaseItems() {
                       </div>
 
                       <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
-                        {/* Tamanhos */}
-                        <div className="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/20">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Tag className="w-4 h-4 text-emerald-500" />
-                            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Tamanhos Disponíveis</h4>
-                            <button
-                              type="button"
-                              onClick={() => isAddingNew ? setNewItem({ ...newItem, sizes: [] }) : setEditingItem(prev => prev ? ({ ...prev, sizes: [] }) : null)}
-                              className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors ml-2"
-                            >
-                              Limpar
-                            </button>
-                            <div className="flex items-center gap-1 ml-auto">
-                              <input
-                                type="text"
-                                placeholder="..."
-                                value={newSizeInput}
-                                onChange={(e) => setNewSizeInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleQuickAddSize())}
-                                className="w-16 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold focus:ring-1 focus:ring-emerald-500 outline-none"
-                              />
+                        {/* Variações Dinâmicas */}
+                        {(data.variations || []).map((variation) => (
+                          <div key={variation.id} className={`p-4 rounded-2xl border space-y-4 ${
+                            variation.id === 'sizes' ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-100/50 dark:border-emerald-800/20' :
+                            variation.id === 'colors' ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-100/50 dark:border-blue-800/20' :
+                            'bg-slate-50/50 dark:bg-slate-800/50 border-slate-100 dark:border-white/5'
+                          }`}>
+                            <div className="flex items-center gap-2 mb-3">
+                              {variation.id === 'sizes' ? <Tag className="w-4 h-4 text-emerald-500" /> : <Tag className="w-4 h-4 text-blue-500" />}
+                              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                {variation.name}
+                              </h4>
                               <button
                                 type="button"
-                                onClick={handleQuickAddSize}
-                                className="p-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-600 hover:text-white transition-all"
+                                onClick={() => {
+                                  const field = variation.id === 'sizes' ? 'sizes' : (variation.id === 'colors' ? 'colors' : null);
+                                  if (!field) return;
+                                  isAddingNew ? setNewItem({ ...newItem, [field]: [] }) : setEditingItem(prev => prev ? ({ ...prev, [field]: [] }) : null);
+                                }}
+                                className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors ml-2"
                               >
-                                <Plus className="w-3 h-3" />
+                                Limpar
                               </button>
                             </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {(data.sizes || []).map(size => {
-                              const isSelected = isAddingNew ? newItem.sizes?.includes(size) : editingItem?.sizes?.includes(size);
-                              return (
-                                <div key={size} className="relative group/tag">
+                            <div className="flex flex-wrap gap-2">
+                              {variation.options.map(option => {
+                                const field = variation.id === 'sizes' ? 'sizes' : (variation.id === 'colors' ? 'colors' : null);
+                                const isSelected = field ? (isAddingNew ? newItem[field]?.includes(option) : editingItem?.[field]?.includes(option)) : false;
+                                return (
                                   <button
+                                    key={option}
                                     type="button"
-                                    onClick={() => handleToggleSize(size)}
+                                    onClick={() => handleToggleVariation(variation.id, option)}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${isSelected
-                                      ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20 pr-8'
-                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-emerald-300 pr-8'
+                                      ? (variation.id === 'sizes' 
+                                          ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20' 
+                                          : 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/20')
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-purple-300'
                                       }`}
                                   >
-                                    {size}
+                                    {option}
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteSize(size); }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-current transition-colors opacity-60 hover:opacity-100"
-                                  >
-                                    <X className="w-2.5 h-2.5" />
-                                  </button>
-                                </div>
-                              );
-                            })}
-                            {(!data.sizes || data.sizes.length === 0) && (
-                              <p className="text-[10px] text-slate-400 italic">Nenhum tamanho definido. Adicione no campo acima.</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Cores */}
-                        <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-800/20">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Tag className="w-4 h-4 text-blue-500" />
-                            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Cores Disponíveis</h4>
-                            <button
-                              type="button"
-                              onClick={() => isAddingNew ? setNewItem({ ...newItem, colors: [] }) : setEditingItem(prev => prev ? ({ ...prev, colors: [] }) : null)}
-                              className="text-[8px] text-red-500 hover:text-red-600 font-bold uppercase transition-colors ml-2"
-                            >
-                              Limpar
-                            </button>
-                            <div className="flex items-center gap-1 ml-auto">
-                              <input
-                                type="text"
-                                placeholder="..."
-                                value={newColorInput}
-                                onChange={(e) => setNewColorInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleQuickAddColor())}
-                                className="w-16 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold focus:ring-1 focus:ring-blue-500 outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={handleQuickAddColor}
-                                className="p-1 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-600 hover:text-white transition-all"
-                              >
-                                <Plus className="w-3 h-3" />
-                              </button>
+                                );
+                              })}
+                              {variation.options.length === 0 && (
+                                <p className="text-[10px] text-slate-400 italic">Nenhuma opção definida em Variáveis.</p>
+                              )}
                             </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {(data.colors || []).map(color => {
-                              const isSelected = isAddingNew ? newItem.colors?.includes(color) : editingItem?.colors?.includes(color);
-                              return (
-                                <div key={color} className="relative group/tag">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleToggleColor(color)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border capitalize ${isSelected
-                                      ? 'bg-blue-500 text-white border-blue-600 shadow-md shadow-blue-500/20 pr-8'
-                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300 pr-8'
-                                      }`}
-                                  >
-                                    {color}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteColor(color); }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-current transition-colors opacity-60 hover:opacity-100"
-                                  >
-                                    <X className="w-2.5 h-2.5" />
-                                  </button>
-                                </div>
-                              );
-                            })}
-                            {(!data.colors || data.colors.length === 0) && (
-                              <p className="text-[10px] text-slate-400 italic">Nenhuma cor definida. Adicione no campo acima.</p>
-                            )}
-                          </div>
-                        </div>
+                        ))}
 
                         {/* Imagens por Cor */}
                         {((isAddingNew ? newItem.colors : editingItem?.colors)?.length || 0) > 0 && (
@@ -1440,7 +1311,7 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhum</option>
-                          {((editingItem?.sizes && editingItem.sizes.length > 0) ? editingItem.sizes : (data.sizes || [])).map(s => (
+                          {(data.variations?.find(v => v.id === 'sizes')?.options || []).map(s => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
@@ -1453,7 +1324,7 @@ export default function BaseItems() {
                           className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
                         >
                           <option value="">Nenhuma</option>
-                          {((editingItem?.colors && editingItem.colors.length > 0) ? editingItem.colors : (data.colors || [])).map(c => (
+                          {(data.variations?.find(v => v.id === 'colors')?.options || []).map(c => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>

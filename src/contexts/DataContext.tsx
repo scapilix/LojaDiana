@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+export interface Variation {
+  id: string;
+  name: string;
+  options: string[];
+}
+
 export interface ProductCatalogItem {
   ref: string;
   nome_artigo: string;
@@ -40,6 +46,7 @@ interface ExcelData {
     heroImages?: string[];
   };
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
+  variations?: Variation[];
   timestamp?: string;
 }
 
@@ -83,6 +90,7 @@ interface DataContextType {
   clearAllItems: () => Promise<void>;
   clearAllOrders: () => Promise<void>;
   bulkUpdateProducts: (refs: string[], updates: Partial<ProductCatalogItem>) => Promise<void>;
+  updateVariations: (variations: Variation[]) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -111,7 +119,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const { data: stateData, error } = await supabase
         .from('loja_app_state')
         .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings']);
+        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations']);
 
       if (stateData && !error) {
         const updates: Partial<ExcelData> = {};
@@ -124,7 +132,27 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           if (item.key === 'sizes') updates.sizes = item.value;
           if (item.key === 'colors') updates.colors = item.value;
           if (item.key === 'app_settings') updates.appSettings = item.value;
+          if (item.key === 'variations') updates.variations = item.value;
         });
+
+        // Migration logic: If variations don't exist but sizes/colors do
+        if (!updates.variations && (updates.sizes || updates.colors)) {
+          console.log('Migrating sizes/colors to variations...');
+          const migratedVariations: Variation[] = [];
+          if (updates.sizes && updates.sizes.length > 0) {
+            migratedVariations.push({ id: 'sizes', name: 'Tamanhos', options: updates.sizes });
+          }
+          if (updates.colors && updates.colors.length > 0) {
+            migratedVariations.push({ id: 'colors', name: 'Cores', options: updates.colors });
+          }
+          if (migratedVariations.length > 0) {
+            updates.variations = migratedVariations;
+            // Optionally persist back to Supabase here or let the first update save it
+            supabase.from('loja_app_state').upsert({ key: 'variations', value: migratedVariations }).then(({ error }) => {
+                if (error) console.error('Migration persistence error:', error);
+            });
+          }
+        }
 
         if (Object.keys(updates).length > 0) {
           setData(prev => ({ ...prev, ...updates }));
@@ -519,6 +547,20 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const updateVariations = async (variations: Variation[]) => {
+    try {
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'variations', value: variations });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, variations }));
+    } catch (err) {
+      console.error('Error updating variations:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -533,7 +575,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       updatePurchase,
       clearAllItems,
       clearAllOrders,
-      bulkUpdateProducts
+      bulkUpdateProducts,
+      updateVariations
     }}>
       {children}
     </DataContext.Provider>
