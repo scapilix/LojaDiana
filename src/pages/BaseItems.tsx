@@ -482,7 +482,7 @@ export default function BaseItems() {
     >
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div>
-          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Gestão de Itens</h1>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Produtos</h1>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Cadastro e edição de produtos do catálogo</p>
         </div>
 

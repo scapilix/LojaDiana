@@ -52,7 +52,7 @@ const navGroups = [
   {
     label: 'Catálogo',
     items: [
-      { id: 'base-itens', label: 'Gestão de Itens', icon: Tag, path: '/base-itens' },
+      { id: 'base-itens', label: 'Produtos', icon: Tag, path: '/base-itens' },
       { id: 'produtos', label: 'Análise de Produtos', icon: Package, path: '/produtos' },
       { id: 'stock-manager', label: 'Gestão de Inventário', icon: Box, path: '/stock-manager' },
     ]

@@ -64,7 +64,7 @@ function Produtos() {
     >
       <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Gestão de Itens</h1>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Produtos</h1>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest opacity-60">Catálogo e Stock em Tempo Real</p>
         </div>
 
