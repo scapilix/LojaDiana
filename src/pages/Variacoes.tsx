@@ -1,17 +1,16 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
     Layers,
     Tag,
     Plus,
     Trash2,
-    Save,
     ChevronRight,
     GripVertical,
     CheckCircle2,
     AlertCircle,
-    Loader2,
-    Box
+    Box,
+    Search
 } from 'lucide-react';
 import { useData, Variation } from '../contexts/DataContext';
 
@@ -28,32 +27,54 @@ export default function Variacoes() {
     const [showStatus, setShowStatus] = useState<'success' | 'error' | null>(null);
     const [activeSection, setActiveSection] = useState<'categories' | 'variations'>('categories');
 
-    // Local states
+    const [catSearch, setCatSearch] = useState('');
     const [localCategories, setLocalCategories] = useState<string[]>(data.categories || []);
     const [localVariations, setLocalVariations] = useState<Variation[]>(data.variations || []);
-    
     const [newCategory, setNewCategory] = useState('');
     const [newVarName, setNewVarName] = useState('');
     const [newOption, setNewOption] = useState('');
 
+    // Sync from context when it changes externally
+    useEffect(() => {
+        setLocalCategories(data.categories || []);
+        setLocalVariations(data.variations || []);
+    }, [data.categories, data.variations]);
+
+    // Instant/Auto Sync Effect
+    useEffect(() => {
+        const timeout = setTimeout(async () => {
+            let changed = false;
+            if (JSON.stringify(localCategories) !== JSON.stringify(data.categories)) {
+                changed = true;
+            }
+            if (JSON.stringify(localVariations) !== JSON.stringify(data.variations)) {
+                changed = true;
+            }
+
+            if (changed) {
+                setIsSaving(true);
+                try {
+                    await Promise.all([
+                        updateCategories(localCategories),
+                        updateVariations(localVariations)
+                    ]);
+                    setShowStatus('success');
+                } catch (err) {
+                    setShowStatus('error');
+                } finally {
+                    setIsSaving(false);
+                    setTimeout(() => setShowStatus(null), 3000);
+                }
+            }
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [localCategories, localVariations]);
+
     const currentVariation = localVariations.find(v => v.id === selectedVarId);
 
-    // Handlers
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            await Promise.all([
-                updateCategories(localCategories),
-                updateVariations(localVariations)
-            ]);
-            setShowStatus('success');
-        } catch (err) {
-            setShowStatus('error');
-        } finally {
-            setIsSaving(false);
-            setTimeout(() => setShowStatus(null), 3000);
-        }
-    };
+    const filteredCategories = useMemo(() => {
+        return localCategories.filter(c => c.toLowerCase().includes(catSearch.toLowerCase()));
+    }, [localCategories, catSearch]);
 
     const addCategory = () => {
         if (newCategory.trim() && !localCategories.includes(newCategory.trim())) {
@@ -126,14 +147,13 @@ export default function Variacoes() {
                 </div>
 
                 <div className="flex gap-3">
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="px-6 py-3 bg-purple-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                        Salvar Alterações
-                    </button>
+                    {/* Replaced Save button with indicator */}
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-100 dark:border-white/5">
+                        <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                            {isSaving ? 'Sincronizando...' : 'Sistema Sincronizado'}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -161,6 +181,16 @@ export default function Variacoes() {
                             {activeSection === 'categories' ? (
                                 <>
                                     <div className="relative mb-4">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            value={catSearch}
+                                            onChange={(e) => setCatSearch(e.target.value)}
+                                            placeholder="Filtrar categorias..."
+                                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                        />
+                                    </div>
+                                    <div className="relative mb-4">
                                         <input
                                             type="text"
                                             value={newCategory}
@@ -173,14 +203,23 @@ export default function Variacoes() {
                                             <Plus className="w-5 h-5" />
                                         </button>
                                     </div>
-                                    {localCategories.map((cat) => (
-                                        <div key={cat} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl group hover:border-purple-200 transition-all">
-                                            <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{cat}</span>
-                                            <button onClick={() => removeCategory(cat)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    ))}
+                                    <Reorder.Group axis="y" values={localCategories} onReorder={setLocalCategories} className="space-y-2">
+                                        {filteredCategories.map((cat) => (
+                                            <Reorder.Item 
+                                                key={cat} 
+                                                value={cat}
+                                                className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl group hover:border-purple-200 transition-all cursor-grab active:cursor-grabbing"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <GripVertical className="w-3.5 h-3.5 text-slate-300 group-hover:text-purple-400" />
+                                                    <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{cat}</span>
+                                                </div>
+                                                <button onClick={() => removeCategory(cat)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </Reorder.Item>
+                                        ))}
+                                    </Reorder.Group>
                                 </>
                             ) : (
                                 <>
@@ -197,32 +236,36 @@ export default function Variacoes() {
                                             <Plus className="w-5 h-5" />
                                         </button>
                                     </div>
-                                    {localVariations.map((v) => (
-                                        <div 
-                                            key={v.id} 
-                                            onClick={() => setSelectedVarId(v.id)}
-                                            className={`flex items-center justify-between p-3 border rounded-xl group transition-all cursor-pointer ${selectedVarId === v.id ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-700 dark:text-slate-200 hover:border-purple-200'}`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[10px] ${selectedVarId === v.id ? 'bg-white/20' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-500'}`}>
-                                                    {v.options.length}
+                                    <Reorder.Group axis="y" values={localVariations} onReorder={setLocalVariations} className="space-y-2">
+                                        {localVariations.map((v) => (
+                                            <Reorder.Item 
+                                                key={v.id} 
+                                                value={v}
+                                                onClick={() => setSelectedVarId(v.id)}
+                                                className={`flex items-center justify-between p-3 border rounded-xl group transition-all cursor-grab active:cursor-grabbing ${selectedVarId === v.id ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-700 dark:text-slate-200 hover:border-purple-200'}`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <GripVertical className={`w-3.5 h-3.5 ${selectedVarId === v.id ? 'text-white/40' : 'text-slate-300'}`} />
+                                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[10px] ${selectedVarId === v.id ? 'bg-white/20' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-500'}`}>
+                                                        {v.options.length}
+                                                    </div>
+                                                    <span className="font-black text-[10px] tracking-tight truncate">{v.name}</span>
                                                 </div>
-                                                <span className="font-black text-[10px] tracking-tight truncate">{v.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        removeVariation(v.id);
-                                                    }} 
-                                                    className={`p-1 transition-colors ${selectedVarId === v.id ? 'text-white/60 hover:text-white' : 'text-slate-300 hover:text-rose-500'}`}
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                                <ChevronRight className={`w-3.5 h-3.5 ${selectedVarId === v.id ? 'text-white' : 'text-slate-300'}`} />
-                                            </div>
-                                        </div>
-                                    ))}
+                                                <div className="flex items-center gap-1">
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeVariation(v.id);
+                                                        }} 
+                                                        className={`p-1 transition-colors ${selectedVarId === v.id ? 'text-white/60 hover:text-white' : 'text-slate-300 hover:text-rose-500'}`}
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <ChevronRight className={`w-3.5 h-3.5 ${selectedVarId === v.id ? 'text-white' : 'text-slate-300'}`} />
+                                                </div>
+                                            </Reorder.Item>
+                                        ))}
+                                    </Reorder.Group>
                                 </>
                             )}
                         </div>
@@ -270,12 +313,23 @@ export default function Variacoes() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pt-4">
+                                    <Reorder.Group 
+                                        axis="y" 
+                                        values={currentVariation?.options || []} 
+                                        onReorder={(newOpts) => {
+                                            if (selectedVarId) {
+                                                setLocalVariations(localVariations.map(v => 
+                                                    v.id === selectedVarId ? { ...v, options: newOpts } : v
+                                                ));
+                                            }
+                                        }}
+                                        className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pt-4"
+                                    >
                                         {currentVariation?.options.map((opt, idx) => (
-                                            <motion.div 
-                                                layout
-                                                key={idx} 
-                                                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl group hover:border-purple-300 transition-all"
+                                            <Reorder.Item 
+                                                key={opt}
+                                                value={opt}
+                                                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl group hover:border-purple-300 transition-all cursor-grab active:cursor-grabbing"
                                             >
                                                 <div className="flex items-center gap-2 overflow-hidden">
                                                     <GripVertical className="w-3 h-3 text-slate-300 flex-shrink-0" />
@@ -284,9 +338,9 @@ export default function Variacoes() {
                                                 <button onClick={() => removeOption(idx)} className="p-1 text-slate-400 hover:text-rose-500 transition-colors">
                                                     <Trash2 className="w-3 h-3" />
                                                 </button>
-                                            </motion.div>
+                                            </Reorder.Item>
                                         ))}
-                                    </div>
+                                    </Reorder.Group>
 
                                     {(!currentVariation?.options || currentVariation.options.length === 0) && (
                                         <div className="text-center py-20 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-[2rem]">

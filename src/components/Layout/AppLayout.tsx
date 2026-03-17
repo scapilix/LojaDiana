@@ -54,6 +54,7 @@ const navGroups = [
     items: [
       { id: 'base-itens', label: 'Produtos', icon: Tag, path: '/base-itens' },
       { id: 'produtos', label: 'Análise de Produtos', icon: Package, path: '/produtos' },
+      { id: 'variacoes', label: 'Variáveis', icon: Layers, path: '/variacoes' },
       { id: 'stock-manager', label: 'Gestão de Inventário', icon: Box, path: '/stock-manager' },
     ]
   },
@@ -75,7 +76,6 @@ const navGroups = [
   {
     label: 'Sistema',
     items: [
-      { id: 'variacoes', label: 'Variáveis', icon: Layers, path: '/variacoes' },
       { id: 'settings', label: 'Configurações', icon: Settings, path: '/settings' },
       { id: 'loja', label: 'Ver Loja Online', icon: ShoppingBag, path: '/loja' },
     ]
