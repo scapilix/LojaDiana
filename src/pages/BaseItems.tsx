@@ -1197,7 +1197,7 @@ export default function BaseItems() {
                                 Limpar
                               </button>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-col gap-2">
                               {variation.options.map(option => {
                                 const field = variation.id === 'sizes' ? 'sizes' : (variation.id === 'colors' ? 'colors' : null);
                                 const isSelected = field ? (isAddingNew ? newItem[field]?.includes(option) : editingItem?.[field]?.includes(option)) : false;
@@ -1231,7 +1231,7 @@ export default function BaseItems() {
                               <Camera className="w-4 h-4 text-purple-500" />
                               <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Imagens por Cor (Opcional)</h4>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-3">
                               {(isAddingNew ? newItem.colors : editingItem?.colors)?.map(color => {
                                 const images = isAddingNew ? (newItem.color_images || {}) : (editingItem?.color_images || {});
                                 const imageUrl = images[color];

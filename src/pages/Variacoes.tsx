@@ -323,7 +323,7 @@ export default function Variacoes() {
                                                 ));
                                             }
                                         }}
-                                        className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pt-4"
+                                        className="flex flex-col gap-2 pt-4"
                                     >
                                         {currentVariation?.options.map((opt, idx) => (
                                             <Reorder.Item 
