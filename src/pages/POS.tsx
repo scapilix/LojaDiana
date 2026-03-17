@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
@@ -7,9 +8,9 @@ import { useData } from '../contexts/DataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
 import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
-import { useEffect } from 'react';
 
 export default function POS() {
+    const navigate = useNavigate();
     const {
         cart, addToCart, updateItemDiscount, updateItemPrice, updateQuantity, removeFromCart, clearCart,
         cartTotal, cartDiscount, cartDiscountType, cartActualDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
@@ -258,6 +259,10 @@ export default function POS() {
                 setBalanceUsed(0);
                 setSelectedCustomer({ nome: 'Cliente Avulso', saldo: 0 });
                 setCustomerSearchTerm('');
+
+                if (saleStatus === 'Draft/Espera') {
+                    navigate('/encomendas');
+                }
             }
         });
         if (success) {
@@ -937,7 +942,18 @@ export default function POS() {
                                     </div>
                                     <div className="flex gap-4 pt-2">
                                         <button onClick={() => setCheckoutStep(1)} className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Voltar</button>
-                                        <button onClick={() => setCheckoutStep(3)} className="flex-1 py-3 bg-primary text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Próximo</button>
+                                        <button 
+                                            onClick={() => {
+                                                if (saleStatus === 'Draft/Espera') {
+                                                    handleFinalizeSale();
+                                                } else {
+                                                    setCheckoutStep(3);
+                                                }
+                                            }} 
+                                            className={`flex-1 py-3 font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${saleStatus === 'Draft/Espera' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-primary text-white shadow-primary/20'}`}
+                                        >
+                                            {saleStatus === 'Draft/Espera' ? 'Salvar Pedido' : 'Próximo'}
+                                        </button>
                                     </div>
                                 </motion.div>
                             )}
