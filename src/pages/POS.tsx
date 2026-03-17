@@ -798,7 +798,7 @@ export default function POS() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-auto px-2 pb-8">
+                <div className="flex items-center gap-2 mt-auto px-2 pb-3">
                     <button
                         onClick={() => {
                             setCheckoutStep(1);
