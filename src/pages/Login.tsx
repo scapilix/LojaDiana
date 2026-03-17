@@ -4,13 +4,14 @@ import { motion } from 'framer-motion';
 import { Lock, User, BarChart3, AlertCircle } from 'lucide-react';
 
 export default function Login() {
+  const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState(false);
   const { login, isSyncing } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(passwordInput);
+    const success = await login(usernameInput, passwordInput);
     if (success) {
       window.location.hash = '#/'; // Go to dashboard
     } else {
@@ -49,9 +50,10 @@ export default function Login() {
                 </div>
                 <input
                   type="text"
-                  readOnly
-                  value="Diana"
-                  className="block w-full pl-11 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black focus:outline-none cursor-default"
+                  placeholder="Utilizador"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  className="block w-full pl-11 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all placeholder:text-slate-700"
                 />
               </div>
             </div>

@@ -23,7 +23,8 @@ import {
   ShoppingBag,
   Settings,
   Store,
-  Layers
+  Layers,
+  Video
 } from 'lucide-react';
 
 
@@ -46,6 +47,7 @@ const navGroups = [
       { id: 'pos', label: 'POS', icon: Store, path: '/pos' },
       { id: 'cadastro-vendas', label: 'Nova Venda', icon: PlusCircle, path: '/cadastro-vendas' },
       { id: 'encomendas', label: 'Pedidos / Encomendas', icon: ClipboardList, path: '/encomendas' },
+      { id: 'diretos', label: 'Diretos / Live', icon: Video, path: '/diretos' },
       { id: 'portes', label: 'Logística & Retornos', icon: Truck, path: '/portes' },
     ]
   },

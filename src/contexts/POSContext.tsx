@@ -29,6 +29,7 @@ interface FinalizeOptions {
     notes?: string;
     discountTotal?: number;
     onSaleComplete?: () => void;
+    isDireto?: boolean;
 }
 
 interface POSContextType {
@@ -222,7 +223,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     const finalizeSale = async (options: FinalizeOptions & { balanceUsed?: number }) => {
-        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete, balanceUsed = 0 } = options;
+        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete, balanceUsed = 0, isDireto = false } = options;
         if (cart.length === 0) return false;
 
         setIsProcessing(true);
@@ -251,13 +252,14 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 nif: nif || selectedCustomer?.nif || null,
                 total: cartTotal - balanceUsed,
                 forma_de_pagamento: balanceUsed > 0 ? `${paymentMethod} + Saldo` : paymentMethod,
-                status: status,
+                status: isDireto ? 'Pendente Direto' : status,
                 sales_channel: 'pos',
                 is_gift: isGift || false,
                 notes: notes || null,
                 discount_total: (discountTotal || cartActualDiscount) + balanceUsed,
                 shipping_type: shippingType,
-                shipping_cost: shippingCost
+                shipping_cost: shippingCost,
+                is_direto: isDireto
             };
 
             const { data: newOrder, error: orderError } = await supabase
@@ -314,8 +316,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 instagram: orderToInsert.instagram,
                 forma_de_pagamento: paymentMethod,
                 data_venda: new Date().toISOString(),
-                status: 'Concluída',
+                status: isDireto ? 'Pendente Direto' : 'Concluída',
                 sales_channel: 'pos',
+                is_direto: isDireto,
                 shipping_type: shippingType,
                 shipping_cost: shippingCost,
                 items: cart.map(item => ({
@@ -354,7 +357,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     // Legacy fallback if `orders` table doesn't exist yet
-    const finalizeLegacy = async (paymentMethod: string, status = 'Concluída', nif?: string, notes?: string, discountTotal?: number) => {
+    const finalizeLegacy = async (paymentMethod: string, status = 'Concluída', nif?: string, notes?: string, discountTotal?: number, isDireto = false) => {
         const legacyOrderFormat = {
             id_venda: `#${data.orders?.length || 0}`,
             pvp: cartTotal,
@@ -378,8 +381,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
             notes: notes || '',
             forma_de_pagamento: paymentMethod,
             data_venda: new Date().toISOString(),
-            status: status,
+            status: isDireto ? 'Pendente Direto' : status,
             sales_channel: 'pos',
+            is_direto: isDireto,
             discount_total: discountTotal || cartActualDiscount,
             shipping_type: shippingType,
             shipping_cost: shippingCost,

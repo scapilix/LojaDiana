@@ -6,6 +6,8 @@ import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
+import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
+import { useEffect } from 'react';
 
 export default function POS() {
     const {
@@ -33,6 +35,7 @@ export default function POS() {
     const [cashReceived, setCashReceived] = useState<string>('');
     const [nif, setNif] = useState('');
     const [isGift, setIsGift] = useState(false);
+    const [isDiretoSale, setIsDiretoSale] = useState(false);
     const [saleNotes, setSaleNotes] = useState('');
     const [saleStatus, setSaleStatus] = useState<'Concluída' | 'Draft/Espera'>('Concluída');
 
@@ -60,6 +63,17 @@ export default function POS() {
         baseValue: number;
         title: string;
     }>({ isOpen: false, type: 'total', baseValue: 0, title: '' });
+    const [printOrder, setPrintOrder] = useState<any>(null);
+
+    // Automatic Printing Effect
+    useEffect(() => {
+        if (printOrder) {
+            setTimeout(() => {
+                window.print();
+                setPrintOrder(null);
+            }, 500);
+        }
+    }, [printOrder]);
 
     const filteredCustomers = useMemo(() => {
         if (!customerSearchTerm) return [];
@@ -205,7 +219,7 @@ export default function POS() {
         setIsCartCollapsed(false);
     };
 
-    const handleFinalizeSale = async () => {
+    const handleFinalizeSale = async (options?: { isDireto?: boolean }) => {
         const success = await finalizeSale({
             paymentMethod,
             status: saleStatus,
@@ -213,7 +227,30 @@ export default function POS() {
             isGift,
             notes: saleNotes,
             balanceUsed: balanceUsed,
+            isDireto: options?.isDireto,
             onSaleComplete: () => {
+                // If the sale is finalized (not a draft), trigger the receipt
+                if (saleStatus === 'Concluída') {
+                    setPrintOrder({
+                        id_venda: `#${data.orders?.length || 0}`,
+                        data_venda: new Date().toISOString(),
+                        nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
+                        nif: nif || selectedCustomer?.nif,
+                        total: cartTotal,
+                        forma_de_pagamento: balanceUsed > 0 ? `${paymentMethod} + Saldo` : paymentMethod,
+                        discount_total: cartActualDiscount + balanceUsed,
+                        notes: saleNotes,
+                        items: cart.map(item => ({
+                            designacao: item.nome_artigo,
+                            quantidade: item.quantidade,
+                            pvp: item.pvp_cica * item.quantidade,
+                            preco_unitario: item.pvp_cica,
+                            size: item.size,
+                            color: item.color
+                        }))
+                    });
+                }
+
                 setIsCheckoutModalOpen(false);
                 setCheckoutStep(1);
                 setPaymentMethod('');
@@ -879,6 +916,24 @@ export default function POS() {
                                                 {isGift && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                             </div>
                                         </button>
+
+                                        <button
+                                            onClick={() => setIsDiretoSale(!isDiretoSale)}
+                                            className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${isDiretoSale ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-800/40'}`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDiretoSale ? 'bg-indigo-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                                                    <div className="relative">
+                                                        <Package className="w-4 h-4 opacity-40" />
+                                                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 border border-white dark:border-slate-900 rounded-full animate-pulse" />
+                                                    </div>
+                                                </div>
+                                                <span className="font-black text-[10px] text-slate-900 dark:text-white uppercase">Venda em Direto</span>
+                                            </div>
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isDiretoSale ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300'}`}>
+                                                {isDiretoSale && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                            </div>
+                                        </button>
                                     </div>
                                     <div className="flex gap-4 pt-2">
                                         <button onClick={() => setCheckoutStep(1)} className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Voltar</button>
@@ -1018,7 +1073,7 @@ export default function POS() {
                                         <button onClick={() => setCheckoutStep(2)} className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all">Anterior</button>
                                         <button
                                             disabled={!paymentMethod || isProcessing}
-                                            onClick={handleFinalizeSale}
+                                            onClick={() => handleFinalizeSale({ isDireto: isDiretoSale })}
                                             className="flex-2 flex-[2] py-3 bg-emerald-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -1206,6 +1261,11 @@ export default function POS() {
                     <option key={cat} value={cat} />
                 ))}
             </datalist>
+
+            {/* Hidden Receipt for Printing */}
+            <div className="hidden print:block fixed inset-0 z-[9999] bg-white">
+                {printOrder && <ReceiptTemplate order={printOrder} />}
+            </div>
         </motion.div>
     );
 }

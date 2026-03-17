@@ -1,9 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+export interface User {
+  id: string;
+  username: string;
+  role: 'Admin' | 'Vendedor';
+}
+
 interface AuthContextType {
-  user: { name: string } | null;
-  login: (password: string) => Promise<boolean>;
+  user: User | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldP: string, newP: string) => Promise<boolean>;
   isInitialized: boolean;
@@ -12,75 +18,77 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOGGED_KEY = 'antigravity_is_logged';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(true);
-  const [globalPassword, setGlobalPassword] = useState('0000');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    const isLogged = sessionStorage.getItem(LOGGED_KEY) === 'true';
-    if (isLogged) {
-      setUser({ name: 'Diana' });
+    const savedAuth = localStorage.getItem('loja_auth');
+    if (savedAuth) {
+      try {
+        setUser(JSON.parse(savedAuth));
+      } catch (e) {
+        localStorage.removeItem('loja_auth');
+      }
     }
-    fetchGlobalPassword();
     setIsInitialized(true);
   }, []);
 
-  const fetchGlobalPassword = async () => {
+  const login = async (username: string, password: string) => {
     try {
       setIsSyncing(true);
-      const { data, error } = await supabase
-        .from('loja_auth_config')
-        .select('password')
-        .eq('id', 1)
+      const { data: userData, error } = await supabase
+        .from('loja_users')
+        .select('id, username, password, role')
+        .eq('username', username)
+        .eq('password', password)
         .single();
       
-      if (data && !error) {
-        setGlobalPassword(data.password);
+      if (userData && !error) {
+        const userObj: User = { 
+          id: userData.id, 
+          username: userData.username, 
+          role: userData.role as 'Admin' | 'Vendedor'
+        };
+        setUser(userObj);
+        localStorage.setItem('loja_auth', JSON.stringify(userObj));
+        return true;
       }
     } catch (err) {
-      console.error('Failed to sync global password:', err);
+      console.error('Login failed:', err);
     } finally {
       setIsSyncing(false);
-    }
-  };
-
-  const login = async (input: string) => {
-    // Re-fetch password to ensure we have the absolute latest before checking
-    await fetchGlobalPassword();
-    
-    if (input === globalPassword) {
-      setUser({ name: 'Diana' });
-      sessionStorage.setItem(LOGGED_KEY, 'true');
-      return true;
     }
     return false;
   };
 
   const logout = () => {
     setUser(null);
-    sessionStorage.removeItem(LOGGED_KEY);
+    localStorage.removeItem('loja_auth');
   };
 
   const changePassword = async (oldP: string, newP: string) => {
-    // Check against latest known password
-    if (oldP === globalPassword) {
-      try {
-        const { error } = await supabase
-          .from('loja_auth_config')
-          .update({ password: newP, updated_at: new Date().toISOString() })
-          .eq('id', 1);
+    if (!user) return false;
+    
+    try {
+      // First verify old password
+      const { data: verify } = await supabase
+        .from('loja_users')
+        .select('password')
+        .eq('id', user.id)
+        .single();
 
-        if (!error) {
-          setGlobalPassword(newP);
-          return true;
-        }
-      } catch (err) {
-        console.error('Failed to update global password:', err);
+      if (verify?.password === oldP) {
+        const { error } = await supabase
+          .from('loja_users')
+          .update({ password: newP })
+          .eq('id', user.id);
+
+        if (!error) return true;
       }
+    } catch (err) {
+      console.error('Failed to update password:', err);
     }
     return false;
   };

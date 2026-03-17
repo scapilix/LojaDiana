@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Settings as SettingsIcon,
@@ -11,9 +11,15 @@ import {
     AlertCircle,
     Loader2,
     Camera,
-    Image as ImageIcon
+    Image as ImageIcon,
+    UserPlus,
+    UserCircle,
+    Key,
+    Shield
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { uploadToSupabase } from '../lib/upload';
 
 const pageVariants = {
@@ -36,8 +42,48 @@ export default function Settings() {
     });
 
     const [isUploading, setIsUploading] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<'general' | 'users'>('general');
+    
+    // User Management State
+    const [users, setUsers] = useState<any[]>([]);
+    const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Vendedor' });
+    const { user: currentUser } = useAuth();
 
     // Handlers
+    const fetchUsers = async () => {
+        const { data: usersData } = await supabase.from('loja_users').select('*');
+        if (usersData) setUsers(usersData);
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleAddUser = async () => {
+        if (!newUser.username || !newUser.password) return;
+        const { error } = await supabase.from('loja_users').insert([newUser]);
+        if (!error) {
+            fetchUsers();
+            setNewUser({ username: '', password: '', role: 'Vendedor' });
+            setShowStatus('success');
+        } else {
+            setShowStatus('error');
+        }
+    };
+
+    const handleDeleteUser = async (id: string | number) => {
+        if (id === currentUser?.id) {
+            alert('Não pode remover o seu próprio utilizador!');
+            return;
+        }
+        if (confirm('Tem a certeza que deseja remover este utilizador?')) {
+            const { error } = await supabase.from('loja_users').delete().eq('id', id);
+            if (!error) {
+                fetchUsers();
+                setShowStatus('success');
+            }
+        }
+    };
     const handleSaveGeneral = async () => {
         setIsSaving(true);
         try {
@@ -92,22 +138,41 @@ export default function Settings() {
 
                 <div className="flex gap-2 p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
                     <button
-                        className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                        onClick={() => setActiveTab('general')}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                            activeTab === 'general' 
+                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' 
+                            : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-white/5'
+                        }`}
                     >
                         Loja & Contactos
                     </button>
+                    {currentUser?.role === 'Admin' && (
+                        <button
+                            onClick={() => setActiveTab('users')}
+                            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'users' 
+                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' 
+                                : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-white/5'
+                            }`}
+                        >
+                            Utilizadores
+                        </button>
+                    )}
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key="general"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="glass p-8 rounded-[2rem]"
-                    >
+                    {activeTab === 'general' ? (
+                        <motion.div
+                            key="general"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="glass p-8 rounded-[2rem]"
+                        >
+                            {/* ... existing General Settings content ... */}
                             <div className="flex items-center justify-between mb-8">
                                 <div>
                                     <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -229,6 +294,115 @@ export default function Settings() {
                                 </div>
                             </div>
                         </motion.div>
+                    ) : (
+                        <motion.div
+                            key="users"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-6"
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Add User Form */}
+                                <div className="glass p-8 rounded-[2rem] h-fit">
+                                    <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 mb-6 uppercase tracking-tighter">
+                                        <UserPlus className="w-5 h-5 text-purple-500" /> Novo Utilizador
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Utilizador</label>
+                                            <div className="relative">
+                                                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="text"
+                                                    value={newUser.username}
+                                                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
+                                                    placeholder="Nome de utilizador"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Palavra-passe</label>
+                                            <div className="relative">
+                                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="password"
+                                                    value={newUser.password}
+                                                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cargo / Role</label>
+                                            <div className="relative">
+                                                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <select
+                                                    value={newUser.role}
+                                                    onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
+                                                >
+                                                    <option value="Vendedor">Vendedor</option>
+                                                    <option value="Admin">Administrador</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleAddUser}
+                                            className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
+                                        >
+                                            <UserPlus className="w-3.5 h-3.5" />
+                                            Criar Utilizador
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Users List */}
+                                <div className="lg:col-span-2 glass p-8 rounded-[2rem]">
+                                    <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center justify-between mb-8 uppercase tracking-tighter">
+                                        <div className="flex items-center gap-2">
+                                            <Shield className="w-5 h-5 text-purple-500" /> Lista de Utilizadores
+                                        </div>
+                                        <span className="text-[10px] bg-purple-100 dark:bg-purple-500/10 text-purple-600 px-3 py-1 rounded-full">{users.length} ATIVOS</span>
+                                    </h2>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {users.map((u) => (
+                                            <div key={u.id} className="p-5 bg-white/50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 flex items-center justify-between group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 rounded-2xl flex items-center justify-center font-black text-purple-600 text-sm">
+                                                        {u.username.substring(0, 1).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-slate-950 dark:text-white text-sm uppercase tracking-tight">{u.username}</p>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                                u.role === 'Admin' 
+                                                                ? 'bg-rose-500 text-white' 
+                                                                : 'bg-emerald-500 text-white'
+                                                            }`}>
+                                                                {u.role}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {u.id !== currentUser?.id && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(u.id)}
+                                                        className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
                     </AnimatePresence>
                 </div>
 
