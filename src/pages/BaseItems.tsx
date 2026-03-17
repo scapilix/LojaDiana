@@ -3,27 +3,24 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Database,
   Search,
-  Plus, // This icon is explicitly mentioned to be removed from Settings.tsx, but not BaseItems.tsx. Keeping it as it's not explicitly removed from *this* file.
+  Plus,
   Package,
-  History,
-  Tag, // This icon is explicitly mentioned to be removed from Settings.tsx, but not BaseItems.tsx. Keeping it as it's not explicitly removed from *this* file.
+  Tag,
   Loader2,
   Trash2,
-  Eye,
-  EyeOff,
   CheckCircle2,
   X,
-  Edit3,
   Pencil,
   Camera,
   Expand,
-  Globe,
-  GlobeLock,
-  CheckSquare,
   Square,
   Filter,
   Star,
-  StarOff
+  StarOff,
+  Globe,
+  GlobeLock,
+  CheckSquare,
+  GripVertical
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { uploadToSupabase } from '../lib/upload';
@@ -54,30 +51,31 @@ interface ProductCatalogItem {
 }
 
 export default function BaseItems() {
-  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, deletePurchase, updatePurchase, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
+  const { data, addPurchase, addProduct, deleteProduct, updateProduct, bulkUpdateProducts, updateAllProductsVisibility, clearAllItems, isLoading, setData } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItem, setEditingItem] = useState<ProductCatalogItem | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [zoomedProduct, setZoomedProduct] = useState<any>(null);
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'stock'>('details');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
-  const [stockFilter, setStockFilter] = useState<string>('');
-  const stockInventory = useStockLogic();
+    const [zoomedProduct, setZoomedProduct] = useState<any>(null);
+    const [isMigrating, setIsMigrating] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
+    const [stockFilter, setStockFilter] = useState<string>('');
+    const stockInventory = useStockLogic();
 
-  const [stockFormData, setStockFormData] = useState({
-    quantidade: 1,
-    size: '',
-    color: '',
-    data_compra: new Date().toISOString().split('T')[0],
-    preco_custo: ''
-  });
-  const [editingStockId, setEditingStockId] = useState<number | null>(null);
-  const [editingStockData, setEditingStockData] = useState<any>(null);
+    // Image Upload Flow State
+    const [uploadPending, setUploadPending] = useState<{ file: File, target: 'edit' | 'new' } | null>(null);
+    const [showAspectRatioModal, setShowAspectRatioModal] = useState(false);
+
+    // Initial Stock State (New Product Only)
+    const [initialStock, setInitialStock] = useState({
+        enabled: false,
+        quantidade: 1,
+        size: '',
+        color: ''
+    });
 
   const [newItem, setNewItem] = useState<ProductCatalogItem>({
     ref: '',
@@ -166,10 +164,6 @@ export default function BaseItems() {
     return sorted;
   }, [products, searchTerm, selectedCategory, stockFilter, stockInventory]);
 
-  const recentPurchases = useMemo(() => (data.purchases || [])
-    .filter(p => p.ref === editingItem?.ref)
-    .sort((a, b) => new Date(b.data_compra).getTime() - new Date(a.data_compra).getTime())
-    .slice(0, 10), [data.purchases, editingItem?.ref]);
 
 
   const formatCurrency = (val: number) => {
@@ -228,46 +222,44 @@ export default function BaseItems() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'edit' | 'new', isMain: boolean = true) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    try {
-      setIsUploading(true);
-      const urls: string[] = [];
-      
-      for (let i = 0; i < files.length; i++) {
-        const url = await uploadToSupabase(files[i], 'loja_artigos');
-        if (url) urls.push(url);
-      }
-
-      if (urls.length > 0) {
-        if (target === 'edit') {
-          setEditingItem(prev => {
-            if (!prev) return null;
-            if (isMain) {
-              return { ...prev, image_url: urls[0], additional_images: [...(prev.additional_images || []), ...urls.slice(1)] };
-            } else {
-              return { ...prev, additional_images: [...(prev.additional_images || []), ...urls] };
+    const handleFileUpload = async (file: File, target: 'edit' | 'new', aspect: '1:1' | '4:5') => {
+        try {
+            console.log('Uploading image with aspect ratio:', aspect);
+            setIsUploading(true);
+            const url = await uploadToSupabase(file, 'loja_artigos');
+            if (url) {
+                // Add aspect ratio suffix or metadata if needed, for now we just store the URL
+                // In a real scenario we might crop here, but for now we follow the "size standard" logic
+                if (target === 'edit') {
+                    setEditingItem(prev => {
+                        if (!prev) return null;
+                        const allImages = [prev.image_url, ...(prev.additional_images || [])].filter(Boolean);
+                        if (allImages.length === 0) {
+                            return { ...prev, image_url: url };
+                        } else {
+                            return { ...prev, additional_images: [...(prev.additional_images || []), url] };
+                        }
+                    });
+                } else {
+                    setNewItem(prev => {
+                        const allImages = [prev.image_url, ...(prev.additional_images || [])].filter(Boolean);
+                        if (allImages.length === 0) {
+                            return { ...prev, image_url: url };
+                        } else {
+                            return { ...prev, additional_images: [...(prev.additional_images || []), url] };
+                        }
+                    });
+                }
             }
-          });
-        } else {
-          setNewItem(prev => {
-            if (isMain) {
-              return { ...prev, image_url: urls[0], additional_images: [...(prev.additional_images || []), ...urls.slice(1)] };
-            } else {
-              return { ...prev, additional_images: [...(prev.additional_images || []), ...urls] };
-            }
-          });
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Erro ao carregar imagem');
+        } finally {
+            setIsUploading(false);
+            setUploadPending(null);
+            setShowAspectRatioModal(false);
         }
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Erro ao carregar imagem');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,15 +284,30 @@ export default function BaseItems() {
     e.preventDefault();
     if (!newItem.ref) return;
 
-    try {
-      setIsSubmitting(true);
-      await addProduct({
-        ...newItem,
-        sizes: newItem.sizes || [],
-        colors: newItem.colors || [],
-        published: newItem.published !== false
-      });
-      setIsAddingNew(false);
+        try {
+            setIsSubmitting(true);
+            const productRef = newItem.ref;
+            await addProduct({
+                ...newItem,
+                sizes: newItem.sizes || [],
+                colors: newItem.colors || [],
+                published: newItem.published !== false
+            });
+
+            // Handle Initial Stock if enabled
+            if (initialStock.enabled && initialStock.quantidade > 0) {
+                await addPurchase({
+                    ref: productRef,
+                    quantidade: initialStock.quantidade,
+                    data_compra: new Date().toISOString().split('T')[0],
+                    size: initialStock.size || undefined,
+                    color: initialStock.color || undefined,
+                    preco_custo: Number(newItem.base_price || 0)
+                });
+            }
+
+            setIsAddingNew(false);
+            setInitialStock({ enabled: false, quantidade: 1, size: '', color: '' });
       setNewItem({
         ref: '',
         nome_artigo: '',
@@ -319,75 +326,6 @@ export default function BaseItems() {
       });
     } catch (err: any) {
       alert(err.message || 'Erro ao adicionar produto');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleAddStock = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem || stockFormData.quantidade <= 0) return;
-
-    try {
-      setIsSubmitting(true);
-      await addPurchase({
-        ref: editingItem.ref,
-        quantidade: Number(stockFormData.quantidade),
-        data_compra: stockFormData.data_compra,
-        size: stockFormData.size || undefined,
-        color: stockFormData.color || undefined,
-        preco_custo: stockFormData.preco_custo ? Number(stockFormData.preco_custo) : Number(editingItem.base_price || 0)
-      });
-
-      // Clear form
-      setStockFormData({
-        quantidade: 1,
-        size: '',
-        color: '',
-        data_compra: new Date().toISOString().split('T')[0],
-        preco_custo: ''
-      });
-      alert('Stock adicionado com sucesso!');
-    } catch (error: any) {
-      console.error('Error adding stock:', error);
-      alert(`Erro ao adicionar stock: ${JSON.stringify(error)}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeletePurchase = async (id: number) => {
-    if (!confirm('Deseja eliminar este registo de entrada de stock?')) return;
-    try {
-      setIsSubmitting(true);
-      await deletePurchase(id);
-    } catch (err) {
-      alert('Erro ao eliminar registo');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const startEditStock = (purchase: any) => {
-    setEditingStockId(purchase.id);
-    setEditingStockData({ ...purchase });
-  };
-
-  const handleUpdateStock = async () => {
-    if (!editingStockId || !editingStockData) return;
-    try {
-      setIsSubmitting(true);
-      await updatePurchase(editingStockId, {
-        quantidade: Number(editingStockData.quantidade),
-        data_compra: editingStockData.data_compra,
-        size: editingStockData.size,
-        color: editingStockData.color,
-        preco_custo: editingStockData.preco_custo ? Number(editingStockData.preco_custo) : undefined
-      });
-      setEditingStockId(null);
-      setEditingStockData(null);
-    } catch (err) {
-      alert('Erro ao atualizar stock');
     } finally {
       setIsSubmitting(false);
     }
@@ -808,18 +746,45 @@ export default function BaseItems() {
                       >
                         {product.featured ? <Star className="w-3.5 h-3.5" /> : <StarOff className="w-3.5 h-3.5" />}
                       </button>
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(product)}
-                        className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors"
+                        className="p-2 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all"
+                        title="Editar"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(product.ref)}
-                        className="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-500/10 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+
+                      <div className="relative group/catmenu">
+                        <button
+                          className="p-2 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all flex items-center gap-1"
+                          title="Catálogo"
+                        >
+                          <Globe className="w-3.5 h-3.5" />
+                        </button>
+                        <div className="absolute right-0 top-full mt-1 p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover/catmenu:opacity-100 group-hover/catmenu:visible transition-all z-[80] min-w-[140px]">
+                          <button
+                            onClick={() => updateProduct(product.ref, { published: true })}
+                            className="w-full text-left px-3 py-2 hover:bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center gap-2"
+                          >
+                            <Globe className="w-3 h-3" /> Online
+                          </button>
+                          <button
+                            onClick={() => updateProduct(product.ref, { published: false })}
+                            className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center gap-2"
+                          >
+                            <GlobeLock className="w-3 h-3" /> Offline
+                          </button>
+                          <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
+                          <button
+                            onClick={() => handleDelete(product.ref)}
+                            className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-500 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center gap-2"
+                          >
+                            <Trash2 className="w-3 h-3" /> Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                     </div>
                   </td>
                 </tr>
@@ -878,138 +843,196 @@ export default function BaseItems() {
                 </button>
               </div>
 
-              {!isAddingNew && (
-                <div className="flex px-8 border-b border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
-                  <button
-                    onClick={() => setActiveTab('details')}
-                    className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${activeTab === 'details'
-                      ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/5'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                      }`}
-                  >
-                    <Tag className="w-4 h-4" />
-                    Detalhes do Artigo
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('stock')}
-                    className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${activeTab === 'stock'
-                      ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/5'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                      }`}
-                  >
-                    <Package className="w-4 h-4" />
-                    Entrada de Stock
-                  </button>
+              <div className="flex px-8 border-b border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
+                <div className="flex items-center gap-2 px-6 py-4 text-xs font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-500/5 border-b-2 border-purple-500">
+                  <Tag className="w-4 h-4" />
+                  Detalhes do Artigo
                 </div>
-              )}
+              </div>
 
-              {activeTab === 'details' || isAddingNew ? (
-                <form onSubmit={isAddingNew ? handleAdd : handleUpdate} className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+              <form onSubmit={isAddingNew ? handleAdd : handleUpdate} className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left Column: Image & Promotion */}
                     <div className="space-y-6">
                       <div className="space-y-4">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Galeria de Imagens (Até 4)</label>
-                        
-                        {/* Main Image */}
-                        <div className="space-y-2">
-                          <div className="relative aspect-video w-full rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group cursor-pointer overflow-hidden flex items-center justify-center transition-colors hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50 dark:hover:bg-purple-500/5">
-                            {(isAddingNew ? newItem.image_url : editingItem?.image_url) ? (
-                              <>
-                                <img src={isAddingNew ? newItem.image_url : editingItem?.image_url} alt="Main" className="w-full h-full object-cover" />
-                                <div className="absolute top-2 left-2 px-2 py-0.5 bg-purple-600 text-white text-[8px] font-black uppercase rounded-lg shadow-xl">Principal</div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (isAddingNew) {
-                                      setNewItem({ ...newItem, image_url: '' });
-                                    } else {
-                                      setEditingItem(prev => prev ? ({ ...prev, image_url: '' }) : null);
-                                    }
-                                  }}
-                                  className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-lg shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
-                                <Camera className="w-5 h-5 text-slate-400" />
-                                <span className="text-[9px] font-bold text-slate-400 uppercase text-center">Selecionar<br/>Foto Principal</span>
-                              </div>
-                            )}
-                            <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit', true)} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
-                          </div>
+                        <div className="flex justify-between items-center px-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Galeria de Fotos (Mín. 7)</label>
+                          <span className="text-[8px] font-bold text-purple-500 uppercase tracking-widest">Arraste para ordenar</span>
                         </div>
+                        
+                        {/* Unified Reorder Gallery */}
+                        <div className="space-y-4">
+                          {(() => {
+                            const mainImg = isAddingNew ? newItem.image_url : editingItem?.image_url;
+                            const gallery = (isAddingNew ? newItem.additional_images : editingItem?.additional_images) || [];
+                            const allImages: string[] = [mainImg, ...gallery].filter((url): url is string => !!url);
 
-                        {/* Secondary Images Grid */}
-                        <Reorder.Group 
-                          axis="x" 
-                          values={(isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []} 
-                          onReorder={(newOrder) => {
-                            if (isAddingNew) {
-                              setNewItem({ ...newItem, additional_images: newOrder });
-                            } else {
-                              setEditingItem(prev => prev ? ({ ...prev, additional_images: newOrder }) : null);
-                            }
-                          }}
-                          className="flex flex-wrap gap-3"
-                        >
-                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).map((url, idx) => (
-                            <Reorder.Item 
-                              key={url} 
-                              value={url}
-                              className="relative w-20 h-20 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 overflow-hidden cursor-grab active:cursor-grabbing group shrink-0"
-                            >
-                              <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const currentMain = isAddingNew ? newItem.image_url : editingItem?.image_url;
-                                    const currentGallery = (isAddingNew ? newItem.additional_images : editingItem?.additional_images) || [];
-                                    const newGallery = currentGallery.filter(u => u !== url);
-                                    if (currentMain) newGallery.unshift(currentMain);
-                                    
-                                    if (isAddingNew) {
-                                      setNewItem({ ...newItem, image_url: url, additional_images: newGallery });
-                                    } else {
-                                      setEditingItem(prev => prev ? ({ ...prev, image_url: url, additional_images: newGallery }) : null);
-                                    }
-                                  }}
-                                  className="p-1 bg-white/20 hover:bg-white/40 text-white rounded-md transition-colors"
-                                  title="Tornar Principal"
+                            const handleReorder = (newOrder: string[]) => {
+                              const newMain = newOrder[0] || '';
+                              const newGallery = newOrder.slice(1);
+                              if (isAddingNew) {
+                                setNewItem({ ...newItem, image_url: newMain, additional_images: newGallery });
+                              } else {
+                                setEditingItem(prev => prev ? ({ ...prev, image_url: newMain, additional_images: newGallery }) : null);
+                              }
+                            };
+
+                            return (
+                              <div className="space-y-4">
+                                {/* Main Image Placeholder/Slot */}
+                                <div className="relative aspect-video w-full rounded-3xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 group overflow-hidden flex items-center justify-center transition-all hover:border-purple-400">
+                                  {allImages.length > 0 ? (
+                                    <div className="w-full h-full relative cursor-move">
+                                      <img src={allImages[0]} alt="Main" className="w-full h-full object-cover" />
+                                      <div className="absolute top-4 left-4 px-3 py-1 bg-purple-600 text-white text-[9px] font-black uppercase rounded-full shadow-xl z-10">Principal</div>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newOrder = allImages.slice(1);
+                                          handleReorder(newOrder);
+                                        }}
+                                        className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-xl shadow-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all z-10"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+                                      <Camera className="w-8 h-8 text-slate-300" />
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selecione a primeira foto</span>
+                                    </div>
+                                  )}
+                                  {!isUploading && (
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          setUploadPending({ file, target: isAddingNew ? 'new' : 'edit' });
+                                          setShowAspectRatioModal(true);
+                                        }
+                                      }} 
+                                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                                    />
+                                  )}
+                                  {isUploading && (
+                                    <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-20">
+                                      <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Secondary Images Reorder List */}
+                                <Reorder.Group 
+                                  axis="x" 
+                                  values={allImages} 
+                                  onReorder={handleReorder}
+                                  className="grid grid-cols-4 sm:grid-cols-5 gap-3"
                                 >
-                                  <Star className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (isAddingNew) {
-                                      setNewItem({ ...newItem, additional_images: newItem.additional_images?.filter(u => u !== url) });
-                                    } else {
-                                      setEditingItem(prev => prev ? ({ ...prev, additional_images: prev.additional_images?.filter(u => u !== url) }) : null);
-                                    }
-                                  }}
-                                  className="p-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded-md transition-colors"
-                                  title="Remover"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                                  {allImages.map((url, idx) => (
+                                    <Reorder.Item 
+                                      key={url} 
+                                      value={url}
+                                      className="relative aspect-square rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 overflow-hidden cursor-move group shrink-0"
+                                    >
+                                      <img src={url} alt={`Photo ${idx}`} className="w-full h-full object-cover" />
+                                      <div className="absolute top-2 right-2 p-1 bg-white/20 dark:bg-black/20 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <GripVertical className="w-3 h-3" />
+                                      </div>
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newOrder = allImages.filter(u => u !== url);
+                                            handleReorder(newOrder);
+                                          }}
+                                          className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                      {idx === 0 && <div className="absolute top-1 left-1 w-2 h-2 bg-purple-500 rounded-full border border-white" />}
+                                    </Reorder.Item>
+                                  ))}
+                                  
+                                  {/* Add Button Placeholder */}
+                                  {allImages.length < 10 && (
+                                    <div className="relative aspect-square rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-500/5 transition-colors cursor-pointer group">
+                                      <Plus className="w-6 h-6 text-slate-300 group-hover:text-purple-500" />
+                                      <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            setUploadPending({ file, target: isAddingNew ? 'new' : 'edit' });
+                                            setShowAspectRatioModal(true);
+                                          }
+                                        }} 
+                                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                                      />
+                                    </div>
+                                  )}
+                                </Reorder.Group>
                               </div>
-                            </Reorder.Item>
-                          ))}
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      {isAddingNew && (
+                        <div className="p-4 bg-purple-50/50 dark:bg-purple-500/5 rounded-2xl border border-purple-100 dark:border-purple-500/10 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                              <Package className="w-3 h-3" /> Gerenciar Stock Inicial
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => setInitialStock(prev => ({ ...prev, enabled: !prev.enabled }))}
+                                className={`w-10 h-5 rounded-full transition-all relative ${initialStock.enabled ? 'bg-purple-600' : 'bg-slate-300'}`}
+                            >
+                                <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${initialStock.enabled ? 'left-5.5' : 'left-0.5'}`} />
+                            </button>
+                          </div>
                           
-                          {/* Add More Spot */}
-                          {((isAddingNew ? newItem.additional_images : editingItem?.additional_images) || []).length < 3 && (
-                            <div className="relative w-20 h-20 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-500/5 transition-colors cursor-pointer group">
-                              <Plus className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
-                              <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, isAddingNew ? 'new' : 'edit', false)} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          {initialStock.enabled && (
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Qt</label>
+                                    <input
+                                        type="number"
+                                        value={initialStock.quantidade}
+                                        onChange={(e) => setInitialStock({ ...initialStock, quantidade: parseInt(e.target.value) })}
+                                        className="w-full px-2 py-2 bg-white dark:bg-slate-900 border appearance-none border-slate-200 dark:border-white/10 rounded-xl outline-none font-black text-xs"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Tam.</label>
+                                    <select
+                                        value={initialStock.size}
+                                        onChange={(e) => setInitialStock({ ...initialStock, size: e.target.value })}
+                                        className="w-full px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                                    >
+                                        <option value="">-</option>
+                                        {(data.variations?.find(v => v.id === 'sizes')?.options || []).map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Cor</label>
+                                    <select
+                                        value={initialStock.color}
+                                        onChange={(e) => setInitialStock({ ...initialStock, color: e.target.value })}
+                                        className="w-full px-2 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
+                                    >
+                                        <option value="">-</option>
+                                        {(data.variations?.find(v => v.id === 'colors')?.options || []).map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
                             </div>
                           )}
-                        </Reorder.Group>
-                      </div>
+                        </div>
+                      )}
 
                       <div className="p-4 bg-rose-50/50 dark:bg-rose-500/5 rounded-2xl border border-rose-100 dark:border-rose-500/10 space-y-4">
                         <label className="text-[9px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
@@ -1283,8 +1306,8 @@ export default function BaseItems() {
                           : 'bg-slate-200 dark:bg-white/5 text-slate-500'
                           }`}
                       >
-                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? 'Público no Site' : 'Oculto no Site'}
+                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? <Globe className="w-4 h-4" /> : <GlobeLock className="w-4 h-4" />}
+                        {(isAddingNew ? newItem.published : editingItem?.published) !== false ? 'Online' : 'Offline'}
                       </button>
                     </div>
                   </div>
@@ -1311,183 +1334,6 @@ export default function BaseItems() {
                     </button>
                   </div>
                 </form>
-              ) : (
-                <div className="p-6 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
-                  <div className="bg-purple-50/50 dark:bg-purple-500/5 p-6 rounded-3xl border border-purple-100 dark:border-purple-500/10">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-purple-500" />
-                      Registar Nova Entrada
-                    </h3>
-                    <form onSubmit={handleAddStock} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantidade</label>
-                        <input
-                          required
-                          type="number"
-                          min="1"
-                          value={stockFormData.quantidade}
-                          onChange={(e) => setStockFormData({ ...stockFormData, quantidade: parseInt(e.target.value) })}
-                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data de Entrada</label>
-                        <input
-                          required
-                          type="date"
-                          value={stockFormData.data_compra}
-                          onChange={(e) => setStockFormData({ ...stockFormData, data_compra: e.target.value })}
-                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tamanho</label>
-                        <select
-                          value={stockFormData.size}
-                          onChange={(e) => setStockFormData({ ...stockFormData, size: e.target.value })}
-                          className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                        >
-                          <option value="">Nenhum</option>
-                          {(data.variations?.find(v => v.id === 'sizes')?.options || []).map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Cor</label>
-                        <select
-                          value={stockFormData.color}
-                          onChange={(e) => setStockFormData({ ...stockFormData, color: e.target.value })}
-                          className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl outline-none font-bold text-xs"
-                        >
-                          <option value="">Nenhuma</option>
-                          {(data.variations?.find(v => v.id === 'colors')?.options || []).map(c => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="md:col-span-2 mt-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-black text-xs hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
-                      >
-                        {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                        Registar Entrada de Stock
-                      </button>
-                    </form>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                      <History className="w-4 h-4 text-slate-400" />
-                      Histórico Recente
-                    </h3>
-                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 dark:bg-white/[0.02]">
-                          <tr>
-                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Data</th>
-                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Qt</th>
-                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest">Var.</th>
-                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest text-right">Custo</th>
-                            <th className="px-4 py-3 font-black text-slate-400 uppercase tracking-widest text-center">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                          {recentPurchases.map((purchase, idx) => (
-                              <tr key={purchase.id || idx} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
-                                {editingStockId === purchase.id ? (
-                                  <>
-                                    <td className="px-2 py-2">
-                                      <input
-                                        type="date"
-                                        value={editingStockData.data_compra}
-                                        onChange={(e) => setEditingStockData({ ...editingStockData, data_compra: e.target.value })}
-                                        className="w-full p-1 text-[10px] bg-white dark:bg-slate-900 border rounded"
-                                      />
-                                    </td>
-                                    <td className="px-2 py-2">
-                                      <input
-                                        type="number"
-                                        value={editingStockData.quantidade}
-                                        onChange={(e) => setEditingStockData({ ...editingStockData, quantidade: parseInt(e.target.value) })}
-                                        className="w-10 p-1 text-[10px] bg-white dark:bg-slate-900 border rounded"
-                                      />
-                                    </td>
-                                    <td className="px-2 py-2 flex gap-1">
-                                      <select
-                                        value={editingStockData.size || ''}
-                                        onChange={(e) => setEditingStockData({ ...editingStockData, size: e.target.value })}
-                                        className="p-1 text-[9px] bg-white dark:bg-slate-900 border rounded"
-                                      >
-                                        <option value="">-</option>
-                                        {(editingItem?.sizes || []).map(s => <option key={s} value={s}>{s}</option>)}
-                                      </select>
-                                      <select
-                                        value={editingStockData.color || ''}
-                                        onChange={(e) => setEditingStockData({ ...editingStockData, color: e.target.value })}
-                                        className="p-1 text-[9px] bg-white dark:bg-slate-900 border rounded"
-                                      >
-                                        <option value="">-</option>
-                                        {(editingItem?.colors || []).map(c => <option key={c} value={c}>{c}</option>)}
-                                      </select>
-                                    </td>
-                                    <td className="px-2 py-2">
-                                      <input
-                                        type="number"
-                                        step="0.01"
-                                        value={editingStockData.preco_custo || ''}
-                                        onChange={(e) => setEditingStockData({ ...editingStockData, preco_custo: e.target.value })}
-                                        className="w-12 p-1 text-[10px] bg-white dark:bg-slate-900 border rounded text-right"
-                                      />
-                                    </td>
-                                    <td className="px-2 py-2 text-center flex justify-center gap-1">
-                                      <button onClick={handleUpdateStock} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded">
-                                        <CheckCircle2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </td>
-                                  </>
-                                ) : (
-                                  <>
-                                    <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{new Date(purchase.data_compra).toLocaleDateString('pt-PT')}</td>
-                                    <td className="px-4 py-3 font-black text-purple-600 dark:text-purple-400">+{purchase.quantidade}</td>
-                                    <td className="px-4 py-3 font-medium text-slate-500">
-                                      {purchase.size || '-'}{purchase.color ? ` / ${purchase.color}` : ''}
-                                    </td>
-                                    <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 text-right">
-                                      {formatCurrency(purchase.preco_custo || 0)}
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                      <div className="flex items-center justify-center gap-2">
-                                        <button
-                                          onClick={() => startEditStock(purchase)}
-                                          className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
-                                        >
-                                          <Edit3 className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                          onClick={() => handleDeletePurchase(purchase.id)}
-                                          className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </>
-                                )}
-                              </tr>
-                            ))}
-                          {(!data.purchases?.some(p => p.ref === editingItem?.ref)) && (
-                            <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-slate-400 italic">Sem histórico de entradas.</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
             </motion.div>
           </div>
         )}
@@ -1499,6 +1345,64 @@ export default function BaseItems() {
         imageUrl={zoomedProduct?.image_url || ''}
         productName={zoomedProduct?.nome_artigo || ''}
       />
+
+      {/* Aspect Ratio Selection Modal */}
+      <AnimatePresence>
+        {showAspectRatioModal && uploadPending && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAspectRatioModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 p-8 text-center overflow-hidden"
+            >
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/40 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Camera className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-2 uppercase">Formato da Imagem</h3>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-8">Escolha como a imagem deve ser exibida no site</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => handleFileUpload(uploadPending.file, uploadPending.target, '1:1')}
+                  className="group relative flex flex-col items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-white/5 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all"
+                >
+                  <div className="w-12 h-12 border-2 border-slate-300 dark:border-slate-600 group-hover:border-purple-500 rounded-lg transition-colors flex items-center justify-center">
+                    <span className="text-[10px] font-black group-hover:text-purple-600">1:1</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-purple-600">Quadrado</span>
+                </button>
+
+                <button
+                  onClick={() => handleFileUpload(uploadPending.file, uploadPending.target, '4:5')}
+                  className="group relative flex flex-col items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-white/5 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all"
+                >
+                  <div className="w-12 h-15 border-2 border-slate-300 dark:border-slate-600 group-hover:border-purple-500 rounded-lg transition-colors flex items-center justify-center overflow-hidden">
+                    <span className="text-[10px] font-black group-hover:text-purple-600">4:5</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-purple-600">Retrato</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowAspectRatioModal(false)}
+                className="mt-8 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+                type="button"
+              >
+                Cancelar
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div >
   );
 }
