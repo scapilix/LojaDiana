@@ -751,24 +751,31 @@ export default function POS() {
                                                                     className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 text-[9px] font-black text-slate-900 dark:text-white focus:border-primary outline-none px-0.5"
                                                                 />
                                                             </div>
-                                                        </div>
-
-                                                        <div className="text-right flex flex-col items-end shrink-0">
+                                                                                                              <div className="text-right flex flex-col items-end shrink-0">
                                                             {(item.discount || 0) > 0 && (
-                                                                <span className="text-[7px] font-black text-rose-500/60 line-through tracking-tighter decoration-1">
-                                                                    {formatCurrency(item.pvp_cica * item.quantidade)}
-                                                                </span>
+                                                                <div className="flex items-center gap-1 group/disc">
+                                                                    <span className="text-[7px] font-black text-rose-500/60 line-through tracking-tighter decoration-1">
+                                                                        {formatCurrency(item.pvp_cica * item.quantidade)}
+                                                                    </span>
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            updateItemDiscount(item.cartItemId, 0, 'fixed');
+                                                                        }}
+                                                                        className="opacity-0 group-hover/disc:opacity-100 p-0.5 hover:bg-rose-500 hover:text-white text-rose-500 rounded transition-all"
+                                                                        title="Remover Desconto"
+                                                                    >
+                                                                        <X className="w-2 h-2" />
+                                                                    </button>
+                                                                </div>
                                                             )}
                                                             <span className="text-[10px] font-black text-primary leading-none">
                                                                 {formatCurrency(itemTotal)}
                                                             </span>
                                                         </div>
-
-                                                        <div className="text-right shrink-0 min-w-[40px]">
-                                                            <span className="text-[9px] font-black text-primary">{formatCurrency(itemTotal)}</span>
-                                                        </div>
                                                     </div>
                                                 </div>
+   </div>
                                             );
                                         })
                                     )}
