@@ -8,6 +8,8 @@ import {
   X,
   Package,
   MessageCircle,
+  MessageSquare,
+  Receipt,
   Star,
   Copy,
   Printer,
@@ -375,21 +377,22 @@ export default function Encomendas() {
             <thead className="sticky top-0 z-10 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-[9px] text-slate-500 dark:text-slate-400 font-black">
               <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-white/5 text-[9px] font-black uppercase text-slate-400 tracking-wider">
                 <th className="px-2 py-2 w-8"></th>
-                <SortHeader label="Data Venda" sortKey="data_venda" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="ID Venda" sortKey="id_venda" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Cliente" sortKey="nome_cliente" currentSort={sortConfig} onRequestSort={requestSort} />
-                <th className="px-2 py-2">Contacto</th>
-                <SortHeader label="Portes" sortKey="portes" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
-                <SortHeader label="Descontos" sortKey="descontos" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
-                <SortHeader label="PVP Total" sortKey="pvp" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
-                <SortHeader label="Lucro" sortKey="lucro" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
-                <SortHeader label="Instagram" sortKey="instagram" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Canal" sortKey="canal" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Envio" sortKey="envio" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Pagamento" sortKey="forma_de_pagamento" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="MêsAno" sortKey="mesano" currentSort={sortConfig} onRequestSort={requestSort} />
-                <SortHeader label="Dia da Semana" sortKey="dia_da_semana" currentSort={sortConfig} onRequestSort={requestSort} />
+                <th className="px-2 py-2 w-8 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">RECIBO</th>
+                <SortHeader label="DATA VENDA" sortKey="data_venda" currentSort={sortConfig} onRequestSort={requestSort} />
+                <SortHeader label="STATUS" sortKey="status" currentSort={sortConfig} onRequestSort={requestSort} />
+                <SortHeader label="ID VENDA" sortKey="id_venda" currentSort={sortConfig} onRequestSort={requestSort} />
+                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">PAGAMENTO</th>
+                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">ENVIADA</th>
+                <SortHeader label="CLIENTE" sortKey="nome_cliente" currentSort={sortConfig} onRequestSort={requestSort} />
+                <SortHeader label="INSTAGRAM" sortKey="instagram" currentSort={sortConfig} onRequestSort={requestSort} />
+                <th className="px-2 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">CONTACTO</th>
+                <SortHeader label="PVP TOTAL" sortKey="pvp" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
+                <SortHeader label="DESCONTOS" sortKey="descontos" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
+                <SortHeader label="LUCRO" sortKey="lucro" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
+                <SortHeader label="PORTES" sortKey="portes" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
+                <th className="px-2 py-2 text-right text-[8px] font-black uppercase tracking-widest text-slate-400">CUSTO</th>
+                <SortHeader label="PAGAMENTO" sortKey="forma_de_pagamento" currentSort={sortConfig} onRequestSort={requestSort} />
+                <SortHeader label="CANAL" sortKey="canal" currentSort={sortConfig} onRequestSort={requestSort} />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -401,6 +404,18 @@ export default function Encomendas() {
                   >
                     <td className="px-2 py-1.5">
                       {expandedOrders.has(index) ? <ChevronDown className="w-3 h-3 text-purple-500" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOrderForInvoice(order);
+                          setShowInvoiceModal(true);
+                        }}
+                        className="p-1.5 hover:bg-purple-100 dark:hover:bg-purple-500/20 text-purple-600 rounded-lg transition-all"
+                      >
+                        <Receipt className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                     <td className="px-2 py-1.5 font-bold text-slate-700 dark:text-slate-300 text-[11px]">
                       {formatDate(order.data_venda)}
@@ -428,59 +443,72 @@ export default function Encomendas() {
                     <td className="px-2 py-1.5 font-black text-slate-400 text-[11px]">
                       {order.id_venda || '#N/A'}
                     </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 mx-auto" />
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 mx-auto" />
+                    </td>
                     <td className="px-2 py-1.5 font-black text-slate-900 dark:text-white text-[11px]">
                       {order.nome_cliente || 'N/A'}
                     </td>
+                    <td className="px-3 py-2.5 text-pink-500 dark:text-pink-400 font-bold">
+                      {order.instagram || '-'}
+                    </td>
                     <td className="px-2 py-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-500 text-[11px]">{order.telefone || '-'}</span>
+                        {order.telefone ? (
+                          <a 
+                            href={`tel:${order.telefone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-bold text-slate-500 hover:text-purple-600 transition-colors text-[11px]"
+                          >
+                            {order.telefone}
+                          </a>
+                        ) : (
+                          <span className="font-bold text-slate-300 text-[11px]">-</span>
+                        )}
                         {order.telefone && (
                           <a
                             href={getWhatsAppLink(order)}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"
-                            title="Abrir WhatsApp com Resumo"
+                            className="p-1 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded transition-all"
+                            title="Abrir WhatsApp"
                           >
-                            <Phone className="w-3 h-3" />
+                            <Phone className="w-2.5 h-2.5" />
                           </a>
                         )}
                       </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-bold text-slate-600">
-                      {formatCurrency(Number(order.portes || 0))}
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-bold text-rose-500">
-                      {formatCurrency(Number(order.descontos || 0))}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <span className="text-slate-900 dark:text-white font-black text-[11px]">
                         {formatCurrency(Number(order.pvp))}
                       </span>
                     </td>
+                    <td className="px-3 py-2.5 text-right font-bold text-rose-500">
+                      {formatCurrency(Number(order.descontos || 0))}
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <span className="text-emerald-600 dark:text-emerald-400 font-black">
                         {formatCurrency(Number(order.lucro))}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-pink-500 dark:text-pink-400 font-bold">
-                      {order.instagram || '-'}
+                    <td className="px-3 py-2.5 text-right font-bold text-slate-600">
+                      {formatCurrency(Number(order.portes || 0))}
                     </td>
-                    <td className="px-3 py-2.5 font-black text-purple-600">
-                      {order.site_kyte || 'KYTE'}
-                    </td>
-                    <td className="px-3 py-2.5 font-black text-indigo-500">
-                      {order.loja_ctt || 'CTT'}
+                    <td className="px-3 py-2.5 text-right font-bold text-slate-400">
+                      {formatCurrency(
+                        order.items?.reduce((sum: number, item: any) => sum + (Number(item.base) || 0), 0) || 
+                        (Number(order.pvp || 0) - Number(order.lucro || 0))
+                      )}
                     </td>
                     <td className="px-3 py-2.5 font-black text-blue-500">
                       {order.forma_de_pagamento || 'N/A'}
                     </td>
-                    <td className="px-3 py-2.5 font-bold text-slate-400">
-                      {formatMonthYear(order.data_venda)}
-                    </td>
-                    <td className="px-3 py-2.5 font-bold text-slate-400">
-                      {formatWeekday(order.data_venda)}
+                    <td className="px-3 py-2.5 font-black text-purple-600">
+                      {order.site_kyte || 'KYTE'}
                     </td>
                   </tr>
 
