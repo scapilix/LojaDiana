@@ -14,7 +14,6 @@ import {
   Copy,
   Printer,
   FileText,
-  Phone,
   Clock
 } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -90,7 +89,7 @@ const pageVariants = {
 
 export default function Encomendas() {
   const { filters, setFilters } = useFilters();
-  const { updateSaleStatus } = useData();
+  const { data, updateSaleStatus } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -195,12 +194,29 @@ export default function Encomendas() {
     setSortConfig({ key, direction });
   };
 
+  const getCustomerContact = (order: any) => {
+    if (order.telefone && order.telefone !== '-' && order.telefone !== 'N/A') return order.telefone;
+    
+    // Lookup in database by Name or Instagram
+    const customer = data.customers?.find((c: any) => {
+      const dbName = (c.nome_cliente || '').trim().toUpperCase();
+      const orderName = (order.nome_cliente || '').trim().toUpperCase();
+      const dbInsta = (c.instagram || '').trim().toUpperCase().replace('@', '');
+      const orderInsta = (order.instagram || '').trim().toUpperCase().replace('@', '');
+      
+      return (orderName && dbName === orderName) || (orderInsta && orderInsta !== '-' && dbInsta === orderInsta);
+    });
+    
+    return customer?.telefone_cliente || customer?.phone || '-';
+  };
+
   const getWhatsAppLink = (order: any) => {
-    const phone = order.telefone?.replace(/\D/g, '');
-    if (!phone) return '#';
+    const contact = getCustomerContact(order);
+    const phone = contact?.replace(/\D/g, '');
+    if (!phone || phone === '') return '#';
 
     const itemsList = (order.items || [])
-      .map((i: any) => `- ${i.designacao} (x${i.quantidade})`)
+      .map((i: any) => `- ${i.designacao || i.ref} (x${i.quantidade || 1})`)
       .join('\n');
 
     const address = [order.morada, order.localidade]
@@ -457,28 +473,28 @@ export default function Encomendas() {
                     </td>
                     <td className="px-2 py-1.5">
                       <div className="flex items-center gap-2">
-                        {order.telefone ? (
-                          <a 
-                            href={`tel:${order.telefone}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="font-bold text-slate-500 hover:text-purple-600 transition-colors text-[11px]"
-                          >
-                            {order.telefone}
-                          </a>
+                        {getCustomerContact(order) !== '-' ? (
+                          <>
+                            <a 
+                              href={`tel:${getCustomerContact(order)}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-bold text-slate-500 hover:text-purple-600 transition-colors text-[11px]"
+                            >
+                              {getCustomerContact(order)}
+                            </a>
+                            <a
+                              href={getWhatsAppLink(order)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded transition-all"
+                              title="Abrir WhatsApp"
+                            >
+                              <MessageCircle className="w-2.5 h-2.5" />
+                            </a>
+                          </>
                         ) : (
                           <span className="font-bold text-slate-300 text-[11px]">-</span>
-                        )}
-                        {order.telefone && (
-                          <a
-                            href={getWhatsAppLink(order)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-1 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded transition-all"
-                            title="Abrir WhatsApp"
-                          >
-                            <Phone className="w-2.5 h-2.5" />
-                          </a>
                         )}
                       </div>
                     </td>
