@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
@@ -7,7 +7,6 @@ import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { ImageZoomModal } from '../components/Loja/ImageZoomModal';
-import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
 
 export default function POS() {
     const navigate = useNavigate();
@@ -64,17 +63,6 @@ export default function POS() {
         baseValue: number;
         title: string;
     }>({ isOpen: false, type: 'total', baseValue: 0, title: '' });
-    const [printOrder, setPrintOrder] = useState<any>(null);
-
-    // Automatic Printing Effect
-    useEffect(() => {
-        if (printOrder) {
-            setTimeout(() => {
-                window.print();
-                setPrintOrder(null);
-            }, 500);
-        }
-    }, [printOrder]);
 
     const filteredCustomers = useMemo(() => {
         if (!customerSearchTerm) return [];
@@ -230,28 +218,7 @@ export default function POS() {
             balanceUsed: balanceUsed,
             isDireto: options?.isDireto,
             onSaleComplete: () => {
-                // If the sale is finalized (not a draft), trigger the receipt
-                if (saleStatus === 'Concluída') {
-                    setPrintOrder({
-                        id_venda: `#${data.orders?.length || 0}`,
-                        data_venda: new Date().toISOString(),
-                        nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
-                        nif: nif || selectedCustomer?.nif,
-                        total: cartTotal,
-                        forma_de_pagamento: balanceUsed > 0 ? `${paymentMethod} + Saldo` : paymentMethod,
-                        discount_total: cartActualDiscount + balanceUsed,
-                        notes: saleNotes,
-                        items: cart.map(item => ({
-                            designacao: item.nome_artigo,
-                            quantidade: item.quantidade,
-                            pvp: item.pvp_cica * item.quantidade,
-                            preco_unitario: item.pvp_cica,
-                            size: item.size,
-                            color: item.color
-                        }))
-                    });
-                }
-
+                // If the sale is finalized (not a draft), show success
                 setIsCheckoutModalOpen(false);
                 setCheckoutStep(1);
                 setPaymentMethod('');
@@ -1285,10 +1252,6 @@ export default function POS() {
                 ))}
             </datalist>
 
-            {/* Hidden Receipt for Printing */}
-            <div className="hidden print:block fixed inset-0 z-[9999] bg-white">
-                {printOrder && <ReceiptTemplate order={printOrder} />}
-            </div>
         </motion.div>
     );
 }
