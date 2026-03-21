@@ -47,6 +47,7 @@ interface ExcelData {
   };
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   variations?: Variation[];
+  order_statuses?: { name: string; color: string }[];
   timestamp?: string;
 }
 
@@ -91,6 +92,7 @@ interface DataContextType {
   clearAllOrders: () => Promise<void>;
   bulkUpdateProducts: (refs: string[], updates: Partial<ProductCatalogItem>) => Promise<void>;
   updateVariations: (variations: Variation[]) => Promise<void>;
+  updateOrderStatuses: (statuses: { name: string; color: string }[]) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -119,7 +121,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const { data: stateData, error } = await supabase
         .from('loja_app_state')
         .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations']);
+        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations', 'order_statuses']);
 
       if (stateData && !error) {
         const updates: Partial<ExcelData> = {};
@@ -133,6 +135,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           if (item.key === 'colors') updates.colors = item.value;
           if (item.key === 'app_settings') updates.appSettings = item.value;
           if (item.key === 'variations') updates.variations = item.value;
+          if (item.key === 'order_statuses') updates.order_statuses = item.value;
         });
 
         // Migration logic: If variations don't exist but sizes/colors do
@@ -155,7 +158,19 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
         }
 
         if (Object.keys(updates).length > 0) {
-          setData(prev => ({ ...prev, ...updates }));
+          setData(prev => {
+            const newData = { ...prev, ...updates };
+            // Default statuses if not set
+            if (!newData.order_statuses) {
+              newData.order_statuses = [
+                { name: 'Pendente', color: 'slate' },
+                { name: 'Pago', color: 'blue' },
+                { name: 'Enviado', color: 'purple' },
+                { name: 'Entregue', color: 'emerald' }
+              ];
+            }
+            return newData;
+          });
         }
       }
     } catch (err) {
@@ -561,6 +576,20 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const updateOrderStatuses = async (statuses: { name: string; color: string }[]) => {
+    try {
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'order_statuses', value: statuses });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, order_statuses: statuses }));
+    } catch (err) {
+      console.error('Error updating order statuses:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -576,7 +605,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       clearAllItems,
       clearAllOrders,
       bulkUpdateProducts,
-      updateVariations
+      updateVariations,
+      updateOrderStatuses
     }}>
       {children}
     </DataContext.Provider>

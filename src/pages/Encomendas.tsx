@@ -8,13 +8,15 @@ import {
   X,
   Package,
   MessageCircle,
-  MessageSquare,
   Receipt,
   Star,
   Copy,
   Printer,
   FileText,
-  Clock
+  Clock,
+  Instagram,
+  CreditCard,
+  Truck as TruckIcon
 } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
@@ -243,7 +245,7 @@ export default function Encomendas() {
     const instagrams = new Set<string>();
     const canals = new Set<string>();
     const envios = new Set<string>();
-    const statuses = ['Pendente', 'Pago', 'Enviado', 'Entregue'];
+    const statuses = data.order_statuses?.map(s => s.name) || ['Pendente', 'Pago', 'Enviado', 'Entregue'];
 
     filteredOrders.forEach(o => {
       if (o.forma_de_pagamento) payments.add(o.forma_de_pagamento);
@@ -397,17 +399,17 @@ export default function Encomendas() {
                 <SortHeader label="DATA VENDA" sortKey="data_venda" currentSort={sortConfig} onRequestSort={requestSort} />
                 <SortHeader label="STATUS" sortKey="status" currentSort={sortConfig} onRequestSort={requestSort} />
                 <SortHeader label="ID VENDA" sortKey="id_venda" currentSort={sortConfig} onRequestSort={requestSort} />
-                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">PAGAMENTO</th>
-                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">ENVIADA</th>
+                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">PAG.</th>
+                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-widest text-slate-400">ENV.</th>
                 <SortHeader label="CLIENTE" sortKey="nome_cliente" currentSort={sortConfig} onRequestSort={requestSort} />
                 <SortHeader label="INSTAGRAM" sortKey="instagram" currentSort={sortConfig} onRequestSort={requestSort} />
                 <th className="px-2 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">CONTACTO</th>
                 <SortHeader label="PVP TOTAL" sortKey="pvp" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
                 <SortHeader label="DESCONTOS" sortKey="descontos" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
+                <SortHeader label="CUSTO" sortKey="custo" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
                 <SortHeader label="LUCRO" sortKey="lucro" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
                 <SortHeader label="PORTES" sortKey="portes" currentSort={sortConfig} onRequestSort={requestSort} align="right" />
-                <th className="px-2 py-2 text-right text-[8px] font-black uppercase tracking-widest text-slate-400">CUSTO</th>
-                <SortHeader label="PAGAMENTO" sortKey="forma_de_pagamento" currentSort={sortConfig} onRequestSort={requestSort} />
+                <SortHeader label="MÉTODO" sortKey="forma_de_pagamento" currentSort={sortConfig} onRequestSort={requestSort} />
                 <SortHeader label="CANAL" sortKey="canal" currentSort={sortConfig} onRequestSort={requestSort} />
               </tr>
             </thead>
@@ -444,32 +446,84 @@ export default function Encomendas() {
                           e.stopPropagation();
                           updateSaleStatus(order.id_venda, e.target.value);
                         }}
-                        className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border-none cursor-pointer outline-none transition-all ${(order.status || 'Pendente') === 'Pendente' ? 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400' :
-                          (order.status || 'Pendente') === 'Pago' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' :
-                            (order.status || 'Pendente') === 'Enviado' ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' :
-                              'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
-                          }`}
+                        className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border-none cursor-pointer outline-none transition-all ${(() => {
+                          const statusConfig = data.order_statuses?.find(s => s.name === (order.status || 'Pendente'));
+                          if (!statusConfig) return 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400';
+                          
+                          switch(statusConfig.color) {
+                            case 'blue': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
+                            case 'purple': return 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400';
+                            case 'emerald': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400';
+                            case 'rose': return 'bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400';
+                            case 'amber': return 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400';
+                            case 'indigo': return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400';
+                            case 'pink': return 'bg-pink-100 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400';
+                            default: return 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400';
+                          }
+                        })()}`}
                       >
-                        <option value="Pendente">Pendente</option>
-                        <option value="Pago">Pago</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Entregue">Entregue</option>
+                        {(data.order_statuses || []).map(s => (
+                          <option key={s.name} value={s.name}>{s.name}</option>
+                        ))}
                       </select>
                     </td>
                     <td className="px-2 py-1.5 font-black text-slate-400 text-[11px]">
                       {order.id_venda || '#N/A'}
                     </td>
                     <td className="px-2 py-1.5 text-center">
-                      <MessageSquare className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 mx-auto" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isPaid = order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue';
+                          updateSaleStatus(order.id_venda, isPaid ? 'Pendente' : 'Pago');
+                        }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          (order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue')
+                            ? 'bg-blue-500/10 text-blue-600'
+                            : 'hover:bg-slate-100 text-slate-300 dark:text-slate-700'
+                        }`}
+                        title={order.status === 'Pago' ? 'Marcar como Pendente' : 'Marcar como Pago'}
+                      >
+                        <CreditCard className="w-3.5 h-3.5 mx-auto" />
+                      </button>
                     </td>
                     <td className="px-2 py-1.5 text-center">
-                      <MessageSquare className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 mx-auto" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isSent = order.status === 'Enviado' || order.status === 'Entregue';
+                          updateSaleStatus(order.id_venda, isSent ? 'Pago' : 'Enviado');
+                        }}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          (order.status === 'Enviado' || order.status === 'Entregue')
+                            ? 'bg-purple-500/10 text-purple-600'
+                            : 'hover:bg-slate-100 text-slate-300 dark:text-slate-700'
+                        }`}
+                        title={order.status === 'Enviado' ? 'Marcar como Pago' : 'Marcar como Enviado'}
+                      >
+                        <TruckIcon className="w-3.5 h-3.5 mx-auto" />
+                      </button>
                     </td>
                     <td className="px-2 py-1.5 font-black text-slate-900 dark:text-white text-[11px]">
                       {order.nome_cliente || 'N/A'}
                     </td>
-                    <td className="px-3 py-2.5 text-pink-500 dark:text-pink-400 font-bold">
-                      {order.instagram || '-'}
+                    <td className="px-3 py-2.5 font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <Instagram className="w-3 h-3 text-pink-500" />
+                        {order.instagram && order.instagram !== '-' ? (
+                          <a 
+                            href={`https://instagram.com/${order.instagram.replace('@', '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-pink-500 dark:text-pink-400 hover:underline transition-all"
+                          >
+                            {order.instagram}
+                          </a>
+                        ) : (
+                          <span className="text-slate-300">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-2 py-1.5">
                       <div className="flex items-center gap-2">
@@ -506,6 +560,12 @@ export default function Encomendas() {
                     <td className="px-3 py-2.5 text-right font-bold text-rose-500">
                       {formatCurrency(Number(order.descontos || 0))}
                     </td>
+                    <td className="px-3 py-2.5 text-right font-bold text-slate-400">
+                      {formatCurrency(
+                        order.items?.reduce((sum: number, item: any) => sum + (Number(item.base) || 0), 0) || 
+                        (Number(order.pvp || 0) - Number(order.lucro || 0))
+                      )}
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <span className="text-emerald-600 dark:text-emerald-400 font-black">
                         {formatCurrency(Number(order.lucro))}
@@ -513,12 +573,6 @@ export default function Encomendas() {
                     </td>
                     <td className="px-3 py-2.5 text-right font-bold text-slate-600">
                       {formatCurrency(Number(order.portes || 0))}
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-bold text-slate-400">
-                      {formatCurrency(
-                        order.items?.reduce((sum: number, item: any) => sum + (Number(item.base) || 0), 0) || 
-                        (Number(order.pvp || 0) - Number(order.lucro || 0))
-                      )}
                     </td>
                     <td className="px-3 py-2.5 font-black text-blue-500">
                       {order.forma_de_pagamento || 'N/A'}
@@ -615,12 +669,21 @@ export default function Encomendas() {
                                       <span className="font-black text-slate-400 w-24">
                                         {new Date(h.timestamp).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                       </span>
-                                      <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${
-                                        h.status === 'Pendente' ? 'bg-slate-100 text-slate-600' :
-                                        h.status === 'Pago' ? 'bg-blue-100 text-blue-600' :
-                                        h.status === 'Enviado' ? 'bg-purple-100 text-purple-600' :
-                                        'bg-emerald-100 text-emerald-600'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded-md font-bold uppercase ${(() => {
+                                        const statusConfig = data.order_statuses?.find(s => s.name === h.status);
+                                        if (!statusConfig) return 'bg-slate-100 text-slate-600';
+                                        
+                                        switch(statusConfig.color) {
+                                          case 'blue': return 'bg-blue-100 text-blue-600';
+                                          case 'purple': return 'bg-purple-100 text-purple-600';
+                                          case 'emerald': return 'bg-emerald-100 text-emerald-600';
+                                          case 'rose': return 'bg-rose-100 text-rose-600';
+                                          case 'amber': return 'bg-amber-100 text-amber-600';
+                                          case 'indigo': return 'bg-indigo-100 text-indigo-600';
+                                          case 'pink': return 'bg-pink-100 text-pink-600';
+                                          default: return 'bg-slate-100 text-slate-600';
+                                        }
+                                      })()}`}>
                                         {h.status}
                                       </span>
                                     </div>

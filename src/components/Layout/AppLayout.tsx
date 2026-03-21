@@ -23,8 +23,8 @@ import {
   ShoppingBag,
   Settings,
   Store,
-  Layers,
-  Video
+  Video,
+  Settings2
 } from 'lucide-react';
 
 
@@ -56,7 +56,7 @@ const navGroups = [
     items: [
       { id: 'base-itens', label: 'Produtos', icon: Tag, path: '/base-itens' },
       { id: 'produtos', label: 'Análise de Produtos', icon: Package, path: '/produtos' },
-      { id: 'variacoes', label: 'Variáveis', icon: Layers, path: '/variacoes' },
+      { id: 'variacoes', label: 'Personalizações', icon: Settings2, path: '/personalizacoes' },
       { id: 'stock-manager', label: 'Gestão de Inventário', icon: Box, path: '/stock-manager' },
     ]
   },

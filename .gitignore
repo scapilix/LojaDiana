@@ -6,6 +6,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+build_errors.txt
+build_errors_utf8.txt
+compile_errors.txt
+tsc_output.txt
+build_output.log
 
 node_modules
 dist

@@ -10,7 +10,9 @@ import {
     CheckCircle2,
     AlertCircle,
     Box,
-    Search
+    Search,
+    Palette,
+    ClipboardList
 } from 'lucide-react';
 import { useData, Variation } from '../contexts/DataContext';
 
@@ -20,43 +22,57 @@ const pageVariants = {
     exit: { opacity: 0, scale: 0.95 }
 };
 
-export default function Variacoes() {
-    const { data, updateCategories, updateVariations } = useData();
+const COLOR_OPTIONS = [
+    { id: 'slate', bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
+    { id: 'blue', bg: 'bg-blue-100', text: 'text-blue-600', dot: 'bg-blue-400' },
+    { id: 'purple', bg: 'bg-purple-100', text: 'text-purple-600', dot: 'bg-purple-400' },
+    { id: 'emerald', bg: 'bg-emerald-100', text: 'text-emerald-600', dot: 'bg-emerald-400' },
+    { id: 'rose', bg: 'bg-rose-100', text: 'text-rose-600', dot: 'bg-rose-400' },
+    { id: 'amber', bg: 'bg-amber-100', text: 'text-amber-600', dot: 'bg-amber-400' },
+    { id: 'indigo', bg: 'bg-indigo-100', text: 'text-indigo-600', dot: 'bg-indigo-400' },
+    { id: 'pink', bg: 'bg-pink-100', text: 'text-pink-600', dot: 'bg-pink-400' },
+];
+
+export default function Personalizacoes() {
+    const { data, updateCategories, updateVariations, updateOrderStatuses } = useData();
     const [selectedVarId, setSelectedVarId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [showStatus, setShowStatus] = useState<'success' | 'error' | null>(null);
-    const [activeSection, setActiveSection] = useState<'categories' | 'variations'>('categories');
+    const [activeSection, setActiveSection] = useState<'categories' | 'variations' | 'statuses'>('categories');
 
     const [catSearch, setCatSearch] = useState('');
     const [localCategories, setLocalCategories] = useState<string[]>(data.categories || []);
     const [localVariations, setLocalVariations] = useState<Variation[]>(data.variations || []);
+    const [localStatuses, setLocalStatuses] = useState<{ name: string; color: string }[]>(data.order_statuses || []);
+    
     const [newCategory, setNewCategory] = useState('');
     const [newVarName, setNewVarName] = useState('');
     const [newOption, setNewOption] = useState('');
+    const [newStatusName, setNewStatusName] = useState('');
+    const [selectedColor, setSelectedColor] = useState('slate');
 
     // Sync from context when it changes externally
     useEffect(() => {
         setLocalCategories(data.categories || []);
         setLocalVariations(data.variations || []);
-    }, [data.categories, data.variations]);
+        setLocalStatuses(data.order_statuses || []);
+    }, [data.categories, data.variations, data.order_statuses]);
 
     // Instant/Auto Sync Effect
     useEffect(() => {
         const timeout = setTimeout(async () => {
             let changed = false;
-            if (JSON.stringify(localCategories) !== JSON.stringify(data.categories)) {
-                changed = true;
-            }
-            if (JSON.stringify(localVariations) !== JSON.stringify(data.variations)) {
-                changed = true;
-            }
+            if (JSON.stringify(localCategories) !== JSON.stringify(data.categories)) changed = true;
+            if (JSON.stringify(localVariations) !== JSON.stringify(data.variations)) changed = true;
+            if (JSON.stringify(localStatuses) !== JSON.stringify(data.order_statuses)) changed = true;
 
             if (changed) {
                 setIsSaving(true);
                 try {
                     await Promise.all([
                         updateCategories(localCategories),
-                        updateVariations(localVariations)
+                        updateVariations(localVariations),
+                        updateOrderStatuses(localStatuses)
                     ]);
                     setShowStatus('success');
                 } catch (err) {
@@ -68,7 +84,7 @@ export default function Variacoes() {
             }
         }, 1000);
         return () => clearTimeout(timeout);
-    }, [localCategories, localVariations]);
+    }, [localCategories, localVariations, localStatuses]);
 
     const currentVariation = localVariations.find(v => v.id === selectedVarId);
 
@@ -91,7 +107,7 @@ export default function Variacoes() {
         if (newVarName.trim()) {
             const newVar: Variation = {
                 id: Date.now().toString(),
-                name: newVarName.trim(),
+                name: newVarName.trim().toUpperCase(),
                 options: []
             };
             setLocalVariations([...localVariations, newVar]);
@@ -109,7 +125,7 @@ export default function Variacoes() {
         if (newOption.trim() && selectedVarId) {
             setLocalVariations(localVariations.map(v => 
                 v.id === selectedVarId 
-                ? { ...v, options: [...v.options, newOption.trim()] }
+                ? { ...v, options: [...v.options, newOption.trim().toUpperCase()] }
                 : v
             ));
             setNewOption('');
@@ -126,6 +142,17 @@ export default function Variacoes() {
         }
     };
 
+    const addStatus = () => {
+        if (newStatusName.trim() && !localStatuses.find(s => s.name.toUpperCase() === newStatusName.trim().toUpperCase())) {
+            setLocalStatuses([...localStatuses, { name: newStatusName.trim(), color: selectedColor }]);
+            setNewStatusName('');
+        }
+    };
+
+    const removeStatus = (name: string) => {
+        setLocalStatuses(localStatuses.filter(s => s.name !== name));
+    };
+
     return (
         <motion.div
             variants={pageVariants}
@@ -138,16 +165,15 @@ export default function Variacoes() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-purple-100 dark:border-white/10 shadow-xl shadow-purple-500/5">
-                        <Layers className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <Palette className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Variáveis de Catálogo</h1>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">Gestão Unificada de Atributos</p>
+                        <h1 className="text-xl font-black text-slate-950 dark:text-white tracking-tighter uppercase">Personalizações do Sistema</h1>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">Gestão de Estados, Categorias e Atributos</p>
                     </div>
                 </div>
 
                 <div className="flex gap-3">
-                    {/* Replaced Save button with indicator */}
                     <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-100 dark:border-white/5">
                         <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
@@ -174,6 +200,12 @@ export default function Variacoes() {
                                 className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSection === 'variations' ? 'bg-white dark:bg-white/10 text-purple-600 shadow-sm' : 'text-slate-500'}`}
                             >
                                 Variações
+                            </button>
+                            <button
+                                onClick={() => setActiveSection('statuses')}
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSection === 'statuses' ? 'bg-white dark:bg-white/10 text-purple-600 shadow-sm' : 'text-slate-500'}`}
+                            >
+                                Estados
                             </button>
                         </div>
 
@@ -221,7 +253,7 @@ export default function Variacoes() {
                                         ))}
                                     </Reorder.Group>
                                 </>
-                            ) : (
+                            ) : activeSection === 'variations' ? (
                                 <>
                                     <div className="relative mb-4">
                                         <input
@@ -267,12 +299,62 @@ export default function Variacoes() {
                                         ))}
                                     </Reorder.Group>
                                 </>
+                            ) : (
+                                <>
+                                    <div className="relative mb-4 space-y-3">
+                                        <input
+                                            type="text"
+                                            value={newStatusName}
+                                            onChange={(e) => setNewStatusName(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addStatus()}
+                                            placeholder="Novo estado (ex: Pago)..."
+                                            className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                        />
+                                        <div className="flex flex-wrap gap-2">
+                                            {COLOR_OPTIONS.map(color => (
+                                                <button
+                                                    key={color.id}
+                                                    onClick={() => setSelectedColor(color.id)}
+                                                    className={`w-6 h-6 rounded-full border-2 transition-all ${color.dot} ${selectedColor === color.id ? 'ring-2 ring-purple-500 ring-offset-2 scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <button 
+                                            onClick={addStatus} 
+                                            className="w-full py-2 bg-purple-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-purple-500/20 hover:bg-purple-700 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Adicionar Estado
+                                        </button>
+                                    </div>
+                                    <Reorder.Group axis="y" values={localStatuses} onReorder={setLocalStatuses} className="space-y-2">
+                                        {localStatuses.map((s) => {
+                                            const colorConfig = COLOR_OPTIONS.find(c => c.id === s.color) || COLOR_OPTIONS[0];
+                                            return (
+                                                <Reorder.Item 
+                                                    key={s.name} 
+                                                    value={s}
+                                                    className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl group hover:border-purple-200 transition-all cursor-grab active:cursor-grabbing"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <GripVertical className="w-3.5 h-3.5 text-slate-300 group-hover:text-purple-400" />
+                                                        <div className={`w-2 h-2 rounded-full ${colorConfig.dot}`} />
+                                                        <span className={`font-black text-[10px] uppercase tracking-wider ${colorConfig.text}`}>{s.name}</span>
+                                                    </div>
+                                                    <button onClick={() => removeStatus(s.name)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </Reorder.Item>
+                                            );
+                                        })}
+                                    </Reorder.Group>
+                                </>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Right Column: Detail View (Only for Variations) */}
+                {/* Right Column: Detail View */}
                 <div className="lg:col-span-8">
                     <AnimatePresence mode="wait">
                         {activeSection === 'variations' && selectedVarId ? (
@@ -323,7 +405,7 @@ export default function Variacoes() {
                                                 ));
                                             }
                                         }}
-                                        className="flex flex-col gap-2 pt-4"
+                                        className="flex flex-col gap-2 pt-4 overflow-y-auto max-h-[400px] custom-scrollbar"
                                     >
                                         {currentVariation?.options.map((opt, idx) => (
                                             <Reorder.Item 
@@ -349,6 +431,20 @@ export default function Variacoes() {
                                         </div>
                                     )}
                                 </div>
+                            </motion.div>
+                        ) : activeSection === 'statuses' ? (
+                            <motion.div
+                                key="status-promo"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="h-full flex flex-col items-center justify-center text-center p-12 bg-blue-500/5 rounded-[2.5rem] border-2 border-dashed border-blue-500/10"
+                            >
+                                <ClipboardList className="w-16 h-16 text-blue-500/20 mb-6" />
+                                <h3 className="text-xl font-black text-blue-600/60 uppercase tracking-tighter">Estados de Encomenda</h3>
+                                <p className="text-xs font-bold text-slate-400 max-w-sm mt-4 leading-relaxed">
+                                    Personalize os estados das suas encomendas e as cores correspondentes. 
+                                    Estas definições refletem-se automaticamente nos filtros e na gestão de vendas.
+                                </p>
                             </motion.div>
                         ) : activeSection === 'categories' ? (
                             <motion.div
