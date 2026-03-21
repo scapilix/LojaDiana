@@ -124,7 +124,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const { data: stateData, error } = await supabase
         .from('loja_app_state')
         .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations', 'order_statuses']);
+        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations', 'order_statuses', 'transfer_banks']);
 
       if (stateData && !error) {
         const updates: Partial<ExcelData> = {};
@@ -139,6 +139,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           if (item.key === 'app_settings') updates.appSettings = item.value;
           if (item.key === 'variations') updates.variations = item.value;
           if (item.key === 'order_statuses') updates.order_statuses = item.value;
+          if (item.key === 'transfer_banks') updates.transfer_banks = item.value;
         });
 
         // Migration logic: If variations don't exist but sizes/colors do
