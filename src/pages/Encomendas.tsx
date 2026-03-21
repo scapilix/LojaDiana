@@ -496,10 +496,10 @@ export default function Encomendas() {
                       <AnimatePresence>
                         {activeBankSelector === order.id_venda && (
                           <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            initial={{ opacity: 0, scale: 0.9, y: -10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 z-[100] min-w-[140px]"
+                            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 p-2 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 z-[100] min-w-[140px]"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1 text-left">Selecionar Banco</div>
