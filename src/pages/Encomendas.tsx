@@ -546,7 +546,7 @@ export default function Encomendas() {
                         className={`p-1.5 rounded-lg transition-all ${
                           order.is_caiu 
                             ? 'bg-emerald-500/10 text-emerald-600 shadow-sm shadow-emerald-500/20' 
-                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-600'
+                            : 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'
                         } hover:scale-110 active:scale-95`}
                       >
                         <Check className="w-3.5 h-3.5" />
@@ -563,7 +563,7 @@ export default function Encomendas() {
                         className={`p-1.5 rounded-lg transition-all ${
                           order.is_retificado 
                             ? 'bg-emerald-500/10 text-emerald-600 shadow-sm shadow-emerald-500/20' 
-                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-600'
+                            : 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'
                         } hover:scale-110 active:scale-95`}
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
