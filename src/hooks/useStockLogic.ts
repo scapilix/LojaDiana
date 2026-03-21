@@ -67,6 +67,9 @@ export function useStockLogic() {
             const refStr = String(item.ref).trim().toUpperCase();
             if (refStr === 'CONTINENTAL' || refStr === 'ILHAS' || refStr === 'PORTES') return;
 
+            // Skip if this specific item instance was exchanged and returned to stock
+            if (item.is_exchanged && item.return_to_stock) return;
+
             const vid = getVariationId(item.ref, item.size, item.color);
             const qty = Number(item.quantidade) || 1;
             const current = salesMap.get(vid) || 0;

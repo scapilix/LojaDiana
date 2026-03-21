@@ -49,6 +49,8 @@ interface ExcelData {
   variations?: Variation[];
   order_statuses?: { name: string; color: string }[];
   transfer_banks?: { name: string; color: string }[];
+  order_exchanges?: any[];
+  vouchers?: any[];
   timestamp?: string;
 }
 
@@ -96,6 +98,7 @@ interface DataContextType {
   updateOrderStatuses: (statuses: { name: string; color: string }[]) => Promise<void>;
   updateTransferBanks: (banks: { name: string; color: string }[]) => Promise<void>;
   updateSaleVerification: (idVenda: string, updates: { bank_color?: string, is_caiu?: boolean, is_retificado?: boolean }) => Promise<void>;
+  addExchange: (exchange: any, voucher?: any) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -124,7 +127,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const { data: stateData, error } = await supabase
         .from('loja_app_state')
         .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations', 'order_statuses', 'transfer_banks']);
+        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog', 'categories', 'sizes', 'colors', 'app_settings', 'variations', 'order_statuses', 'transfer_banks', 'order_exchanges', 'vouchers']);
 
       if (stateData && !error) {
         const updates: Partial<ExcelData> = {};
@@ -140,6 +143,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           if (item.key === 'variations') updates.variations = item.value;
           if (item.key === 'order_statuses') updates.order_statuses = item.value;
           if (item.key === 'transfer_banks') updates.transfer_banks = item.value;
+          if (item.key === 'order_exchanges') updates.order_exchanges = item.value;
+          if (item.key === 'vouchers') updates.vouchers = item.value;
         });
 
         // Migration logic: If variations don't exist but sizes/colors do
@@ -632,6 +637,59 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const addExchange = async (exchange: any, voucher?: any) => {
+    try {
+      const currentExchanges = data.order_exchanges || [];
+      const newExchanges = [exchange, ...currentExchanges];
+      
+      const updates = [
+        { key: 'order_exchanges', value: newExchanges }
+      ];
+
+      if (voucher) {
+        const currentVouchers = data.vouchers || [];
+        updates.push({ key: 'vouchers', value: [voucher, ...currentVouchers] });
+      }
+
+      // Update orders if items were modified (marked as exchanged)
+      const currentOrders = [...(data.orders || [])];
+      const orderIdx = currentOrders.findIndex(o => o.id_venda === exchange.order_id);
+      if (orderIdx > -1) {
+        const order = currentOrders[orderIdx];
+        const updatedItems = order.items.map((item: any) => {
+          const exchangeItem = exchange.items.find((ei: any) => ei.ref === item.ref);
+          if (exchangeItem) {
+            return { 
+              ...item, 
+              is_exchanged: true, 
+              return_to_stock: exchange.return_to_stock,
+              exchange_id: exchange.id 
+            };
+          }
+          return item;
+        });
+        currentOrders[orderIdx] = { ...order, items: updatedItems };
+        updates.push({ key: 'import_orders', value: currentOrders });
+      }
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert(updates);
+
+      if (error) throw error;
+      
+      setData(prev => ({ 
+        ...prev, 
+        order_exchanges: newExchanges,
+        vouchers: voucher ? [voucher, ...(prev.vouchers || [])] : prev.vouchers,
+        orders: currentOrders
+      }));
+    } catch (err) {
+      console.error('Error adding exchange:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -650,7 +708,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       updateVariations,
       updateOrderStatuses,
       updateTransferBanks,
-      updateSaleVerification
+      updateSaleVerification,
+      addExchange
     }}>
       {children}
     </DataContext.Provider>

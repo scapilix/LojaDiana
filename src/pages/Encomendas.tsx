@@ -25,6 +25,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
 import { useData } from '../contexts/DataContext';
 import { SmartDateFilter } from '../components/SmartDateFilter';
+import { supabase } from '../lib/supabase';
 
 const FilterDropdown = ({
   label,
@@ -94,7 +95,7 @@ const pageVariants = {
 
 export default function Encomendas() {
   const { filters, setFilters } = useFilters();
-  const { data, updateSaleStatus, updateSaleVerification } = useData();
+  const { data, updateSaleStatus, updateSaleVerification, addExchange } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -116,6 +117,23 @@ export default function Encomendas() {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<any>(null);
   const [followUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
+
+  // Exchange States
+  const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [selectedOrderForExchange, setSelectedOrderForExchange] = useState<any>(null);
+  const [exchangeStep, setExchangeStep] = useState(1);
+  const [exchangePIN, setExchangePIN] = useState('');
+  const [exchangeType, setExchangeType] = useState<'online' | 'fisico' | null>(null);
+  const [selectedItemsForExchange, setSelectedItemsForExchange] = useState<string[]>([]);
+  const [returnToStock, setReturnToStock] = useState(true);
+  const [exchangePurchaseDate, setExchangePurchaseDate] = useState('');
+  const [exchangeDate, setExchangeDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dateChangeReason, setDateChangeReason] = useState('');
+  const [isValidatingPIN, setIsValidatingPIN] = useState(false);
+  const [pinError, setPinError] = useState('');
+  const [validatedUser, setValidatedUser] = useState<string | null>(null);
+  const [generatedVoucher, setGeneratedVoucher] = useState<any>(null);
+  const [isFinalizingExchange, setIsFinalizingExchange] = useState(false);
 
   const {
     filteredOrders,
@@ -144,6 +162,90 @@ export default function Encomendas() {
     const date = new Date(dateStr);
     const formatted = date.toLocaleDateString('pt-PT', { weekday: 'long' });
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
+  const validatePIN = async () => {
+    setIsValidatingPIN(true);
+    setPinError('');
+    try {
+      const { data: userData, error } = await supabase
+        .from('loja_users')
+        .select('username')
+        .eq('password', exchangePIN)
+        .single();
+      
+      if (userData && !error) {
+        setValidatedUser(userData.username);
+        setExchangeStep(3);
+      } else {
+        setPinError('PIN inválido');
+      }
+    } catch (err) {
+      setPinError('Erro ao validar PIN');
+    } finally {
+      setIsValidatingPIN(false);
+    }
+  };
+
+  const finalizeExchange = async () => {
+    setIsFinalizingExchange(true);
+    try {
+      const voucherNumber = `TR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const totalExchangedValue = selectedItemsForExchange.reduce((sum, ref) => {
+        const item = selectedOrderForExchange.items.find((i: any) => i.ref === ref);
+        return sum + (Number(item?.pvp) || 0);
+      }, 0);
+
+      const exchangeData = {
+        id: Math.random().toString(36).substring(2, 10),
+        order_id: selectedOrderForExchange.id_venda,
+        type: exchangeType,
+        items: selectedItemsForExchange.map(ref => {
+          const item = selectedOrderForExchange.items.find((i: any) => i.ref === ref);
+          return { ref: item.ref, designacao: item.designacao, pvp: item.pvp };
+        }),
+        return_to_stock: returnToStock,
+        purchase_date: exchangePurchaseDate,
+        exchange_date: exchangeDate,
+        reason: dateChangeReason,
+        collaborator: validatedUser,
+        voucher_number: voucherNumber,
+        timestamp: new Date().toISOString()
+      };
+
+      const voucherData = {
+        number: voucherNumber,
+        value: totalExchangedValue,
+        customer_name: selectedOrderForExchange.nome_cliente,
+        order_id: selectedOrderForExchange.id_venda,
+        created_at: new Date().toISOString(),
+        valid_until: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), // 6 months
+        status: 'active'
+      };
+
+      // Add stock movement if returning to stock
+      if (returnToStock) {
+        for (const ref of selectedItemsForExchange) {
+          const item = selectedOrderForExchange.items.find((i: any) => i.ref === ref);
+          await supabase.from('loja_stock_movimentos').insert({
+            produto_nome: item.designacao,
+            tipo_movimento: 'Entrada (Troca)',
+            quantidade: item.quantidade || 1,
+            motivo: `Troca da encomenda #${selectedOrderForExchange.id_venda}`,
+            data_movimento: exchangeDate,
+            referencia: item.ref
+          });
+        }
+      }
+
+      await addExchange(exchangeData, voucherData);
+      setGeneratedVoucher(voucherData);
+      setExchangeStep(5);
+    } catch (err) {
+      console.error('Failed to finalize exchange:', err);
+    } finally {
+      setIsFinalizingExchange(false);
+    }
   };
 
   const filteredItems = useMemo(() => {
@@ -758,6 +860,21 @@ export default function Encomendas() {
                                 <FileText className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
                                 Ver Resumo / Fatura
                               </button>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedOrderForExchange(order);
+                                  setExchangeStep(1);
+                                  setExchangePurchaseDate(new Date(order.data_venda).toISOString().split('T')[0]);
+                                  setSelectedItemsForExchange(order.items?.map((it: any) => it.ref) || []);
+                                  setShowExchangeModal(true);
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group shadow-sm"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500" />
+                                Troca
+                              </button>
                             </div>
 
                             {/* Status History */}
@@ -1116,6 +1233,341 @@ export default function Encomendas() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Exchange Modal */}
+      <AnimatePresence>
+        {showExchangeModal && selectedOrderForExchange && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isFinalizingExchange && setShowExchangeModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+            >
+              <div className="p-8 space-y-6">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/40 rounded-2xl flex items-center justify-center text-amber-600">
+                      <RotateCcw className={`w-5 h-5 ${exchangeStep === 5 ? 'animate-bounce' : ''}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black uppercase tracking-tighter">Troca de Encomenda</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pedido #{selectedOrderForExchange.id_venda}</p>
+                    </div>
+                  </div>
+                  {exchangeStep < 5 && (
+                    <button 
+                      onClick={() => setShowExchangeModal(false)}
+                      className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Step 1: Confirmation */}
+                {exchangeStep === 1 && (
+                  <div className="space-y-6 py-4">
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-bold text-slate-700 dark:text-slate-200">Tens a certeza que pretendes efetuar esta troca?</p>
+                      <p className="text-sm text-slate-500">
+                        Data da compra: <span className="font-black text-slate-900 dark:text-white">{formatDate(selectedOrderForExchange.data_venda)}</span>
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowExchangeModal(false)}
+                        className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-500 font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all text-xs"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => setExchangeStep(2)}
+                        className="flex-1 py-4 bg-amber-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 text-xs"
+                      >
+                        Sim, Continuar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: PIN Validation */}
+                {exchangeStep === 2 && (
+                  <div className="space-y-6 py-4">
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-bold text-slate-700 dark:text-slate-200">Validação de Colaborador</p>
+                      <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Insira o seu PIN pessoal</p>
+                    </div>
+                    <div className="max-w-[200px] mx-auto space-y-4">
+                      <input
+                        type="password"
+                        value={exchangePIN}
+                        onChange={(e) => {
+                          setExchangePIN(e.target.value);
+                          if (pinError) setPinError('');
+                        }}
+                        autoFocus
+                        className={`w-full text-center text-3xl tracking-[1em] font-black py-4 bg-slate-50 dark:bg-white/5 border-2 ${pinError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-slate-100 dark:border-white/10 focus:ring-purple-500/20'} rounded-2xl outline-none focus:ring-4 transition-all`}
+                        placeholder="••••"
+                        maxLength={6}
+                        onKeyDown={(e) => e.key === 'Enter' && validatePIN()}
+                      />
+                      {pinError && (
+                        <p className="text-center text-[10px] font-black text-rose-500 uppercase tracking-widest animate-shake">
+                          {pinError}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={validatePIN}
+                      disabled={isValidatingPIN || !exchangePIN}
+                      className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100 text-xs flex items-center justify-center gap-2"
+                    >
+                      {isValidatingPIN ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : 'Validar PIN'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 3: Type Selection */}
+                {exchangeStep === 3 && (
+                  <div className="space-y-6 py-4">
+                    <div className="text-center space-y-1">
+                      <p className="text-lg font-bold text-slate-700 dark:text-slate-200">Olá, {validatedUser}!</p>
+                      <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Que tipo de troca é?</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => {
+                          setExchangeType('online');
+                          setExchangeStep(4);
+                        }}
+                        className="group p-6 bg-slate-50 dark:bg-white/5 border-2 border-transparent hover:border-blue-500 rounded-[2rem] transition-all text-center space-y-3"
+                      >
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 mx-auto group-hover:scale-110 transition-transform">
+                          <Star className="w-6 h-6" />
+                        </div>
+                        <span className="block font-black uppercase tracking-widest text-xs text-slate-600 dark:text-slate-400 group-hover:text-blue-500 transition-colors">Online</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setExchangeType('fisico');
+                          setExchangeStep(4);
+                        }}
+                        className="group p-6 bg-slate-50 dark:bg-white/5 border-2 border-transparent hover:border-amber-500 rounded-[2rem] transition-all text-center space-y-3"
+                      >
+                        <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mx-auto group-hover:scale-110 transition-transform">
+                          <Package className="w-6 h-6" />
+                        </div>
+                        <span className="block font-black uppercase tracking-widest text-xs text-slate-600 dark:text-slate-400 group-hover:text-amber-500 transition-colors">Físico</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Details */}
+                {exchangeStep === 4 && (
+                  <div className="space-y-6 max-h-[70vh] overflow-y-auto px-2 custom-scrollbar">
+                    {/* Dates Section */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Compra</label>
+                        <input 
+                          type="date" 
+                          value={exchangePurchaseDate}
+                          onChange={(e) => {
+                            setExchangePurchaseDate(e.target.value);
+                            if (e.target.value !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] && !dateChangeReason) {
+                              setDateChangeReason('Alteração manual da data original');
+                            }
+                          }}
+                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Troca</label>
+                        <input 
+                          type="date" 
+                          value={exchangeDate}
+                          onChange={(e) => setExchangeDate(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                        />
+                      </div>
+                    </div>
+
+                    {(exchangePurchaseDate !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] || exchangeDate !== new Date().toISOString().split('T')[0]) && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <label className="text-[9px] font-black text-rose-500 uppercase tracking-widest px-1 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Motivo da alteração de data (Obrigatório)
+                        </label>
+                        <textarea
+                          value={dateChangeReason}
+                          onChange={(e) => setDateChangeReason(e.target.value)}
+                          placeholder="Ex: Datas posteriores ao dia da troca, erro no registo original..."
+                          className="w-full bg-rose-50/30 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:ring-2 focus:ring-rose-500/20 min-h-[60px] resize-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Articles Section */}
+                    <div className="space-y-3">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Selecionar Artigos para Troca</label>
+                      <div className="space-y-2">
+                        {selectedOrderForExchange.items?.map((item: any, i: number) => (
+                          <div 
+                            key={i}
+                            onClick={() => {
+                              setSelectedItemsForExchange(prev => 
+                                prev.includes(item.ref) 
+                                  ? prev.filter(r => r !== item.ref)
+                                  : [...prev, item.ref]
+                              );
+                            }}
+                            className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                              selectedItemsForExchange.includes(item.ref)
+                                ? 'bg-purple-50/50 dark:bg-purple-900/20 border-purple-500/50'
+                                : 'bg-slate-50 dark:bg-white/5 border-transparent hover:bg-slate-100 dark:hover:bg-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                selectedItemsForExchange.includes(item.ref)
+                                  ? 'bg-purple-500 border-purple-500 text-white'
+                                  : 'border-slate-300 dark:border-white/20'
+                              }`}>
+                                {selectedItemsForExchange.includes(item.ref) && <Check className="w-3.5 h-3.5" />}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">{item.designacao}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">REF: {item.ref}</span>
+                              </div>
+                            </div>
+                            <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(Number(item.pvp))}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Stock Return Toggle */}
+                    <div 
+                      onClick={() => setReturnToStock(!returnToStock)}
+                      className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                        returnToStock 
+                          ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-500/50' 
+                          : 'bg-slate-50 dark:bg-white/5 border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                          returnToStock ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
+                        }`}>
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="block font-black uppercase tracking-widest text-[10px] text-slate-900 dark:text-white leading-none mb-1">Voltar ao Stock</span>
+                          <span className="text-[10px] font-bold text-slate-400">O artigo será reintegrado no inventário</span>
+                        </div>
+                      </div>
+                      <div className={`w-12 h-6 rounded-full relative transition-all ${returnToStock ? 'bg-emerald-500' : 'bg-slate-200'}`}>
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${returnToStock ? 'left-7' : 'left-1'}`} />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={finalizeExchange}
+                      disabled={selectedItemsForExchange.length === 0 || ((exchangePurchaseDate !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] || exchangeDate !== new Date().toISOString().split('T')[0]) && !dateChangeReason)}
+                      className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100 text-xs flex items-center justify-center gap-2 sticky bottom-0 z-10"
+                    >
+                      {isFinalizingExchange ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Confirmar Troca e Gerar Vale
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setExchangeStep(3)}
+                      className="w-full py-2 text-slate-400 font-bold uppercase tracking-widest text-[9px] hover:text-slate-600 transition-colors"
+                    >
+                      Voltar atrás
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 5: Final Summary & Voucher */}
+                {exchangeStep === 5 && generatedVoucher && (
+                  <div className="space-y-6 py-4 animate-in zoom-in-95 duration-300">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 mx-auto">
+                        <Check className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Troca Concluída!</p>
+                        <p className="text-xs text-slate-500 font-bold">O vale foi gerado com sucesso para {generatedVoucher.customer_name}.</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900 dark:bg-white p-8 rounded-[2.5rem] relative overflow-hidden group">
+                      {/* Decorative elements */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 blur-3xl rounded-full translate-x-16 -translate-y-16" />
+                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full -translate-x-16 translate-y-16" />
+                      
+                      <div className="relative space-y-4 text-center">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Número do Vale</p>
+                          <p className="text-3xl font-black text-white dark:text-slate-900 tracking-wider font-mono">{generatedVoucher.number}</p>
+                        </div>
+                        <div className="h-px bg-white/10 dark:bg-slate-200 mx-auto w-1/2" />
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Valor Total</p>
+                          <p className="text-4xl font-black text-emerald-400 dark:text-emerald-600">{formatCurrency(generatedVoucher.value)}</p>
+                        </div>
+                        
+                        <div className="pt-4 flex justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedVoucher.number);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/10 dark:bg-slate-100 hover:bg-white/20 dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            Copiar código
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-center">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Validade: {new Date(generatedVoucher.valid_until).toLocaleDateString('pt-PT')}</p>
+                      <button
+                        onClick={() => {
+                          setShowExchangeModal(false);
+                          setGeneratedVoucher(null);
+                        }}
+                        className="w-full py-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all text-xs"
+                      >
+                        Fechar e Atualizar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
