@@ -135,6 +135,12 @@ export default function Encomendas() {
   const [generatedVoucher, setGeneratedVoucher] = useState<any>(null);
   const [isFinalizingExchange, setIsFinalizingExchange] = useState(false);
 
+  // Online specific exchange fields
+  const [exchangeOnlinePurchaseDate, setExchangeOnlinePurchaseDate] = useState('');
+  const [exchangeOnlineCustomerArrivalDate, setExchangeOnlineCustomerArrivalDate] = useState('');
+  const [exchangeOnlineInternalArrivalDate, setExchangeOnlineInternalArrivalDate] = useState('');
+  const [reshippingFeePaid, setReshippingFeePaid] = useState<boolean | null>(null);
+
   const {
     filteredOrders,
     isFiltered,
@@ -205,8 +211,12 @@ export default function Encomendas() {
           return { ref: item.ref, designacao: item.designacao, pvp: item.pvp };
         }),
         return_to_stock: returnToStock,
-        purchase_date: exchangePurchaseDate,
+        purchase_date: exchangeType === 'online' ? (exchangeOnlinePurchaseDate || exchangePurchaseDate) : exchangePurchaseDate,
         exchange_date: exchangeDate,
+        // Online specific
+        customer_arrival_date: exchangeType === 'online' ? exchangeOnlineCustomerArrivalDate : null,
+        internal_arrival_date: exchangeType === 'online' ? exchangeOnlineInternalArrivalDate : null,
+        reshipping_fee_paid: exchangeType === 'online' ? reshippingFeePaid : null,
         reason: dateChangeReason,
         collaborator: validatedUser,
         voucher_number: voucherNumber,
@@ -1383,33 +1393,91 @@ export default function Encomendas() {
                 {exchangeStep === 4 && (
                   <div className="space-y-6 max-h-[70vh] overflow-y-auto px-2 custom-scrollbar">
                     {/* Dates Section */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Compra</label>
-                        <input 
-                          type="date" 
-                          value={exchangePurchaseDate}
-                          onChange={(e) => {
-                            setExchangePurchaseDate(e.target.value);
-                            if (e.target.value !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] && !dateChangeReason) {
-                              setDateChangeReason('Alteração manual da data original');
-                            }
-                          }}
-                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
-                        />
+                    {exchangeType === 'fisico' ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Compra</label>
+                          <input 
+                            type="date" 
+                            value={exchangePurchaseDate}
+                            onChange={(e) => {
+                              setExchangePurchaseDate(e.target.value);
+                              if (e.target.value !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] && !dateChangeReason) {
+                                setDateChangeReason('Alteração manual da data original');
+                              }
+                            }}
+                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Troca</label>
+                          <input 
+                            type="date" 
+                            value={exchangeDate}
+                            onChange={(e) => setExchangeDate(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Troca</label>
-                        <input 
-                          type="date" 
-                          value={exchangeDate}
-                          onChange={(e) => setExchangeDate(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
-                        />
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Compra</label>
+                            <input 
+                              type="date" 
+                              value={exchangeOnlinePurchaseDate || exchangePurchaseDate}
+                              onChange={(e) => {
+                                setExchangeOnlinePurchaseDate(e.target.value);
+                                if (!dateChangeReason) setDateChangeReason('Alteração manual de data (Online)');
+                              }}
+                              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Receção Cliente</label>
+                            <input 
+                              type="date" 
+                              value={exchangeOnlineCustomerArrivalDate}
+                              onChange={(e) => {
+                                setExchangeOnlineCustomerArrivalDate(e.target.value);
+                                if (!dateChangeReason) setDateChangeReason('Alteração manual de data (Online)');
+                              }}
+                              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Receção Instalações</label>
+                            <input 
+                              type="date" 
+                              value={exchangeOnlineInternalArrivalDate}
+                              onChange={(e) => {
+                                setExchangeOnlineInternalArrivalDate(e.target.value);
+                                if (!dateChangeReason) setDateChangeReason('Alteração manual de data (Online)');
+                              }}
+                              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Data da Troca</label>
+                            <input 
+                              type="date" 
+                              value={exchangeDate}
+                              onChange={(e) => setExchangeDate(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500/20"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {(exchangePurchaseDate !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] || exchangeDate !== new Date().toISOString().split('T')[0]) && (
+                    {(
+                      exchangePurchaseDate !== new Date(selectedOrderForExchange.data_venda).toISOString().split('T')[0] || 
+                      exchangeDate !== new Date().toISOString().split('T')[0] ||
+                      (exchangeType === 'online' && (exchangeOnlinePurchaseDate || exchangeOnlineCustomerArrivalDate || exchangeOnlineInternalArrivalDate))
+                    ) && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                         <label className="text-[9px] font-black text-rose-500 uppercase tracking-widest px-1 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -1421,6 +1489,37 @@ export default function Encomendas() {
                           placeholder="Ex: Datas posteriores ao dia da troca, erro no registo original..."
                           className="w-full bg-rose-50/30 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:ring-2 focus:ring-rose-500/20 min-h-[60px] resize-none"
                         />
+                      </div>
+                    )}
+
+                    {/* Reshipping Fee Section (Online only) */}
+                    {exchangeType === 'online' && (
+                      <div className="space-y-3">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">A cliente já pagou os portes de reenvio?</label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setReshippingFeePaid(true)}
+                            className={`flex-1 py-3 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 ${
+                              reshippingFeePaid === true
+                                ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-400'
+                            }`}
+                          >
+                            <Check className={`w-3.5 h-3.5 ${reshippingFeePaid === true ? 'opacity-100' : 'opacity-0'}`} />
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setReshippingFeePaid(false)}
+                            className={`flex-1 py-3 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 ${
+                              reshippingFeePaid === false
+                                ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20'
+                                : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-400'
+                            }`}
+                          >
+                            <X className={`w-3.5 h-3.5 ${reshippingFeePaid === false ? 'opacity-100' : 'opacity-0'}`} />
+                            Não
+                          </button>
+                        </div>
                       </div>
                     )}
 
