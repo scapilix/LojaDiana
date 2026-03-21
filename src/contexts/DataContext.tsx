@@ -48,6 +48,7 @@ interface ExcelData {
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   variations?: Variation[];
   order_statuses?: { name: string; color: string }[];
+  transfer_banks?: { name: string; color: string }[];
   timestamp?: string;
 }
 
@@ -93,6 +94,8 @@ interface DataContextType {
   bulkUpdateProducts: (refs: string[], updates: Partial<ProductCatalogItem>) => Promise<void>;
   updateVariations: (variations: Variation[]) => Promise<void>;
   updateOrderStatuses: (statuses: { name: string; color: string }[]) => Promise<void>;
+  updateTransferBanks: (banks: { name: string; color: string }[]) => Promise<void>;
+  updateSaleVerification: (idVenda: string, updates: { bank_color?: string, is_caiu?: boolean, is_retificado?: boolean }) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -590,6 +593,44 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const updateTransferBanks = async (banks: { name: string; color: string }[]) => {
+    try {
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'transfer_banks', value: banks });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, transfer_banks: banks }));
+    } catch (err) {
+      console.error('Error updating transfer banks:', err);
+      throw err;
+    }
+  };
+
+  const updateSaleVerification = async (idVenda: string, updates: { bank_color?: string, is_caiu?: boolean, is_retificado?: boolean }) => {
+    try {
+      const currentOrders = [...(data.orders || [])];
+      const orderIdx = currentOrders.findIndex(o => o.id_venda === idVenda);
+
+      if (orderIdx === -1) throw new Error('Encomenda não encontrada');
+
+      currentOrders[orderIdx] = {
+        ...currentOrders[orderIdx],
+        ...updates
+      };
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert({ key: 'import_orders', value: currentOrders });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, orders: currentOrders }));
+    } catch (err) {
+      console.error('Error updating sale verification:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -606,7 +647,9 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       clearAllOrders,
       bulkUpdateProducts,
       updateVariations,
-      updateOrderStatuses
+      updateOrderStatuses,
+      updateTransferBanks,
+      updateSaleVerification
     }}>
       {children}
     </DataContext.Provider>

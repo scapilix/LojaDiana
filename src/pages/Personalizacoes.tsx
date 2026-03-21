@@ -12,7 +12,8 @@ import {
     Box,
     Search,
     Palette,
-    ClipboardList
+    ClipboardList,
+    Landmark
 } from 'lucide-react';
 import { useData, Variation } from '../contexts/DataContext';
 
@@ -34,21 +35,23 @@ const COLOR_OPTIONS = [
 ];
 
 export default function Personalizacoes() {
-    const { data, updateCategories, updateVariations, updateOrderStatuses } = useData();
+    const { data, updateCategories, updateVariations, updateOrderStatuses, updateTransferBanks } = useData();
     const [selectedVarId, setSelectedVarId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [showStatus, setShowStatus] = useState<'success' | 'error' | null>(null);
-    const [activeSection, setActiveSection] = useState<'categories' | 'variations' | 'statuses'>('categories');
+    const [activeSection, setActiveSection] = useState<'categories' | 'variations' | 'statuses' | 'banks'>('categories');
 
     const [catSearch, setCatSearch] = useState('');
     const [localCategories, setLocalCategories] = useState<string[]>(data.categories || []);
     const [localVariations, setLocalVariations] = useState<Variation[]>(data.variations || []);
     const [localStatuses, setLocalStatuses] = useState<{ name: string; color: string }[]>(data.order_statuses || []);
+    const [localBanks, setLocalBanks] = useState<{ name: string; color: string }[]>(data.transfer_banks || []);
     
     const [newCategory, setNewCategory] = useState('');
     const [newVarName, setNewVarName] = useState('');
     const [newOption, setNewOption] = useState('');
     const [newStatusName, setNewStatusName] = useState('');
+    const [newBankName, setNewBankName] = useState('');
     const [selectedColor, setSelectedColor] = useState('slate');
 
     // Sync from context when it changes externally
@@ -56,7 +59,8 @@ export default function Personalizacoes() {
         setLocalCategories(data.categories || []);
         setLocalVariations(data.variations || []);
         setLocalStatuses(data.order_statuses || []);
-    }, [data.categories, data.variations, data.order_statuses]);
+        setLocalBanks(data.transfer_banks || []);
+    }, [data.categories, data.variations, data.order_statuses, data.transfer_banks]);
 
     // Instant/Auto Sync Effect
     useEffect(() => {
@@ -65,6 +69,7 @@ export default function Personalizacoes() {
             if (JSON.stringify(localCategories) !== JSON.stringify(data.categories)) changed = true;
             if (JSON.stringify(localVariations) !== JSON.stringify(data.variations)) changed = true;
             if (JSON.stringify(localStatuses) !== JSON.stringify(data.order_statuses)) changed = true;
+            if (JSON.stringify(localBanks) !== JSON.stringify(data.transfer_banks)) changed = true;
 
             if (changed) {
                 setIsSaving(true);
@@ -72,10 +77,12 @@ export default function Personalizacoes() {
                     await Promise.all([
                         updateCategories(localCategories),
                         updateVariations(localVariations),
-                        updateOrderStatuses(localStatuses)
+                        updateOrderStatuses(localStatuses),
+                        updateTransferBanks(localBanks)
                     ]);
                     setShowStatus('success');
                 } catch (err) {
+                    console.error('Save error:', err);
                     setShowStatus('error');
                 } finally {
                     setIsSaving(false);
@@ -84,7 +91,7 @@ export default function Personalizacoes() {
             }
         }, 1000);
         return () => clearTimeout(timeout);
-    }, [localCategories, localVariations, localStatuses]);
+    }, [localCategories, localVariations, localStatuses, localBanks, data, updateCategories, updateOrderStatuses, updateTransferBanks, updateVariations]);
 
     const currentVariation = localVariations.find(v => v.id === selectedVarId);
 
@@ -153,6 +160,17 @@ export default function Personalizacoes() {
         setLocalStatuses(localStatuses.filter(s => s.name !== name));
     };
 
+    const addBank = () => {
+        if (newBankName.trim() && !localBanks.find(b => b.name.toUpperCase() === newBankName.trim().toUpperCase())) {
+            setLocalBanks([...localBanks, { name: newBankName.trim(), color: selectedColor }]);
+            setNewBankName('');
+        }
+    };
+
+    const removeBank = (name: string) => {
+        setLocalBanks(localBanks.filter(b => b.name !== name));
+    };
+
     return (
         <motion.div
             variants={pageVariants}
@@ -206,6 +224,12 @@ export default function Personalizacoes() {
                                 className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSection === 'statuses' ? 'bg-white dark:bg-white/10 text-purple-600 shadow-sm' : 'text-slate-500'}`}
                             >
                                 Estados
+                            </button>
+                            <button
+                                onClick={() => setActiveSection('banks')}
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSection === 'banks' ? 'bg-white dark:bg-white/10 text-purple-600 shadow-sm' : 'text-slate-500'}`}
+                            >
+                                Bancos
                             </button>
                         </div>
 
@@ -299,7 +323,7 @@ export default function Personalizacoes() {
                                         ))}
                                     </Reorder.Group>
                                 </>
-                            ) : (
+                            ) : activeSection === 'statuses' ? (
                                 <>
                                     <div className="relative mb-4 space-y-3">
                                         <input
@@ -349,7 +373,57 @@ export default function Personalizacoes() {
                                         })}
                                     </Reorder.Group>
                                 </>
-                            )}
+                            ) : activeSection === 'banks' ? (
+                                <>
+                                    <div className="relative mb-4 space-y-3">
+                                        <input
+                                            type="text"
+                                            value={newBankName}
+                                            onChange={(e) => setNewBankName(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addBank()}
+                                            placeholder="Novo banco (ex: Montepio)..."
+                                            className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                        />
+                                        <div className="flex flex-wrap gap-2">
+                                            {COLOR_OPTIONS.map(color => (
+                                                <button
+                                                    key={color.id}
+                                                    onClick={() => setSelectedColor(color.id)}
+                                                    className={`w-6 h-6 rounded-full border-2 transition-all ${color.dot} ${selectedColor === color.id ? 'ring-2 ring-purple-500 ring-offset-2 scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <button 
+                                            onClick={addBank} 
+                                            className="w-full py-2 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Adicionar Banco
+                                        </button>
+                                    </div>
+                                    <Reorder.Group axis="y" values={localBanks} onReorder={setLocalBanks} className="space-y-2">
+                                        {localBanks.map((b) => {
+                                            const colorConfig = COLOR_OPTIONS.find(c => c.id === b.color) || COLOR_OPTIONS[0];
+                                            return (
+                                                <Reorder.Item 
+                                                    key={b.name} 
+                                                    value={b}
+                                                    className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl group hover:border-purple-200 transition-all cursor-grab active:cursor-grabbing"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <GripVertical className="w-3.5 h-3.5 text-slate-300 group-hover:text-purple-400" />
+                                                        <div className={`w-2 h-2 rounded-full ${colorConfig.dot}`} />
+                                                        <span className={`font-black text-[10px] uppercase tracking-wider ${colorConfig.text}`}>{b.name}</span>
+                                                    </div>
+                                                    <button onClick={() => removeBank(b.name)} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </Reorder.Item>
+                                            );
+                                        })}
+                                    </Reorder.Group>
+                                </>
+                            ) : null}
                         </div>
                     </div>
                 </div>
@@ -458,6 +532,20 @@ export default function Personalizacoes() {
                                 <p className="text-xs font-bold text-slate-400 max-w-sm mt-4 leading-relaxed">
                                     As categorias permitem organizar seus produtos (Vestidos, Camisolas, etc). 
                                     Adicione nomes à esquerda para atualizar automaticamente os filtros do sistema.
+                                </p>
+                            </motion.div>
+                        ) : activeSection === 'banks' ? (
+                            <motion.div
+                                key="bank-promo"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="h-full flex flex-col items-center justify-center text-center p-12 bg-emerald-500/5 rounded-[2.5rem] border-2 border-dashed border-emerald-500/10"
+                            >
+                                <Landmark className="w-16 h-16 text-emerald-500/20 mb-6" />
+                                <h3 className="text-xl font-black text-emerald-600/60 uppercase tracking-tighter">Gestão de Bancos</h3>
+                                <p className="text-xs font-bold text-slate-400 max-w-sm mt-4 leading-relaxed">
+                                    Defina os bancos que utiliza para transferências e atribua-lhes uma cor. 
+                                    Isto ajudará na conferência manual das vendas na tabela de encomendas.
                                 </p>
                             </motion.div>
                         ) : (
