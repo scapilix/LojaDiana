@@ -252,6 +252,10 @@ export default function Encomendas() {
       await addExchange(exchangeData, voucherData);
       setGeneratedVoucher(voucherData);
       setExchangeStep(5);
+      
+      // Clear sensitive PIN data after success
+      setExchangePIN('');
+      setValidatedUser(null);
     } catch (err) {
       console.error('Failed to finalize exchange:', err);
     } finally {
@@ -717,7 +721,18 @@ export default function Encomendas() {
                     </td>
 
                     <td className="px-2 py-1.5 font-black text-slate-400 text-[11px]">
-                      {order.id_venda || '#N/A'}
+                      <div className="flex flex-col gap-1">
+                        <span>{order.id_venda || '#N/A'}</span>
+                        {order.items?.some((i: any) => i.is_exchanged) && (
+                          <div className={`text-[8px] px-1 py-0.5 rounded-md text-center uppercase tracking-tighter transition-all ${
+                            order.is_retificado 
+                              ? 'bg-emerald-500 text-white font-black' 
+                              : 'bg-amber-400 text-amber-950 font-black'
+                          }`}>
+                            Troca
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-2 py-1.5 text-center">
                       <button
@@ -1299,7 +1314,13 @@ export default function Encomendas() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => !isFinalizingExchange && setShowExchangeModal(false)}
+              onClick={() => {
+                if (!isFinalizingExchange) {
+                  setShowExchangeModal(false);
+                  setExchangePIN('');
+                  setValidatedUser(null);
+                }
+              }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
             <motion.div
@@ -1322,7 +1343,11 @@ export default function Encomendas() {
                   </div>
                   {exchangeStep < 5 && (
                     <button 
-                      onClick={() => setShowExchangeModal(false)}
+                      onClick={() => {
+                        setShowExchangeModal(false);
+                        setExchangePIN('');
+                        setValidatedUser(null);
+                      }}
                       className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
                     >
                       <X className="w-5 h-5" />
@@ -1569,38 +1594,51 @@ export default function Encomendas() {
                     <div className="space-y-3">
                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Selecionar Artigos para Troca</label>
                       <div className="space-y-2">
-                        {selectedOrderForExchange.items?.map((item: any, i: number) => (
-                          <div 
-                            key={i}
-                            onClick={() => {
-                              setSelectedItemsForExchange(prev => 
-                                prev.includes(item.ref) 
-                                  ? prev.filter(r => r !== item.ref)
-                                  : [...prev, item.ref]
-                              );
-                            }}
-                            className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
-                              selectedItemsForExchange.includes(item.ref)
-                                ? 'bg-purple-50/50 dark:bg-purple-900/20 border-purple-500/50'
-                                : 'bg-slate-50 dark:bg-white/5 border-transparent hover:bg-slate-100 dark:hover:bg-white/10'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                                selectedItemsForExchange.includes(item.ref)
-                                  ? 'bg-purple-500 border-purple-500 text-white'
-                                  : 'border-slate-300 dark:border-white/20'
-                              }`}>
-                                {selectedItemsForExchange.includes(item.ref) && <Check className="w-3.5 h-3.5" />}
+                        {selectedOrderForExchange.items?.map((item: any, i: number) => {
+                          const isAlreadyExchanged = item.is_exchanged === true;
+                          return (
+                            <div 
+                              key={i}
+                              onClick={() => {
+                                if (isAlreadyExchanged) return;
+                                setSelectedItemsForExchange(prev => 
+                                  prev.includes(item.ref) 
+                                    ? prev.filter(r => r !== item.ref)
+                                    : [...prev, item.ref]
+                                );
+                              }}
+                              className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all ${
+                                isAlreadyExchanged
+                                  ? 'bg-slate-100 dark:bg-white/5 border-transparent opacity-50 cursor-not-allowed'
+                                  : selectedItemsForExchange.includes(item.ref)
+                                    ? 'bg-purple-50/50 dark:bg-purple-900/20 border-purple-500/50 cursor-pointer'
+                                    : 'bg-slate-50 dark:bg-white/5 border-transparent hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                  isAlreadyExchanged
+                                    ? 'bg-slate-200 dark:bg-slate-700 border-slate-200 dark:border-slate-700'
+                                    : selectedItemsForExchange.includes(item.ref)
+                                      ? 'bg-purple-500 border-purple-500 text-white'
+                                      : 'border-slate-300 dark:border-white/20'
+                                }`}>
+                                  {isAlreadyExchanged ? <X className="w-3.5 h-3.5 text-slate-400" /> : selectedItemsForExchange.includes(item.ref) && <Check className="w-3.5 h-3.5" />}
+                                </div>
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">{item.designacao}</span>
+                                    {isAlreadyExchanged && (
+                                      <span className="text-[8px] font-black bg-rose-100 text-rose-600 px-1 rounded uppercase">Já trocado</span>
+                                    )}
+                                  </div>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">REF: {item.ref}</span>
+                                </div>
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">{item.designacao}</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">REF: {item.ref}</span>
-                              </div>
+                              <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(Number(item.pvp))}</span>
                             </div>
-                            <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(Number(item.pvp))}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
