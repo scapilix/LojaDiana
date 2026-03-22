@@ -54,6 +54,7 @@ interface ExcelData {
     receipt_header?: string;
     receipt_footer?: string;
     receipt_logo_url?: string;
+    receipt_exchange_policy?: string;
     printer_paper_width?: '80mm' | '58mm';
     printer_double_print?: boolean;
     printer_bluetooth?: boolean;
@@ -126,7 +127,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     ...initialData,
     appSettings: {
       ...initialData.appSettings,
-      receipt_logo_url: initialData.appSettings?.receipt_logo_url || ''
+      receipt_logo_url: initialData.appSettings?.receipt_logo_url || '',
+      receipt_exchange_policy: initialData.appSettings?.receipt_exchange_policy || 'Os artigos podem ser trocados no prazo de 14 dias, acompanhados pelo respetivo talão.'
     }
   });
   const [isLoading, setIsLoading] = useState(false);

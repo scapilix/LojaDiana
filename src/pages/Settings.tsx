@@ -26,7 +26,8 @@ import {
     Layout,
     Type,
     Copy,
-    XCircle
+    XCircle,
+    RotateCcw
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { supabase } from '../lib/supabase';
@@ -94,6 +95,7 @@ export default function Settings() {
         receipt_header: data.appSettings?.receipt_header || '',
         receipt_footer: data.appSettings?.receipt_footer || '',
         receipt_logo_url: data.appSettings?.receipt_logo_url || '',
+        receipt_exchange_policy: data.appSettings?.receipt_exchange_policy || 'Os artigos podem ser trocados no prazo de 14 dias, acompanhados pelo respetivo talão.',
         printer_paper_width: data.appSettings?.printer_paper_width || '80mm',
         printer_double_print: data.appSettings?.printer_double_print || false,
         printer_bluetooth: data.appSettings?.printer_bluetooth || false
@@ -635,6 +637,17 @@ export default function Settings() {
                                                 onChange={e => setGeneralSettings({...generalSettings, receipt_footer: e.target.value})}
                                                 className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-[10px] min-h-[60px] resize-none"
                                                 placeholder="Ex: Não aceitamos trocas sem talão."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <RotateCcw className="w-3 h-3" /> Política de Trocas (Talão Oferta)
+                                            </label>
+                                            <textarea
+                                                value={generalSettings.receipt_exchange_policy}
+                                                onChange={e => setGeneralSettings({...generalSettings, receipt_exchange_policy: e.target.value})}
+                                                className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-[10px] min-h-[60px] resize-none"
+                                                placeholder="Ex: Trocas no prazo de 14 dias..."
                                             />
                                         </div>
                                     </div>

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import ReactDOMServer from 'react-dom/server';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
 import {
   Search,
   ChevronRight,
@@ -18,8 +20,10 @@ import {
   CreditCard,
   Truck as TruckIcon,
   Landmark,
-  Check,
+  Mail,
+  Share2,
   RotateCcw,
+  Check,
   AlertCircle,
   Key
 } from 'lucide-react';
@@ -1208,118 +1212,165 @@ export default function Encomendas() {
                     <h3 className="text-xl font-black uppercase tracking-tighter">Resumo do Pedido</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const printable = document.getElementById('printable-invoice');
-                        if (!printable) return;
+                  <div className="flex items-center gap-2">
+                       {/* Normal Receipt Button */}
+                       <button 
+                        onClick={() => {
+                          const WinPrint = window.open('', '', 'width=900,height=900');
+                          const html = ReactDOMServer.renderToString(
+                            <ReceiptTemplate 
+                              order={selectedOrderForInvoice} 
+                              settings={data.appSettings} 
+                            />
+                          );
+                          WinPrint?.document.write(`
+                            <html>
+                              <head>
+                                <title>Talão de Venda - #${selectedOrderForInvoice.id_venda}</title>
+                                <script src="https://cdn.tailwindcss.com"></script>
+                                <style>
+                                  @media print {
+                                    @page { margin: 0; }
+                                    body { margin: 0; }
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                ${html}
+                              </body>
+                            </html>
+                          `);
+                          WinPrint?.document.close();
+                          setTimeout(() => {
+                            WinPrint?.print();
+                            WinPrint?.close();
+                          }, 500);
+                        }}
+                        className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                        title="Imprimir Talão Normal"
+                      >
+                        <Printer className="w-4 h-4" />
+                        Imprimir
+                      </button>
+
+                      {/* Gift Receipt Button */}
+                      <button 
+                        onClick={() => {
+                          const WinPrint = window.open('', '', 'width=900,height=900');
+                          const html = ReactDOMServer.renderToString(
+                            <ReceiptTemplate 
+                              order={selectedOrderForInvoice} 
+                              settings={data.appSettings} 
+                              type="gift"
+                            />
+                          );
+                          WinPrint?.document.write(`
+                            <html>
+                              <head>
+                                <title>Talão de Oferta - #${selectedOrderForInvoice.id_venda}</title>
+                                <script src="https://cdn.tailwindcss.com"></script>
+                                <style>
+                                  @media print {
+                                    @page { margin: 0; }
+                                    body { margin: 0; }
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                ${html}
+                              </body>
+                            </html>
+                          `);
+                          WinPrint?.document.close();
+                          setTimeout(() => {
+                            WinPrint?.print();
+                            WinPrint?.close();
+                          }, 500);
+                        }}
+                        className="p-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                        title="Talão de Oferta"
+                      >
+                        <Star className="w-4 h-4" />
+                        Oferta
+                      </button>
+
+                      {/* Exchange Receipt Button (Conditional) */}
+                      {(() => {
+                        const exchange = data.order_exchanges?.find((ex: any) => ex.order_id === selectedOrderForInvoice.id_venda);
+                        if (!exchange) return null;
                         
-                        const WinPrint = window.open('', '', 'width=900,height=800');
-                        WinPrint?.document.write(`
-                          <html>
-                            <head>
-                              <title>Fatura ${selectedOrderForInvoice.id_venda}</title>
-                              <style>
-                                body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.5; }
-                                .invoice-box { max-width: 800px; margin: auto; }
-                                .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; }
-                                .logo { font-size: 28px; font-weight: 900; color: #7c3aed; }
-                                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-                                .label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 4px; }
-                                .value { font-size: 14px; font-weight: 700; }
-                                table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-                                th { text-align: left; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid #f1f5f9; padding: 12px 8px; }
-                                td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 600; }
-                                .total-section { margin-left: auto; width: 250px; }
-                                .total-row { display: flex; justify-content: space-between; padding: 4px 0; }
-                                .grand-total { border-top: 2px solid #7c3aed; margin-top: 10px; padding-top: 10px; font-size: 18px; font-weight: 900; color: #7c3aed; }
-                                @media print { .no-print { display: none; } }
-                              </style>
-                            </head>
-                            <body>
-                              <div class="invoice-box">
-                                <div class="header">
-                                  <div class="logo">LUZ</div>
-                                  <div style="text-align: right">
-                                    <div class="label">ID VENDA</div>
-                                    <div class="value" style="font-size: 20px">#${selectedOrderForInvoice.id_venda}</div>
-                                    <div class="label" style="margin-top: 8px">DATA</div>
-                                    <div class="value">${new Date(selectedOrderForInvoice.data_venda).toLocaleDateString('pt-PT')}</div>
-                                  </div>
-                                </div>
-                                
-                                <div class="info-grid">
-                                  <div>
-                                    <div class="label">CLIENTE</div>
-                                    <div class="value">${selectedOrderForInvoice.nome_cliente}</div>
-                                    <div class="label" style="margin-top: 12px">CONTACTO</div>
-                                    <div class="value">${selectedOrderForInvoice.telefone || '-'}</div>
-                                  </div>
-                                  <div>
-                                    <div class="label">FORMA DE PAGAMENTO</div>
-                                    <div class="value">${selectedOrderForInvoice.forma_de_pagamento || '-'}</div>
-                                    <div class="label" style="margin-top: 12px">MÉTODO DE ENVIO</div>
-                                    <div class="value">${selectedOrderForInvoice.loja_ctt || 'CTT'}</div>
-                                  </div>
-                                </div>
+                        return (
+                          <button 
+                            onClick={() => {
+                              const WinPrint = window.open('', '', 'width=900,height=900');
+                              const html = ReactDOMServer.renderToString(
+                                <ReceiptTemplate 
+                                  order={selectedOrderForInvoice} 
+                                  settings={data.appSettings} 
+                                  type="exchange"
+                                  exchangeCode={exchange.voucher_number || exchange.id}
+                                />
+                              );
+                              WinPrint?.document.write(`
+                                <html>
+                                  <head>
+                                    <title>Talão de Troca - #${selectedOrderForInvoice.id_venda}</title>
+                                    <script src="https://cdn.tailwindcss.com"></script>
+                                    <style>
+                                      @media print {
+                                        @page { margin: 0; }
+                                        body { margin: 0; }
+                                      }
+                                    </style>
+                                  </head>
+                                  <body>
+                                    ${html}
+                                  </body>
+                                </html>
+                              `);
+                              WinPrint?.document.close();
+                              setTimeout(() => {
+                                WinPrint?.print();
+                                WinPrint?.close();
+                              }, 500);
+                            }}
+                            className="p-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20"
+                            title="Talão de Troca"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                            Troca
+                          </button>
+                        );
+                      })()}
 
-                                <table>
-                                  <thead>
-                                    <tr>
-                                      <th>Artigo</th>
-                                      <th style="text-align: center">Qtd</th>
-                                      <th style="text-align: right">Preço Un.</th>
-                                      <th style="text-align: right">Total</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    ${(selectedOrderForInvoice.items || []).map((item: any) => `
-                                      <tr>
-                                        <td>${item.designacao}</td>
-                                        <td style="text-align: center">${item.quantidade}</td>
-                                        <td style="text-align: right">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(item.pvp) / Number(item.quantidade))}</td>
-                                        <td style="text-align: right">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(item.pvp))}</td>
-                                      </tr>
-                                    `).join('')}
-                                  </tbody>
-                                </table>
+                      <button 
+                        onClick={() => {
+                          const subject = encodeURIComponent(`Talão de Venda #${selectedOrderForInvoice.id_venda}`);
+                          const body = encodeURIComponent(`Olá ${selectedOrderForInvoice.nome_cliente}, aqui está o resumo do seu pedido #${selectedOrderForInvoice.id_venda}.`);
+                          window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                        }}
+                        className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+                        title="Enviar por E-mail"
+                      >
+                        <Mail className="w-4 h-4" />
+                      </button>
 
-                                <div class="total-section">
-                                  <div class="total-row">
-                                    <span class="label">Subtotal</span>
-                                    <span class="value">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.pvp) - Number(selectedOrderForInvoice.portes || 0) + Number(selectedOrderForInvoice.descontos || 0))}</span>
-                                  </div>
-                                  <div class="total-row">
-                                    <span class="label">Portes</span>
-                                    <span class="value">${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.portes || 0))}</span>
-                                  </div>
-                                  <div class="total-row">
-                                    <span class="label" style="color: #ef4444">Descontos</span>
-                                    <span class="value" style="color: #ef4444">-${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.descontos || 0))}</span>
-                                  </div>
-                                  <div class="total-row grand-total">
-                                    <span>TOTAL</span>
-                                    <span>${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(selectedOrderForInvoice.pvp))}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </body>
-                          </html>
-                        `);
-                        WinPrint?.document.close();
-                        WinPrint?.focus();
-                        setTimeout(() => {
-                          WinPrint?.print();
-                          WinPrint?.close();
-                        }, 500);
-                      }}
-                      className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 text-xs font-black uppercase tracking-widest"
-                    >
-                      <Printer className="w-4 h-4" />
-                      Gerar PDF / Imprimir
-                    </button>
-                    <button onClick={() => setShowInvoiceModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors">
-                      <X className="w-5 h-5" />
-                    </button>
+                      <button 
+                        onClick={() => {
+                          const text = `Olá ${selectedOrderForInvoice.nome_cliente}! Segue o resumo do seu pedido #${selectedOrderForInvoice.id_venda} na ${data.appSettings?.storeName || 'nossa loja'}. Total: ${formatCurrency(selectedOrderForInvoice.pvp)}`;
+                          const whatsappUrl = `https://wa.me/${selectedOrderForInvoice.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+                          window.open(whatsappUrl, '_blank');
+                        }}
+                        className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
+                        title="Partilhar WhatsApp"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+
+                      <button onClick={() => setShowInvoiceModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

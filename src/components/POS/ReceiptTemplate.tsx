@@ -24,11 +24,14 @@ interface ReceiptProps {
     receipt_header?: string;
     receipt_footer?: string;
     receipt_logo_url?: string;
+    receipt_exchange_policy?: string;
     printer_paper_width?: '80mm' | '58mm';
   };
+  type?: 'sale' | 'exchange' | 'gift';
+  exchangeCode?: string;
 }
 
-export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings }) => {
+export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings, type = 'sale', exchangeCode }) => {
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
   };
@@ -109,13 +112,13 @@ export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings }) => 
               <td className="py-2">
                 <div className="font-black truncate max-w-[150px] uppercase">{item.designacao || item.nome_artigo}</div>
                 <div className="text-[8px] opacity-70">
-                  {item.quantidade}x {formatCurrency((item.pvp || item.preco_unitario || 0) / (item.quantidade || 1))}
+                  {item.quantidade}x {type === 'gift' ? formatCurrency(0) : formatCurrency((item.pvp || item.preco_unitario || 0) / (item.quantidade || 1))}
                   {item.size ? ` / ${item.size}` : ''}
                   {item.color ? ` / ${item.color}` : ''}
                 </div>
               </td>
               <td className="text-right font-black pt-2">
-                {formatCurrency(item.pvp || ((item.preco_unitario || 0) * (item.quantidade || 1)))}
+                {type === 'gift' ? formatCurrency(0) : formatCurrency(item.pvp || ((item.preco_unitario || 0) * (item.quantidade || 1)))}
               </td>
             </tr>
           ))}
@@ -137,15 +140,29 @@ export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings }) => 
         )}
         <div className="flex justify-between text-xs font-black pt-1 border-t border-black border-dotted mt-1">
           <span className="uppercase">Total Final:</span>
-          <span className="text-sm">{formatCurrency(order.total)}</span>
+          <span className="text-sm">{type === 'gift' ? formatCurrency(0) : formatCurrency(order.total)}</span>
         </div>
       </div>
 
       <div className="mt-4 pt-2 border-t border-black border-dashed">
         <div className="flex justify-between">
           <span className="uppercase font-bold">Pagamento:</span>
-          <span className="uppercase font-black">{order.forma_de_pagamento}</span>
+          <span className="uppercase font-black">{type === 'gift' ? 'OFERTA' : order.forma_de_pagamento}</span>
         </div>
+
+        {type === 'exchange' && exchangeCode && (
+          <div className="mt-2 border border-black p-2 text-center font-black uppercase tracking-widest bg-slate-50">
+            TROCA EFETUADA<br />
+            CÓDIGO: {exchangeCode}
+          </div>
+        )}
+
+        {type === 'gift' && settings?.receipt_exchange_policy && (
+          <div className="mt-2 border border-black p-2 text-[7px] text-center font-bold bg-slate-50">
+            POLÍTICA DE TROCAS:<br />
+            {settings.receipt_exchange_policy}
+          </div>
+        )}
       </div>
 
       {order.notes && (
