@@ -18,13 +18,54 @@ import {
     Shield,
     CreditCard,
     Smartphone,
-    XCircle,
-    Lock as LockIcon
+    Lock as LockIcon,
+    Printer,
+    FileText,
+    Eye,
+    Bluetooth,
+    Layout,
+    Type,
+    Copy,
+    XCircle
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { uploadToSupabase } from '../lib/upload';
+import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
+
+// Local Modal Component
+const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode }) => (
+    <AnimatePresence>
+        {isOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
+                    onClick={onClose}
+                />
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[90vh]"
+                >
+                    <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{title}</h3>
+                        <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                            <XCircle className="w-5 h-5 text-slate-400" />
+                        </button>
+                    </div>
+                    <div className="p-6 overflow-y-auto custom-scrollbar">
+                        {children}
+                    </div>
+                </motion.div>
+            </div>
+        )}
+    </AnimatePresence>
+);
 
 const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -45,8 +86,20 @@ export default function Settings() {
         iban: data.appSettings?.iban || '',
         mbway: data.appSettings?.mbway || '',
         heroImages: data.appSettings?.heroImages || ['', '', ''],
-        cancellationReasons: data.appSettings?.cancellationReasons || []
+        cancellationReasons: data.appSettings?.cancellationReasons || [],
+        storeAddress: data.appSettings?.storeAddress || '',
+        storeNIF: data.appSettings?.storeNIF || '',
+        receipt_show_logo: data.appSettings?.receipt_show_logo ?? true,
+        receipt_show_customer: data.appSettings?.receipt_show_customer ?? true,
+        receipt_header: data.appSettings?.receipt_header || '',
+        receipt_footer: data.appSettings?.receipt_footer || '',
+        printer_paper_width: data.appSettings?.printer_paper_width || '80mm',
+        printer_double_print: data.appSettings?.printer_double_print || false,
+        printer_bluetooth: data.appSettings?.printer_bluetooth || false
     });
+
+    const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+    const [showPrinterSettings, setShowPrinterSettings] = useState(false);
 
     const [isUploading, setIsUploading] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'users'>('general');
@@ -432,6 +485,116 @@ export default function Settings() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* New Receipt Customization Section */}
+                            <div className="mt-12 pt-12 border-t border-slate-100 dark:border-white/5">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 text-center md:text-left">
+                                    <div className="flex-1">
+                                        <h2 className="text-xl font-black text-slate-950 dark:text-white uppercase tracking-tight flex items-center justify-center md:justify-start gap-3">
+                                            <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                                                <FileText className="w-5 h-5 text-purple-600" />
+                                            </div>
+                                            Personalização do Talão
+                                        </h2>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Configure o que aparece no recibo impresso</p>
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-3">
+                                        <button
+                                            onClick={() => setShowPrinterSettings(true)}
+                                            className="px-6 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-slate-200 transition-all flex items-center gap-2 border border-slate-200 dark:border-white/10"
+                                        >
+                                            <Printer className="w-3.5 h-3.5" />
+                                            Impressora
+                                        </button>
+                                        <button
+                                            onClick={() => setShowReceiptPreview(true)}
+                                            className="px-6 py-3 bg-purple-600/10 text-purple-600 rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-purple-600/20 transition-all flex items-center gap-2 border border-purple-200 dark:border-purple-500/20"
+                                        >
+                                            <Eye className="w-3.5 h-3.5" />
+                                            Ver meu Talão
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Morada da Loja</label>
+                                            <textarea
+                                                value={generalSettings.storeAddress}
+                                                onChange={(e) => setGeneralSettings({ ...generalSettings, storeAddress: e.target.value })}
+                                                className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm min-h-[80px] resize-none"
+                                                placeholder="Endereço que aparecerá no recibo..."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF da Loja</label>
+                                            <input
+                                                type="text"
+                                                value={generalSettings.storeNIF}
+                                                onChange={(e) => setGeneralSettings({ ...generalSettings, storeNIF: e.target.value })}
+                                                className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
+                                                placeholder="NIF da empresa..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Visibilidade</label>
+                                        <div className="space-y-3">
+                                            <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-purple-200 transition-all group">
+                                                <div className="flex items-center gap-3">
+                                                    <Layout className="w-4 h-4 text-slate-400 group-hover:text-purple-500" />
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Mostrar Logotipo</span>
+                                                </div>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={generalSettings.receipt_show_logo}
+                                                    onChange={e => setGeneralSettings({...generalSettings, receipt_show_logo: e.target.checked})}
+                                                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-purple-600 focus:ring-purple-500"
+                                                />
+                                            </label>
+                                            <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-purple-200 transition-all group">
+                                                <div className="flex items-center gap-3">
+                                                    <UserCircle className="w-4 h-4 text-slate-400 group-hover:text-purple-500" />
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Dados do Cliente</span>
+                                                </div>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={generalSettings.receipt_show_customer}
+                                                    onChange={e => setGeneralSettings({...generalSettings, receipt_show_customer: e.target.checked})}
+                                                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-purple-600 focus:ring-purple-500"
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <Type className="w-3 h-3" /> Cabeçalho (Opcional)
+                                            </label>
+                                            <textarea
+                                                value={generalSettings.receipt_header}
+                                                onChange={e => setGeneralSettings({...generalSettings, receipt_header: e.target.value})}
+                                                className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-[10px] min-h-[60px] resize-none"
+                                                placeholder="Ex: Sejam bem-vindos!"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <Type className="w-3 h-3" /> Rodapé (Opcional)
+                                            </label>
+                                            <textarea
+                                                value={generalSettings.receipt_footer}
+                                                onChange={e => setGeneralSettings({...generalSettings, receipt_footer: e.target.value})}
+                                                className="w-full px-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-[10px] min-h-[60px] resize-none"
+                                                placeholder="Ex: Não aceitamos trocas sem talão."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div
@@ -643,6 +806,131 @@ export default function Settings() {
                     )}
                     </AnimatePresence>
                 </div>
+
+            <Modal
+                isOpen={showReceiptPreview}
+                onClose={() => setShowReceiptPreview(false)}
+                title="Visualização do Talão"
+            >
+                <div className="flex flex-col items-center">
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-6">Exemplo de Impressão</p>
+                    <div className="bg-slate-50 dark:bg-slate-950 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-white/5 w-full flex justify-center">
+                        <ReceiptTemplate 
+                            settings={generalSettings as any}
+                            order={{
+                                id_venda: '#0000',
+                                data_venda: new Date().toISOString(),
+                                nome_cliente: 'Cliente de Exemplo',
+                                nif: '123456789',
+                                items: [
+                                    { designacao: 'PRODUTO EXEMPLO A', quantidade: 2, preco_unitario: 25.00, pvp: 50.00, size: 'M', color: 'PRETO' },
+                                    { designacao: 'PRODUTO EXEMPLO B', quantidade: 1, preco_unitario: 15.00, pvp: 15.00, size: 'S', color: 'BRANCO' }
+                                ],
+                                total: 65.00,
+                                forma_de_pagamento: 'Multibanco',
+                                discount_total: 0
+                            }}
+                        />
+                    </div>
+                    <button
+                        onClick={() => window.print()}
+                        className="mt-8 w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-all"
+                    >
+                        <Printer className="w-4 h-4" />
+                        Testar Impressão
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Printer Settings Modal */}
+            <Modal
+                isOpen={showPrinterSettings}
+                onClose={() => setShowPrinterSettings(false)}
+                title="Configurações da Impressora"
+            >
+                <div className="space-y-8">
+                    <div className="flex items-center gap-6 p-6 bg-purple-500/5 rounded-[2rem] border border-purple-500/10">
+                        <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                            <Printer className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Status da Impressora</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-bold text-emerald-600 uppercase">Ligada / Pronta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tamanho do Papel</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {['80mm', '58mm'].map(width => (
+                                <button
+                                    key={width}
+                                    onClick={() => setGeneralSettings({...generalSettings, printer_paper_width: width as any})}
+                                    className={`py-4 rounded-2xl border-2 font-black transition-all ${
+                                        generalSettings.printer_paper_width === width 
+                                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600' 
+                                        : 'border-slate-100 dark:border-white/5 text-slate-400 grayscale hover:grayscale-0'
+                                    }`}
+                                >
+                                    <span className="block text-xs uppercase">{width}</span>
+                                    <span className="text-[8px] opacity-60">PADRÃO POS</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preferências de Impressão</label>
+                        <div className="grid grid-cols-1 gap-3">
+                            <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-blue-200 transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                        <Copy className="w-4 h-4 text-blue-600" />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-xs font-black text-slate-900 dark:text-white uppercase">Cópia Dupla</span>
+                                        <span className="text-[8px] font-bold text-slate-400">IMPRIMIR 2 VIAS</span>
+                                    </div>
+                                </div>
+                                <input 
+                                    type="checkbox" 
+                                    checked={generalSettings.printer_double_print}
+                                    onChange={e => setGeneralSettings({...generalSettings, printer_double_print: e.target.checked})}
+                                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                            </label>
+
+                            <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-indigo-200 transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                                        <Bluetooth className="w-4 h-4 text-indigo-600" />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-xs font-black text-slate-900 dark:text-white uppercase">Bluetooth</span>
+                                        <span className="text-[8px] font-bold text-slate-400">CONEXÃO DIRETA</span>
+                                    </div>
+                                </div>
+                                <input 
+                                    type="checkbox" 
+                                    checked={generalSettings.printer_bluetooth}
+                                    onChange={e => setGeneralSettings({...generalSettings, printer_bluetooth: e.target.checked})}
+                                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                            </label>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setShowPrinterSettings(false)}
+                        className="w-full py-4 bg-purple-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-purple-500/20 hover:scale-[1.02] transition-all"
+                    >
+                        Confirmar Configurações
+                    </button>
+                </div>
+            </Modal>
 
             <AnimatePresence>
                 {showStatus && (

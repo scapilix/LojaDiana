@@ -47,6 +47,15 @@ interface ExcelData {
     themeId?: 'clean' | 'colorido' | 'dark';
     heroImages?: string[];
     cancellationReasons?: string[];
+    storeAddress?: string;
+    storeNIF?: string;
+    receipt_show_logo?: boolean;
+    receipt_show_customer?: boolean;
+    receipt_header?: string;
+    receipt_footer?: string;
+    printer_paper_width?: '80mm' | '58mm';
+    printer_double_print?: boolean;
+    printer_bluetooth?: boolean;
   };
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   variations?: Variation[];
