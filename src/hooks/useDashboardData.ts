@@ -179,7 +179,9 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       monthlyShipping: {} as Record<string, number>
     };
     orders.forEach((order: Order) => {
-      // ... (existing variable extraction) ...
+      // Skip cancelled orders for revenue/kpi logic
+      if ((order as any).status === 'Cancelado') return;
+      
       const pvp = parseFloat(String(order.pvp)) || 0;
       const lucro = parseFloat(String(order.lucro)) || 0;
       const region = order.localidade || 'Outros';

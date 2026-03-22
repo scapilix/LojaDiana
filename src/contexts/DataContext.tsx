@@ -688,9 +688,17 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const orderIdx = currentOrders.findIndex(o => o.id_venda === exchange.order_id);
       if (orderIdx > -1) {
         const order = currentOrders[orderIdx];
+        let totalExchangedPVP = 0;
+        let totalExchangedLucro = 0;
+        let totalExchangedCusto = 0;
+
         const updatedItems = order.items.map((item: any) => {
           const exchangeItem = exchange.items.find((ei: any) => ei.ref === item.ref);
           if (exchangeItem) {
+            totalExchangedPVP += (Number(item.pvp) || 0);
+            totalExchangedLucro += (Number(item.lucro) || 0);
+            totalExchangedCusto += (Number(item.custo) || 0);
+
             return { 
               ...item, 
               is_exchanged: true, 
@@ -700,7 +708,14 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
           }
           return item;
         });
-        currentOrders[orderIdx] = { ...order, items: updatedItems };
+
+        currentOrders[orderIdx] = { 
+          ...order, 
+          items: updatedItems,
+          pvp: (Number(order.pvp) || 0) - totalExchangedPVP,
+          lucro: (Number(order.lucro) || 0) - totalExchangedLucro,
+          custo: (Number(order.custo) || 0) - totalExchangedCusto
+        };
         updates.push({ key: 'import_orders', value: currentOrders });
       }
 

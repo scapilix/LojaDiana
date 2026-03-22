@@ -218,6 +218,21 @@ export default function Encomendas() {
       
       if (userData && !error) {
         const finalReason = cancelReason === 'Outro' ? customCancelReason : cancelReason;
+        
+        // Log stock restoration movements
+        if (selectedOrderForCancel.items && Array.isArray(selectedOrderForCancel.items)) {
+          for (const item of selectedOrderForCancel.items) {
+            await supabase.from('loja_stock_movimentos').insert({
+              produto_nome: item.designacao || item.ref,
+              tipo_movimento: 'Entrada (Cancelamento)',
+              quantidade: item.quantidade || 1,
+              motivo: `Cancelamento da encomenda #${selectedOrderForCancel.id_venda}${finalReason ? `: ${finalReason}` : ''}`,
+              data_movimento: new Date().toISOString().split('T')[0],
+              referencia: item.ref
+            });
+          }
+        }
+
         await updateSaleStatus(selectedOrderForCancel.id_venda, 'Cancelado', {
           reason: finalReason,
           collaborator: userData.username

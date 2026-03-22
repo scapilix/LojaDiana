@@ -61,6 +61,9 @@ export function useStockLogic() {
     const orders = data.orders || [];
 
     orders.forEach((order: any) => {
+      // Skip cancelled orders to restore stock
+      if (order.status === 'Cancelado') return;
+
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
           if (item.ref) {
