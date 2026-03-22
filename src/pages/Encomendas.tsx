@@ -1853,8 +1853,8 @@ export default function Encomendas() {
               <div className="relative p-6 sm:p-8 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Cancelar Encomenda</h3>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">ID: {selectedOrderForCancel.id_venda} • {selectedOrderForCancel.nome_cliente}</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter">Cancelar Encomenda</h3>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">ID: {selectedOrderForCancel.id_venda} • {selectedOrderForCancel.nome_cliente}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -1869,33 +1869,33 @@ export default function Encomendas() {
                 </div>
               </div>
 
-              <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="p-6 sm:p-8 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {/* Reason Selection */}
                 <div className="space-y-3">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Motivo do Cancelamento</label>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {data.appSettings?.cancellationReasons?.map((reason: string) => (
                       <button
                         key={reason}
                         onClick={() => setCancelReason(reason)}
-                        className={`w-full p-3 rounded-2xl border-2 transition-all text-left ${
+                        className={`p-3 rounded-2xl border-2 transition-all text-left ${
                           cancelReason === reason
                             ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
                             : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
                         }`}
                       >
-                        <span className="text-xs font-bold">{reason}</span>
+                        <span className="text-[10px] font-bold leading-tight">{reason}</span>
                       </button>
                     ))}
                     <button
                       onClick={() => setCancelReason('Outro')}
-                      className={`w-full p-3 rounded-2xl border-2 transition-all text-left ${
+                      className={`p-3 rounded-2xl border-2 transition-all text-left ${
                         cancelReason === 'Outro'
                           ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
                           : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
                       }`}
                     >
-                      <span className="text-xs font-bold">Outro / Motivo Personalizado</span>
+                      <span className="text-[10px] font-bold leading-tight">Outro / Personalizado</span>
                     </button>
                   </div>
 
@@ -1917,7 +1917,10 @@ export default function Encomendas() {
 
                 {/* PIN Section */}
                 <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Código (PIN) de Autorização</label>
+                  <div className="flex flex-col gap-0.5 px-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Código (PIN) de Autorização</label>
+                    <span className="text-[8px] font-bold text-slate-400/60 uppercase tracking-wider">Utilize o seu código configurado nas definições</span>
+                  </div>
                   <div className="relative">
                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -1927,8 +1930,8 @@ export default function Encomendas() {
                         setCancelPIN(e.target.value);
                         setCancelPinError('');
                       }}
-                      placeholder="Insira o seu Código (PIN) para confirmar"
-                      className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-sm font-black tracking-[0.5em] outline-none transition-all ${
+                      placeholder="••••"
+                      className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-lg font-black tracking-[0.5em] outline-none transition-all ${
                         cancelPinError ? 'border-rose-500' : 'border-transparent focus:border-rose-500/50 focus:bg-white dark:focus:bg-slate-800'
                       }`}
                     />
