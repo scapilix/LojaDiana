@@ -67,6 +67,15 @@ export default function Settings() {
     };
 
     useEffect(() => {
+        if (data.appSettings) {
+            setGeneralSettings(prev => ({
+                ...prev,
+                ...data.appSettings
+            }));
+        }
+    }, [data.appSettings]);
+
+    useEffect(() => {
         fetchUsers();
     }, []);
 
@@ -156,20 +165,28 @@ export default function Settings() {
 
     const [newReason, setNewReason] = useState('');
 
-    const handleAddReason = () => {
+    const handleAddReason = async () => {
         if (!newReason.trim()) return;
-        setGeneralSettings(prev => ({
-            ...prev,
-            cancellationReasons: [...(prev.cancellationReasons || []), newReason.trim()]
-        }));
+        const updatedReasons = [...(generalSettings.cancellationReasons || []), newReason.trim()];
+        const updatedSettings = { ...generalSettings, cancellationReasons: updatedReasons };
+        setGeneralSettings(updatedSettings);
         setNewReason('');
+        try {
+            await updateAppSettings(updatedSettings);
+        } catch (error) {
+            console.error('Error auto-saving cancellation reason:', error);
+        }
     };
 
-    const handleRemoveReason = (index: number) => {
-        setGeneralSettings(prev => ({
-            ...prev,
-            cancellationReasons: prev.cancellationReasons.filter((_, i) => i !== index)
-        }));
+    const handleRemoveReason = async (index: number) => {
+        const updatedReasons = generalSettings.cancellationReasons.filter((_, i) => i !== index);
+        const updatedSettings = { ...generalSettings, cancellationReasons: updatedReasons };
+        setGeneralSettings(updatedSettings);
+        try {
+            await updateAppSettings(updatedSettings);
+        } catch (error) {
+            console.error('Error auto-saving cancellation reason:', error);
+        }
     };
 
     return (
