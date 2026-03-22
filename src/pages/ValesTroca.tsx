@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
+import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
 import { 
   Ticket, 
   Search, 
@@ -15,8 +18,72 @@ import { useData } from '../contexts/DataContext';
 
 export default function ValesTroca() {
   const { data } = useData();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'used' | 'expired'>('all');
+
+  const handleViewOrder = (orderId: string) => {
+    navigate(`/encomendas?search=${orderId}`);
+  };
+
+  const handlePrint = (voucher: any) => {
+    const originalOrder = data.orders.find(o => o.id_venda === voucher.order_id);
+    
+    // Prepare a minimal order object for the receipt if original not found
+    // though ideally it should always be there if order_id exists
+    const orderForReceipt = originalOrder || {
+      id_venda: voucher.order_id || 'N/A',
+      data_venda: voucher.created_at || new Date().toISOString(),
+      nome_cliente: voucher.customer_name,
+      items: [],
+      total: voucher.value,
+      forma_de_pagamento: 'Vale de Troca'
+    };
+
+    const receiptHtml = ReactDOMServer.renderToString(
+      <ReceiptTemplate 
+        order={orderForReceipt} 
+        settings={data.appSettings}
+        type="exchange"
+        exchangeCode={voucher.number}
+      />
+    );
+
+    const printWindow = document.createElement('iframe');
+    printWindow.style.position = 'absolute';
+    printWindow.style.top = '-1000px';
+    document.body.appendChild(printWindow);
+    
+    const doc = printWindow.contentDocument || printWindow.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(`
+        <html>
+          <head>
+            <style>
+              @media print {
+                body { margin: 0; }
+                .receipt-container { width: 100% !important; box-shadow: none !important; }
+              }
+              body { font-family: monospace; }
+            </style>
+          </head>
+          <body>
+            ${receiptHtml}
+          </body>
+        </html>
+      `);
+      doc.close();
+      
+      setTimeout(() => {
+        printWindow.contentWindow?.focus();
+        printWindow.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(printWindow);
+        }, 1000);
+      }, 500);
+    }
+  };
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
@@ -215,6 +282,7 @@ export default function ValesTroca() {
                         <div className="flex justify-end gap-2">
                           <button 
                             title="Imprimir"
+                            onClick={() => handlePrint(voucher)}
                             className="p-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-500 dark:text-slate-400"
                           >
                             <Printer className="w-4 h-4" />
@@ -222,6 +290,7 @@ export default function ValesTroca() {
                           {voucher.order_id && (
                             <button 
                               title="Ver Encomenda Original"
+                              onClick={() => handleViewOrder(voucher.order_id)}
                               className="p-2 bg-purple-100/50 dark:bg-purple-500/10 hover:bg-purple-100 dark:hover:bg-purple-500/20 rounded-xl transition-colors text-purple-600 dark:text-purple-400"
                             >
                               <ExternalLink className="w-4 h-4" />

@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { ReceiptTemplate } from '../components/POS/ReceiptTemplate';
 import {
   Search,
@@ -102,7 +103,17 @@ const pageVariants = {
 export default function Encomendas() {
   const { filters, setFilters } = useFilters();
   const { data, updateSaleStatus, updateSaleVerification, addExchange } = useData();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Handle search via query parameter (for "Ver Encomenda Original")
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+  }, [location.search]);
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [activeBankSelector, setActiveBankSelector] = useState<string | null>(null);
