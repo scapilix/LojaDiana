@@ -19,7 +19,9 @@ import {
   Truck as TruckIcon,
   Landmark,
   Check,
-  RotateCcw
+  RotateCcw,
+  AlertCircle,
+  Key
 } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
@@ -140,6 +142,15 @@ export default function Encomendas() {
   const [exchangeOnlineCustomerArrivalDate, setExchangeOnlineCustomerArrivalDate] = useState('');
   const [exchangeOnlineInternalArrivalDate, setExchangeOnlineInternalArrivalDate] = useState('');
   const [reshippingFeePaid, setReshippingFeePaid] = useState<boolean | null>(null);
+  
+  // Cancellation Modal State
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedOrderForCancel, setSelectedOrderForCancel] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [customCancelReason, setCustomCancelReason] = useState('');
+  const [cancelPIN, setCancelPIN] = useState('');
+  const [isValidatingCancelPIN, setIsValidatingCancelPIN] = useState(false);
+  const [cancelPinError, setCancelPinError] = useState('');
 
   const {
     filteredOrders,
@@ -190,6 +201,40 @@ export default function Encomendas() {
       setPinError('Erro ao validar PIN');
     } finally {
       setIsValidatingPIN(false);
+    }
+  };
+
+  const validateCancelPIN = async () => {
+    if (!cancelPIN) return;
+    setIsValidatingCancelPIN(true);
+    setCancelPinError('');
+    
+    try {
+      const { data: userData, error } = await supabase
+        .from('loja_users')
+        .select('username')
+        .eq('password', cancelPIN)
+        .single();
+      
+      if (userData && !error) {
+        const finalReason = cancelReason === 'Outro' ? customCancelReason : cancelReason;
+        await updateSaleStatus(selectedOrderForCancel.id_venda, 'Cancelado', {
+          reason: finalReason,
+          collaborator: userData.username
+        });
+        setShowCancelModal(false);
+        // Reset state
+        setSelectedOrderForCancel(null);
+        setCancelReason('');
+        setCustomCancelReason('');
+        setCancelPIN('');
+      } else {
+        setCancelPinError('PIN inválido');
+      }
+    } catch (err) {
+      setCancelPinError('Erro ao validar PIN');
+    } finally {
+      setIsValidatingCancelPIN(false);
     }
   };
 
@@ -574,8 +619,9 @@ export default function Encomendas() {
               {sortedItems.map((order, index) => (
                 <React.Fragment key={index}>
                   <tr
+                    key={index}
                     onClick={() => toggleOrder(index)}
-                    className={`hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer ${expandedOrders.has(index) ? 'bg-purple-50/50 dark:bg-purple-500/5' : ''}`}
+                    className={`hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer ${expandedOrders.has(index) ? 'bg-purple-50/50 dark:bg-purple-500/5' : ''} ${order.status === 'Cancelado' ? 'opacity-50 grayscale-[0.5] dark:opacity-40' : ''}`}
                   >
                     <td className="px-2 py-1.5">
                       {expandedOrders.has(index) ? <ChevronDown className="w-3 h-3 text-purple-500" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
@@ -601,7 +647,12 @@ export default function Encomendas() {
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => {
                           e.stopPropagation();
-                          updateSaleStatus(order.id_venda, e.target.value);
+                          if (e.target.value === 'Cancelado') {
+                            setSelectedOrderForCancel(order);
+                            setShowCancelModal(true);
+                          } else {
+                            updateSaleStatus(order.id_venda, e.target.value);
+                          }
                         }}
                         className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border-none cursor-pointer outline-none transition-all ${(() => {
                           const statusConfig = data.order_statuses?.find(s => s.name === (order.status || 'Pendente'));
@@ -1747,6 +1798,140 @@ export default function Encomendas() {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancellation Modal */}
+      <AnimatePresence>
+        {showCancelModal && selectedOrderForCancel && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 ml-0 lg:ml-64">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (!isValidatingCancelPIN) {
+                  setShowCancelModal(false);
+                  setCancelPIN('');
+                  setCancelPinError('');
+                }
+              }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-purple-100 dark:border-white/10 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="relative p-6 sm:p-8 border-b border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Cancelar Encomenda</h3>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">ID: {selectedOrderForCancel.id_venda} • {selectedOrderForCancel.nome_cliente}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowCancelModal(false);
+                      setCancelPIN('');
+                      setCancelPinError('');
+                    }}
+                    className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all text-slate-400"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {/* Reason Selection */}
+                <div className="space-y-3">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Motivo do Cancelamento</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {data.appSettings?.cancellationReasons?.map((reason: string) => (
+                      <button
+                        key={reason}
+                        onClick={() => setCancelReason(reason)}
+                        className={`w-full p-3 rounded-2xl border-2 transition-all text-left ${
+                          cancelReason === reason
+                            ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
+                            : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{reason}</span>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCancelReason('Outro')}
+                      className={`w-full p-3 rounded-2xl border-2 transition-all text-left ${
+                        cancelReason === 'Outro'
+                          ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
+                          : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="text-xs font-bold">Outro / Motivo Personalizado</span>
+                    </button>
+                  </div>
+
+                  {cancelReason === 'Outro' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="pt-2"
+                    >
+                      <textarea
+                        value={customCancelReason}
+                        onChange={(e) => setCustomCancelReason(e.target.value)}
+                        placeholder="Explique o motivo do cancelamento..."
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/20 min-h-[100px] resize-none"
+                      />
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* PIN Section */}
+                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Código de Autorização</label>
+                  <div className="relative">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="password"
+                      value={cancelPIN}
+                      onChange={(e) => {
+                        setCancelPIN(e.target.value);
+                        setCancelPinError('');
+                      }}
+                      placeholder="Insira o seu código para confirmar"
+                      className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-sm font-black tracking-[0.5em] outline-none transition-all ${
+                        cancelPinError ? 'border-rose-500' : 'border-transparent focus:border-rose-500/50 focus:bg-white dark:focus:bg-slate-800'
+                      }`}
+                    />
+                  </div>
+                  {cancelPinError && (
+                    <p className="text-[10px] font-bold text-rose-500 px-1 ml-1">{cancelPinError}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5">
+                <button
+                  onClick={validateCancelPIN}
+                  disabled={!cancelReason || (cancelReason === 'Outro' && !customCancelReason) || !cancelPIN || isValidatingCancelPIN}
+                  className="w-full py-4 bg-rose-500 text-white font-black uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-rose-500/20 disabled:opacity-50 disabled:scale-100 text-xs flex items-center justify-center gap-2"
+                >
+                  {isValidatingCancelPIN ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4" />
+                      Confirmar Cancelamento Definitivo
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>

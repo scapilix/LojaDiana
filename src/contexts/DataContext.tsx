@@ -46,6 +46,7 @@ interface ExcelData {
     theme?: 'light' | 'dark' | 'glass';
     themeId?: 'clean' | 'colorido' | 'dark';
     heroImages?: string[];
+    cancellationReasons?: string[];
   };
   manual_products_catalog?: ProductCatalogItem[]; // Items added manually via UI
   variations?: Variation[];
@@ -84,7 +85,7 @@ interface DataContextType {
   updateCustomer: (customerName: string, updates: any) => Promise<void>;
   addSale: (sale: any) => Promise<void>;
   updateProduct: (ref: string, updates: Partial<ProductCatalogItem>) => Promise<void>;
-  updateSaleStatus: (idVenda: string, status: string) => Promise<void>;
+  updateSaleStatus: (idVenda: string, status: string, metadata?: { reason?: string, collaborator?: string }) => Promise<void>;
   updateCategories: (categories: string[]) => Promise<void>;
   updateSizes: (sizes: string[]) => Promise<void>;
   updateColors: (colors: string[]) => Promise<void>;
@@ -178,8 +179,11 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
                 { name: 'Pendente', color: 'slate' },
                 { name: 'Pago', color: 'blue' },
                 { name: 'Enviado', color: 'purple' },
-                { name: 'Entregue', color: 'emerald' }
+                { name: 'Entregue', color: 'emerald' },
+                { name: 'Cancelado', color: 'rose' }
               ];
+            } else if (!newData.order_statuses.find(s => s.name === 'Cancelado')) {
+              newData.order_statuses.push({ name: 'Cancelado', color: 'rose' });
             }
             return newData;
           });
@@ -418,7 +422,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
-  const updateSaleStatus = async (idVenda: string, status: string) => {
+  const updateSaleStatus = async (idVenda: string, status: string, metadata?: { reason?: string, collaborator?: string }) => {
     try {
       const currentOrders = [...(data.orders || [])];
       const orderIdx = currentOrders.findIndex(o => o.id_venda === idVenda);
@@ -426,7 +430,11 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       if (orderIdx === -1) throw new Error('Encomenda não encontrada');
 
       const newStatus = status;
-      const historyEntry = { status: newStatus, timestamp: new Date().toISOString() };
+      const historyEntry = { 
+        status: newStatus, 
+        timestamp: new Date().toISOString(),
+        ...metadata 
+      };
 
       currentOrders[orderIdx] = {
         ...currentOrders[orderIdx],

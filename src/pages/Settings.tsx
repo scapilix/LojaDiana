@@ -42,7 +42,8 @@ export default function Settings() {
         instagram: data.appSettings?.instagram || '',
         iban: data.appSettings?.iban || '',
         mbway: data.appSettings?.mbway || '',
-        heroImages: data.appSettings?.heroImages || ['', '', '']
+        heroImages: data.appSettings?.heroImages || ['', '', ''],
+        cancellationReasons: data.appSettings?.cancellationReasons || []
     });
 
     const [isUploading, setIsUploading] = useState<number | null>(null);
@@ -119,6 +120,24 @@ export default function Settings() {
         } finally {
             setIsUploading(null);
         }
+    };
+
+    const [newReason, setNewReason] = useState('');
+
+    const handleAddReason = () => {
+        if (!newReason.trim()) return;
+        setGeneralSettings(prev => ({
+            ...prev,
+            cancellationReasons: [...(prev.cancellationReasons || []), newReason.trim()]
+        }));
+        setNewReason('');
+    };
+
+    const handleRemoveReason = (index: number) => {
+        setGeneralSettings(prev => ({
+            ...prev,
+            cancellationReasons: prev.cancellationReasons.filter((_, i) => i !== index)
+        }));
     };
 
     return (
@@ -233,7 +252,8 @@ export default function Settings() {
                                                     className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none transition-all font-bold text-sm"
                                                     placeholder="Link do Instagram"
                                                 />
-                                                <div className="relative">
+                                            </div>
+                                            <div className="relative">
                                                 <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500" />
                                                 <input
                                                     type="text"
@@ -254,6 +274,52 @@ export default function Settings() {
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <AlertCircle className="w-3 h-3 text-rose-500" /> Motivos de Cancelamento
+                                            </label>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newReason}
+                                                    onChange={(e) => setNewReason(e.target.value)}
+                                                    onKeyPress={(e) => e.key === 'Enter' && handleAddReason()}
+                                                    placeholder="Novo motivo (ex: Erro no pedido)"
+                                                    className="flex-1 px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all font-bold text-xs"
+                                                />
+                                                <button
+                                                    onClick={handleAddReason}
+                                                    className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    <UserPlus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {generalSettings.cancellationReasons?.map((reason, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/10 group">
+                                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">{reason}</span>
+                                                        <button
+                                                            onClick={() => handleRemoveReason(idx)}
+                                                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {(!generalSettings.cancellationReasons || generalSettings.cancellationReasons.length === 0) && (
+                                                    <div className="text-center py-6 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nenhum motivo definido</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
