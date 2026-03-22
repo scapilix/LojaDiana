@@ -54,6 +54,7 @@ interface ExcelData {
   transfer_banks?: { name: string; color: string }[];
   order_exchanges?: any[];
   vouchers?: any[];
+  live_sessions?: any[];
   timestamp?: string;
 }
 
@@ -103,6 +104,9 @@ interface DataContextType {
   updateSaleVerification: (idVenda: string, updates: { bank_color?: string, is_caiu?: boolean, is_retificado?: boolean }) => Promise<void>;
   addExchange: (exchange: any, voucher?: any) => Promise<void>;
   redeemVoucher: (voucherNumber: string, orderId: string) => Promise<any>;
+  startLiveSession: (name: string) => Promise<any>;
+  endLiveSession: (id: number) => Promise<void>;
+  fetchLiveSessions: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -120,7 +124,7 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
   useEffect(() => {
     const initData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchPurchases(), fetchImportedState()]);
+      await Promise.all([fetchPurchases(), fetchImportedState(), fetchLiveSessions()]);
       setIsLoading(false);
     };
     initData();
@@ -754,6 +758,52 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
     }
   };
 
+  const fetchLiveSessions = async () => {
+    try {
+      const { data: sessions, error } = await supabase
+        .from('live_sessions')
+        .select('*')
+        .order('start_time', { ascending: false });
+
+      if (error) throw error;
+      setData(prev => ({ ...prev, live_sessions: sessions }));
+    } catch (err) {
+      console.error('Error fetching live sessions:', err);
+    }
+  };
+
+  const startLiveSession = async (name: string) => {
+    try {
+      const { data: session, error } = await supabase
+        .from('live_sessions')
+        .insert([{ name, status: 'active', start_time: new Date().toISOString() }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      await fetchLiveSessions();
+      return session;
+    } catch (err) {
+      console.error('Error starting live session:', err);
+      throw err;
+    }
+  };
+
+  const endLiveSession = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('live_sessions')
+        .update({ status: 'finished', end_time: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchLiveSessions();
+    } catch (err) {
+      console.error('Error ending live session:', err);
+      throw err;
+    }
+  };
+
   const refreshPurchases = fetchPurchases;
 
   return (
@@ -774,7 +824,10 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       updateTransferBanks,
       updateSaleVerification,
       addExchange,
-      redeemVoucher
+      redeemVoucher,
+      startLiveSession,
+      endLiveSession,
+      fetchLiveSessions
     }}>
       {children}
     </DataContext.Provider>

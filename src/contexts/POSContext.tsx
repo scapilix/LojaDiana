@@ -30,6 +30,7 @@ interface FinalizeOptions {
     discountTotal?: number;
     onSaleComplete?: () => void;
     isDireto?: boolean;
+    liveSessionId?: number;
 }
 
 interface POSContextType {
@@ -56,6 +57,8 @@ interface POSContextType {
     setShippingType: (type: string) => void;
     appliedVoucher: { number: string; value: number } | null;
     setAppliedVoucher: (voucher: { number: string; value: number } | null) => void;
+    activeSession: any | null;
+    setActiveSession: (session: any | null) => void;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -69,6 +72,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const [shippingType, setShippingTypeState] = useState('Sem entrega');
     const [shippingCost, setShippingCost] = useState(0);
     const [appliedVoucher, setAppliedVoucher] = useState<{ number: string; value: number } | null>(null);
+    const [activeSession, setActiveSession] = useState<any | null>(null);
 
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
@@ -226,7 +230,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     const finalizeSale = async (options: FinalizeOptions & { balanceUsed?: number }) => {
-        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete, balanceUsed = 0, isDireto = false } = options;
+        const { paymentMethod, status, nif, isGift, notes, discountTotal, onSaleComplete, balanceUsed = 0, isDireto = false, liveSessionId } = options;
         if (cart.length === 0) return false;
 
         setIsProcessing(true);
@@ -302,7 +306,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 discount_total: (discountTotal || cartActualDiscount) + balanceUsed,
                 shipping_type: shippingType,
                 shipping_cost: shippingCost,
-                is_direto: isDireto
+                is_direto: isDireto,
+                live_session_id: liveSessionId || activeSession?.id || null
             };
 
             const { data: newOrder, error: orderError } = await supabase
@@ -362,6 +367,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 status: isDireto ? 'Pendente Direto' : 'Concluída',
                 sales_channel: 'pos',
                 is_direto: isDireto,
+                live_session_id: liveSessionId || activeSession?.id || null,
                 shipping_type: shippingType,
                 shipping_cost: shippingCost,
                 items: cart.map(item => ({
@@ -534,7 +540,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
             shippingCost,
             setShippingType,
             appliedVoucher,
-            setAppliedVoucher
+            setAppliedVoucher,
+            activeSession,
+            setActiveSession
         }}>
             {children}
         </POSContext.Provider>

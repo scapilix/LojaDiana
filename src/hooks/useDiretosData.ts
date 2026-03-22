@@ -1,6 +1,14 @@
 import { useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 
+export interface SessionMetric {
+  id: number;
+  name: string;
+  revenue: number;
+  orders: number;
+  date: string;
+}
+
 export interface DiretosMetrics {
   totalRevenue: number;
   orderCount: number;
@@ -8,7 +16,8 @@ export interface DiretosMetrics {
   salesByDate: { date: string; revenue: number; count: number }[];
   topProducts: { ref: string; name: string; quantity: number; revenue: number }[];
   topCustomers: { name: string; instagram: string; revenue: number; orders: number }[];
-  bestLive: { date: string; revenue: number; count: number } | null;
+  sessions: SessionMetric[];
+  bestLive: SessionMetric | null;
 }
 
 export const useDiretosData = (): DiretosMetrics => {
@@ -16,18 +25,27 @@ export const useDiretosData = (): DiretosMetrics => {
 
   return useMemo(() => {
     const allOrders = rawData.orders || [];
+    const allSessions = rawData.live_sessions || [];
     const diretosOrders = allOrders.filter((o: any) => o.is_direto === true);
 
     let totalRevenue = 0;
     const dateMap: Record<string, { revenue: number; count: number }> = {};
     const productMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
     const customerMap: Record<string, { name: string; instagram: string; revenue: number; orders: number }> = {};
+    const sessionMap: Record<number, { revenue: number; orders: number }> = {};
 
     diretosOrders.forEach((order: any) => {
       const pvp = parseFloat(String(order.pvp)) || 0;
       totalRevenue += pvp;
 
-      // Group by Date for Live Analysis
+      // Group by Session
+      if (order.live_session_id) {
+        if (!sessionMap[order.live_session_id]) sessionMap[order.live_session_id] = { revenue: 0, orders: 0 };
+        sessionMap[order.live_session_id].revenue += pvp;
+        sessionMap[order.live_session_id].orders += 1;
+      }
+
+      // Group by Date for Live Analysis (Fallback if no session)
       const date = order.data_venda ? new Date(order.data_venda).toISOString().split('T')[0] : 'N/A';
       if (date !== 'N/A') {
         if (!dateMap[date]) dateMap[date] = { revenue: 0, count: 0 };
@@ -62,6 +80,14 @@ export const useDiretosData = (): DiretosMetrics => {
       customerMap[customerKey].orders += 1;
     });
 
+    const sessions: SessionMetric[] = allSessions.map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      date: s.start_time ? new Date(s.start_time).toISOString().split('T')[0] : 'N/A',
+      revenue: sessionMap[s.id]?.revenue || 0,
+      orders: sessionMap[s.id]?.orders || 0
+    })).sort((a: any, b: any) => b.revenue - a.revenue);
+
     const salesByDate = Object.entries(dateMap)
       .map(([date, metrics]) => ({ date, ...metrics }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -75,9 +101,7 @@ export const useDiretosData = (): DiretosMetrics => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
 
-    const bestLive = salesByDate.length > 0 
-      ? [...salesByDate].sort((a, b) => b.revenue - a.revenue)[0] 
-      : null;
+    const bestLive = sessions.length > 0 ? sessions[0] : null;
 
     return {
       totalRevenue,
@@ -86,6 +110,7 @@ export const useDiretosData = (): DiretosMetrics => {
       salesByDate,
       topProducts,
       topCustomers,
+      sessions,
       bestLive
     };
   }, [rawData]);

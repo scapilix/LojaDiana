@@ -45,18 +45,18 @@ export default function AnaliseDiretos() {
     totalRevenue, 
     orderCount, 
     avgTicket, 
-    salesByDate, 
     topProducts, 
     topCustomers, 
+    sessions,
     bestLive 
   } = useDiretosData();
 
   const chartData = useMemo(() => 
-    [...salesByDate].reverse().map(d => ({
-      date: new Date(d.date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }),
-      revenue: d.revenue,
-      orders: d.count
-    })), [salesByDate]
+    sessions.slice(0, 10).reverse().map(s => ({
+      name: s.name.replace('Live ', ''),
+      revenue: s.revenue,
+      orders: s.orders
+    })), [sessions]
   );
 
   return (
@@ -99,7 +99,7 @@ export default function AnaliseDiretos() {
           <KpiCard 
             label="Melhor Live" 
             value={formatCurrency(bestLive.revenue)} 
-            sub={new Date(bestLive.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long' })}
+            sub={bestLive.name}
             icon={Star} 
           />
         )}
@@ -124,7 +124,7 @@ export default function AnaliseDiretos() {
                   </linearGradient>
                 </defs>
                 <XAxis 
-                  dataKey="date" 
+                  dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }}
@@ -193,30 +193,33 @@ export default function AnaliseDiretos() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/5">
-                  <th className="pb-4">Data da Live</th>
+                  <th className="pb-4">Sessão</th>
                   <th className="pb-4">Vendas</th>
                   <th className="pb-4 text-right">Faturação</th>
                   <th className="pb-4 text-right">Efeito</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-white/[0.02]">
-                {salesByDate.slice(0, 5).map((live) => (
-                  <tr key={live.date} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                {sessions.slice(0, 10).map((session) => (
+                  <tr key={session.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                     <td className="py-4">
-                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase">
-                        {new Date(live.date).toLocaleDateString('pt-PT', { weekday: 'long', day: '2-digit', month: 'long' })}
+                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase truncate max-w-[200px]">
+                        {session.name}
+                      </p>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase">
+                        {new Date(session.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long' })}
                       </p>
                     </td>
                     <td className="py-4">
                       <span className="px-3 py-1 bg-rose-50 dark:bg-rose-500/10 text-rose-500 text-[10px] font-black rounded-lg">
-                        {live.count} Pedidos
+                        {session.orders} Pedidos
                       </span>
                     </td>
                     <td className="py-4 text-right text-[11px] font-black text-slate-900 dark:text-white">
-                      {formatCurrency(live.revenue)}
+                      {formatCurrency(session.revenue)}
                     </td>
                     <td className="py-4 text-right">
-                      {live.revenue > 500 ? (
+                      {session.revenue > 500 ? (
                         <Star className="inline-block w-3.5 h-3.5 text-amber-500" />
                       ) : (
                         <TrendingUp className="inline-block w-3.5 h-3.5 text-emerald-500" />
