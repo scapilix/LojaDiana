@@ -989,20 +989,32 @@ export default function Encomendas() {
                                 Ver Resumo / Fatura
                               </button>
 
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedOrderForExchange(order);
-                                  setExchangeStep(1);
-                                  setExchangePurchaseDate(new Date(order.data_venda).toISOString().split('T')[0]);
-                                  setSelectedItemsForExchange(order.items?.map((it: any) => it.ref) || []);
-                                  setShowExchangeModal(true);
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group shadow-sm"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500" />
-                                Troca
-                              </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedOrderForExchange(order);
+                                    setExchangeStep(1);
+                                    setExchangePurchaseDate(new Date(order.data_venda).toISOString().split('T')[0]);
+                                    setSelectedItemsForExchange(order.items?.map((it: any) => it.ref) || []);
+                                    setShowExchangeModal(true);
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group shadow-sm"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500" />
+                                  Troca
+                                </button>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedOrderForCancel(order);
+                                    setShowCancelModal(true);
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group shadow-sm"
+                                >
+                                  <X className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                                  Cancelar
+                                </button>
                             </div>
 
                             {/* Status History */}
