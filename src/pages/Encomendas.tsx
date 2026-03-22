@@ -807,11 +807,16 @@ export default function Encomendas() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const isPaid = order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue';
-                          if (!isPaid) {
+                          
+                          if (isPaid) {
+                            // If already paid, toggle back to Pendente (clear)
+                            updateSaleStatus(order.id_venda, 'Pendente');
+                          } else {
+                            // If not paid, set to Pago and send WhatsApp
                             updateSaleStatus(order.id_venda, 'Pago');
+                            const link = getPaymentWhatsAppLink(order);
+                            if (link !== '#') window.open(link, '_blank');
                           }
-                          const link = getPaymentWhatsAppLink(order);
-                          if (link !== '#') window.open(link, '_blank');
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
                           (order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue')
@@ -828,11 +833,16 @@ export default function Encomendas() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const isSent = order.status === 'Enviado' || order.status === 'Entregue';
-                          if (!isSent) {
+                          
+                          if (isSent) {
+                            // If already sent, toggle back to Pago (clear shipping)
+                            updateSaleStatus(order.id_venda, 'Pago');
+                          } else {
+                            // If not sent, set to Enviado and send WhatsApp
                             updateSaleStatus(order.id_venda, 'Enviado');
+                            const link = getShippedWhatsAppLink(order);
+                            if (link !== '#') window.open(link, '_blank');
                           }
-                          const link = getShippedWhatsAppLink(order);
-                          if (link !== '#') window.open(link, '_blank');
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
                           (order.status === 'Enviado' || order.status === 'Entregue')
