@@ -57,6 +57,7 @@ const navGroups = [
     items: [
       { id: 'pos-diretos', label: 'POS Diretos', icon: Monitor, path: '/pos-diretos' },
       { id: 'diretos', label: 'Gestão de Diretos', icon: Video, path: '/diretos' },
+      { id: 'analise-diretos', label: 'Análise de Diretos', icon: BarChart3, path: '/analise-diretos' },
     ]
   },
   {

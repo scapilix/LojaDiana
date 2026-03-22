@@ -18,6 +18,7 @@ import Loja from '../pages/Loja';
 import Settings from '../pages/Settings';
 import POS from '../pages/POS';
 import POSDiretos from '../pages/POSDiretos';
+import AnaliseDiretos from '../pages/AnaliseDiretos';
 import Personalizacoes from '../pages/Personalizacoes';
 import ValesTroca from '../pages/ValesTroca';
 
@@ -59,6 +60,7 @@ function AppRoutes() {
                   <Route path="stock-manager" element={<StockManager />} />
                   <Route path="pos" element={<POS />} />
                   <Route path="pos-diretos" element={<POSDiretos />} />
+                  <Route path="analise-diretos" element={<AnaliseDiretos />} />
 
                   <Route path="produtos" element={<Produtos />} />
                   <Route path="rankings" element={<Rankings />} />
