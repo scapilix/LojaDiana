@@ -813,9 +813,13 @@ export default function Encomendas() {
                             updateSaleStatus(order.id_venda, 'Pendente');
                           } else {
                             // If not paid, set to Pago and send WhatsApp
-                            updateSaleStatus(order.id_venda, 'Pago');
                             const link = getPaymentWhatsAppLink(order);
                             if (link !== '#') window.open(link, '_blank');
+                            
+                            // Call update after opening link to avoid re-render blocking window.open
+                            setTimeout(() => {
+                              updateSaleStatus(order.id_venda, 'Pago');
+                            }, 100);
                           }
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
@@ -839,9 +843,13 @@ export default function Encomendas() {
                             updateSaleStatus(order.id_venda, 'Pago');
                           } else {
                             // If not sent, set to Enviado and send WhatsApp
-                            updateSaleStatus(order.id_venda, 'Enviado');
                             const link = getShippedWhatsAppLink(order);
                             if (link !== '#') window.open(link, '_blank');
+
+                            // Call update after opening link
+                            setTimeout(() => {
+                              updateSaleStatus(order.id_venda, 'Enviado');
+                            }, 100);
                           }
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
