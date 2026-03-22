@@ -188,7 +188,7 @@ export default function Encomendas() {
       const { data: userData, error } = await supabase
         .from('loja_users')
         .select('username')
-        .eq('password', exchangePIN)
+        .eq('pin', exchangePIN)
         .single();
       
       if (userData && !error) {
@@ -213,7 +213,7 @@ export default function Encomendas() {
       const { data: userData, error } = await supabase
         .from('loja_users')
         .select('username')
-        .eq('password', cancelPIN)
+        .eq('pin', cancelPIN)
         .single();
       
       if (userData && !error) {

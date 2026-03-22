@@ -17,7 +17,9 @@ import {
     Key,
     Shield,
     CreditCard,
-    Smartphone
+    Smartphone,
+    XCircle,
+    Lock as LockIcon
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { supabase } from '../lib/supabase';
@@ -51,9 +53,11 @@ export default function Settings() {
     
     // User Management State
     const [users, setUsers] = useState<any[]>([]);
-    const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Vendedor' });
+    const [newUser, setNewUser] = useState({ username: '', password: '', pin: '', role: 'Vendedor' });
     const [editingUserId, setEditingUserId] = useState<string | number | null>(null);
     const [editPassword, setEditPassword] = useState('');
+    const [editingPinUserId, setEditingPinUserId] = useState<string | number | null>(null);
+    const [editPin, setEditPin] = useState('');
     const { user: currentUser } = useAuth();
 
     // Handlers
@@ -67,11 +71,11 @@ export default function Settings() {
     }, []);
 
     const handleAddUser = async () => {
-        if (!newUser.username || !newUser.password) return;
+        if (!newUser.username || !newUser.password || !newUser.pin) return;
         const { error } = await supabase.from('loja_users').insert([newUser]);
         if (!error) {
             fetchUsers();
-            setNewUser({ username: '', password: '', role: 'Vendedor' });
+            setNewUser({ username: '', password: '', pin: '', role: 'Vendedor' });
             setShowStatus('success');
         } else {
             setShowStatus('error');
@@ -98,6 +102,19 @@ export default function Settings() {
             fetchUsers();
             setEditingUserId(null);
             setEditPassword('');
+            setShowStatus('success');
+        } else {
+            setShowStatus('error');
+        }
+    };
+
+    const handleUpdatePin = async (id: string | number) => {
+        if (!editPin) return;
+        const { error } = await supabase.from('loja_users').update({ pin: editPin }).eq('id', id);
+        if (!error) {
+            fetchUsers();
+            setEditingPinUserId(null);
+            setEditPin('');
             setShowStatus('success');
         } else {
             setShowStatus('error');
@@ -427,8 +444,8 @@ export default function Settings() {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código (PIN)</label>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Palavra-passe (Login)</label>
                                             <div className="relative">
                                                 <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                                 <input
@@ -436,7 +453,21 @@ export default function Settings() {
                                                     value={newUser.password}
                                                     onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                                                     className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
-                                                    placeholder="••••••••"
+                                                    placeholder="Acesso ao portal"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código (PIN) Autorização</label>
+                                            <div className="relative">
+                                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="password"
+                                                    value={newUser.pin}
+                                                    onChange={(e) => setNewUser({...newUser, pin: e.target.value})}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
+                                                    placeholder="Cancelamentos e Trocas"
+                                                    maxLength={6}
                                                 />
                                             </div>
                                         </div>
@@ -493,57 +524,97 @@ export default function Settings() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1">
                                                     {editingUserId === u.id ? (
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 animate-in slide-in-from-right-2">
                                                             <input
                                                                 type="password"
                                                                 value={editPassword}
                                                                 onChange={(e) => setEditPassword(e.target.value)}
-                                                                className="w-24 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs font-bold"
-                                                                placeholder="Novo PIN"
+                                                                className="w-24 px-3 py-2 bg-white dark:bg-slate-900 border-2 border-purple-500 rounded-xl outline-none text-[11px] font-black"
+                                                                placeholder="Novo Login"
                                                                 autoFocus
                                                             />
-                                                            <button
-                                                                onClick={() => handleUpdatePassword(u.id)}
-                                                                className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-                                                                title="Guardar PIN"
-                                                            >
-                                                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditingUserId(null);
-                                                                    setEditPassword('');
-                                                                }}
-                                                                className="p-2 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg hover:text-rose-500 transition-colors"
-                                                                title="Cancelar"
-                                                            >
-                                                                <AlertCircle className="w-3.5 h-3.5" />
-                                                            </button>
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    onClick={() => handleUpdatePassword(u.id)}
+                                                                    className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+                                                                >
+                                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingUserId(null);
+                                                                        setEditPassword('');
+                                                                    }}
+                                                                    className="p-2 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg hover:text-rose-500"
+                                                                >
+                                                                    <XCircle className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : editingPinUserId === u.id ? (
+                                                        <div className="flex items-center gap-2 animate-in slide-in-from-right-2">
+                                                            <input
+                                                                type="password"
+                                                                value={editPin}
+                                                                onChange={(e) => setEditPin(e.target.value)}
+                                                                className="w-24 px-3 py-2 bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-xl outline-none text-[11px] font-black"
+                                                                placeholder="Novo PIN"
+                                                                autoFocus
+                                                                maxLength={6}
+                                                            />
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    onClick={() => handleUpdatePin(u.id)}
+                                                                    className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+                                                                >
+                                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingPinUserId(null);
+                                                                        setEditPin('');
+                                                                    }}
+                                                                    className="p-2 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg hover:text-rose-500"
+                                                                >
+                                                                    <XCircle className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     ) : (
-                                                        <>
+                                                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
                                                             <button
                                                                 onClick={() => {
                                                                     setEditingUserId(u.id);
                                                                     setEditPassword('');
                                                                 }}
-                                                                className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-purple-600 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-purple-600 rounded-xl border border-transparent hover:border-purple-200 transition-all font-black text-[9px] uppercase tracking-widest"
+                                                                title="Editar Login"
+                                                            >
+                                                                <LockIcon className="w-3.5 h-3.5 text-purple-500" />
+                                                                ACESSO
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingPinUserId(u.id);
+                                                                    setEditPin('');
+                                                                }}
+                                                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-600 rounded-xl border border-transparent hover:border-emerald-200 transition-all font-black text-[9px] uppercase tracking-widest"
                                                                 title="Editar PIN"
                                                             >
-                                                                <Key className="w-4 h-4" />
+                                                                <Key className="w-3.5 h-3.5 text-emerald-500" />
+                                                                PIN
                                                             </button>
                                                             {u.id !== currentUser?.id && (
                                                                 <button
                                                                     onClick={() => handleDeleteUser(u.id)}
-                                                                    className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                                                                    title="Remover Utilizador"
+                                                                    className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-all"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
+                                                                    <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
-                                                        </>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
