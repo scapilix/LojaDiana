@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   Settings,
   Store,
+  Monitor,
   Video,
   Settings2,
   Ticket
@@ -52,9 +53,9 @@ const navGroups = [
     ]
   },
   {
-    label: 'Diretos / Live',
+    label: 'DIRETOS LIVES',
     items: [
-      { id: 'pos-diretos', label: 'POS Diretos', icon: Store, path: '/pos-diretos' },
+      { id: 'pos-diretos', label: 'POS Diretos', icon: Monitor, path: '/pos-diretos' },
       { id: 'diretos', label: 'Gestão de Diretos', icon: Video, path: '/diretos' },
     ]
   },

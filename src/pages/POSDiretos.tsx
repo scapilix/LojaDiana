@@ -277,33 +277,33 @@ export default function POSDiretos() {
                 <div className="p-3 border-b border-slate-100 dark:border-white/5 space-y-3">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div className="flex-1 max-w-xl relative group">
-                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Ref / Nome / Instagram..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-lg py-1 pl-7 pr-8 text-[9px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all shadow-sm"
+                                className="w-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-lg py-1 pl-7 pr-8 text-[9px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-rose-500/20 transition-all shadow-sm"
                             />
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="flex bg-white dark:bg-white/5 p-0.5 rounded-xl border border-slate-100 dark:border-white/10 shadow-sm">
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+                                    className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
                                 >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
+                                    className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
                                 >
                                     <List className="w-4 h-4" />
                                 </button>
                             </div>
                             <button
                                 onClick={() => setIsManualItemModalOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl font-black text-[8px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                                className="flex items-center gap-1.5 px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-black text-[8px] uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20"
                             >
                                 <FilePlus className="w-3.5 h-3.5" />
                                 <span>Adicionar Manual</span>
@@ -315,7 +315,7 @@ export default function POSDiretos() {
                         <button
                             onClick={() => setSelectedCategory(null)}
                             className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${!selectedCategory 
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                                ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' 
                                 : 'bg-white dark:bg-white/5 text-slate-400 border border-slate-100 dark:border-white/5 hover:text-slate-600 dark:hover:text-white'}`}
                         >
                             Todos
@@ -325,7 +325,7 @@ export default function POSDiretos() {
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat 
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                                    ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' 
                                     : 'bg-white dark:bg-white/5 text-slate-400 border border-slate-100 dark:border-white/5 hover:text-slate-600 dark:hover:text-white'}`}
                             >
                                 {cat}
@@ -392,7 +392,7 @@ export default function POSDiretos() {
                                                 <span className="text-[10px] font-black text-slate-900 dark:text-white leading-tight block uppercase truncate">
                                                     {product.name}
                                                 </span>
-                                                <span className="font-black text-sm text-primary block">
+                                                <span className="font-black text-sm text-rose-500 block">
                                                     {formatCurrency(product.pvp || 0)}
                                                 </span>
                                             </div>
@@ -420,7 +420,7 @@ export default function POSDiretos() {
                                         <div className="flex-1 min-w-0 grid grid-cols-[2fr_1fr_1fr_1fr] items-center gap-4">
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className="text-[8px] font-black text-primary truncate uppercase tracking-tighter">
+                                                    <span className="text-[8px] font-black text-rose-500 truncate uppercase tracking-tighter">
                                                         {product.ref}
                                                     </span>
                                                     <span className="text-[7px] font-black text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
@@ -440,7 +440,7 @@ export default function POSDiretos() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-[10px] font-black text-primary">
+                                                <div className="text-[10px] font-black text-rose-500">
                                                     {formatCurrency(product.pvp || 0)}
                                                 </div>
                                             </div>
@@ -472,9 +472,12 @@ export default function POSDiretos() {
                     {!configuringProduct && (
                         <div className="px-3 py-2 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-1.5 min-w-0">
-                                <ShoppingCart className="w-2.5 h-2.5 text-primary" />
-                                <h2 className="font-black text-[9px] text-slate-900 dark:text-white uppercase tracking-tighter truncate">Resumo Direto</h2>
-                                <span className="bg-primary/10 text-primary text-[7px] font-black px-1 rounded-full">{cart.length}</span>
+                                <ShoppingCart className="w-2.5 h-2.5 text-rose-500" />
+                                <h2 className="font-black text-[9px] text-slate-900 dark:text-white uppercase tracking-tighter truncate flex items-center gap-1.5">
+                                    Resumo Direto
+                                    <span className="bg-rose-500 text-white text-[7px] px-1 rounded animate-pulse">LIVE</span>
+                                </h2>
+                                <span className="bg-rose-500 text-rose-500 text-[7px] font-black px-1 rounded-full">{cart.length}</span>
                             </div>
                             <div className="flex-1 flex items-center gap-1.5 transition-all">
                                 <Instagram className="w-2.5 h-2.5 text-slate-400" />
@@ -581,14 +584,14 @@ export default function POSDiretos() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-2xl border border-primary/20">
+                                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-2xl border border-rose-500/20">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl overflow-hidden border border-primary/20">
+                                            <div className="w-10 h-10 rounded-xl overflow-hidden border border-rose-500/20">
                                                 <img src={configuringProduct.color_images?.[selectedColorForConfig] || configuringProduct.image_url} className="w-full h-full object-cover" />
                                             </div>
                                             <div>
                                                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cor Selecionada</p>
-                                                <p className="font-black text-xs text-primary uppercase">{selectedColorForConfig}</p>
+                                                <p className="font-black text-xs text-rose-500 uppercase">{selectedColorForConfig}</p>
                                             </div>
                                         </div>
                                         <button 
@@ -642,7 +645,7 @@ export default function POSDiretos() {
                                                         }}
                                                         className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border-2 border-transparent hover:border-primary transition-all group lg:min-h-[60px]"
                                                     >
-                                                        <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">{v.size}</span>
+                                                        <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-rose-500 transition-colors">{v.size}</span>
                                                         <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">STK: {v.current_stock}</span>
                                                     </button>
                                                 ))}
@@ -674,7 +677,7 @@ export default function POSDiretos() {
                                                     : (item.discount || 0)
                                             );
                                             return (
-                                                <div key={item.cartItemId} className="flex flex-col p-1.5 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 group transition-colors hover:border-primary/20">
+                                                <div key={item.cartItemId} className="flex flex-col p-1.5 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 group transition-colors hover:border-rose-500/20">
                                                     <div className="flex items-center gap-2 mb-1.5">
                                                         <div 
                                                             onClick={() => setZoomedProduct(item)}
@@ -765,7 +768,7 @@ export default function POSDiretos() {
                                                                     </button>
                                                                 </div>
                                                             )}
-                                                            <span className="text-[10px] font-black text-primary leading-none">
+                                                            <span className="text-[10px] font-black text-rose-500 leading-none">
                                                                 {formatCurrency(itemTotal)}
                                                             </span>
                                                         </div>
@@ -782,9 +785,9 @@ export default function POSDiretos() {
                 </div>
 
                 <div className="px-2 py-1.5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                    <div className="p-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 group-hover:border-primary/20 transition-all font-black">
+                    <div className="p-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 group-hover:border-rose-500/20 transition-all font-black">
                         <div className="flex items-center gap-1.5 shrink-0">
-                            <Truck className="w-3.5 h-3.5 text-primary" />
+                            <Truck className="w-3.5 h-3.5 text-rose-500" />
                             <span className="text-[8px] text-slate-500">Envio</span>
                         </div>
                         <select 
@@ -814,7 +817,7 @@ export default function POSDiretos() {
                         <span>Avançar</span>
                     </button>
 
-                    <div className="bg-primary px-3 py-2 rounded-xl flex flex-col items-end min-w-[100px] shadow-lg shadow-primary/20">
+                    <div className="bg-primary px-3 py-2 rounded-xl flex flex-col items-end min-w-[100px] shadow-lg shadow-rose-500/20">
                         <span className="font-black text-white/70 uppercase tracking-tighter text-[7px] leading-none mb-1">TOTAL</span>
                         <span className="font-black text-xs text-white leading-none whitespace-nowrap">{formatCurrency(cartTotal)}</span>
                     </div>
@@ -847,7 +850,7 @@ export default function POSDiretos() {
                             {checkoutStep === 1 && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                                     <div className="text-center">
-                                        <div className="w-10 h-10 bg-primary/10 text-primary mx-auto rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-10 h-10 bg-rose-500 text-rose-500 mx-auto rounded-xl flex items-center justify-center mb-3">
                                             <ShoppingCart className="w-5 h-5" />
                                         </div>
                                         <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase">Operação</h2>
@@ -953,7 +956,7 @@ export default function POSDiretos() {
                                                     setCheckoutStep(3);
                                                 }
                                             }} 
-                                            className={`flex-1 py-3 font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${saleStatus === 'Draft/Espera' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-primary text-white shadow-primary/20'}`}
+                                            className={`flex-1 py-3 font-black text-[9px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${saleStatus === 'Draft/Espera' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-primary text-white shadow-rose-500/20'}`}
                                         >
                                             {saleStatus === 'Draft/Espera' ? 'Salvar Pedido' : 'Próximo'}
                                         </button>
@@ -965,10 +968,10 @@ export default function POSDiretos() {
                                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10 py-8">
                                             <div className="text-center relative">
                                                 <h2 className="text-[8px] font-black text-slate-900 dark:text-white uppercase leading-none">Pagamento</h2>
-                                                <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-primary/10 flex items-center justify-between gap-2">
+                                                <div className="mt-1 p-1 bg-primary/5 rounded-lg border border-text-rose-500 flex items-center justify-between gap-2">
                                                     <div className="text-left">
-                                                        <span className="block text-[5px] font-black text-primary uppercase tracking-widest opacity-60">Total a Pagar</span>
-                                                        <span className="text-base font-black text-primary leading-none">{formatCurrency(cartTotal)}</span>
+                                                        <span className="block text-[5px] font-black text-rose-500 uppercase tracking-widest opacity-60">Total a Pagar</span>
+                                                        <span className="text-base font-black text-rose-500 leading-none">{formatCurrency(cartTotal)}</span>
                                                     </div>
                                                     {parseFloat(cashReceived) > (cartTotal - balanceUsed) && (
                                                         <div className="flex flex-col items-end">
@@ -1013,7 +1016,7 @@ export default function POSDiretos() {
                                                                     setVoucherError('');
                                                                 }}
                                                                 onKeyDown={(e) => e.key === 'Enter' && handleApplyVoucher()}
-                                                                className={`w-full py-2 pl-9 pr-3 bg-slate-50 dark:bg-white/5 border ${voucherError ? 'border-rose-500' : 'border-slate-200 dark:border-white/10'} rounded-xl text-[10px] font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/10 transition-all`}
+                                                                className={`w-full py-2 pl-9 pr-3 bg-slate-50 dark:bg-white/5 border ${voucherError ? 'border-text-rose-500' : 'border-slate-200 dark:border-white/10'} rounded-xl text-[10px] font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-text-rose-500 transition-all`}
                                                             />
                                                             {voucherError && (
                                                                 <p className="absolute -bottom-4 left-1 text-[7px] font-black text-rose-500 uppercase">{voucherError}</p>
@@ -1068,10 +1071,10 @@ export default function POSDiretos() {
                                                     <button
                                                         key={method.id}
                                                         onClick={() => setPaymentMethod(method.id)}
-                                                        className={`p-1.5 rounded-lg border-2 transition-all flex flex-col items-center gap-0.5 ${paymentMethod === method.id ? `border-primary bg-primary/10` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
+                                                        className={`p-1.5 rounded-lg border-2 transition-all flex flex-col items-center gap-0.5 ${paymentMethod === method.id ? `border-primary bg-rose-500` : 'border-slate-100 dark:border-white/5 bg-white dark:bg-white/5'}`}
                                                     >
-                                                        <method.icon className={`w-3 h-3 ${paymentMethod === method.id ? `text-primary` : 'text-slate-400'}`} />
-                                                        <span className={`text-[6px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-primary` : 'text-slate-500'}`}>{method.id}</span>
+                                                        <method.icon className={`w-3 h-3 ${paymentMethod === method.id ? `text-rose-500` : 'text-slate-400'}`} />
+                                                        <span className={`text-[6px] font-black uppercase tracking-tighter text-center leading-none ${paymentMethod === method.id ? `text-rose-500` : 'text-slate-500'}`}>{method.id}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -1164,7 +1167,7 @@ export default function POSDiretos() {
                         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center"><FilePlus className="w-6 h-6" /></div>
+                                    <div className="w-12 h-12 bg-rose-500 text-rose-500 rounded-2xl flex items-center justify-center"><FilePlus className="w-6 h-6" /></div>
                                     <div><h2 className="text-xl font-black text-slate-900 dark:text-white uppercase">Item Avulso</h2><p className="text-xs font-bold text-slate-500">Adicionar produto personalizado</p></div>
                                 </div>
                                 <button onClick={() => setIsManualItemModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors"><X className="w-5 h-5 text-slate-400" /></button>
@@ -1172,7 +1175,7 @@ export default function POSDiretos() {
                             <div className="p-4 space-y-3">
                                 <div className="space-y-1">
                                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Nome do Item</label>
-                                    <input type="text" value={manualItem.name} onChange={(e) => setManualItem({ ...manualItem, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-bold outline-none focus:ring-2 focus:ring-primary/10" placeholder="..." />
+                                    <input type="text" value={manualItem.name} onChange={(e) => setManualItem({ ...manualItem, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-bold outline-none focus:ring-2 focus:ring-text-rose-500" placeholder="..." />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-1"><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Ref</label><input type="text" value={manualItem.ref} onChange={(e) => setManualItem({ ...manualItem, ref: e.target.value })} className="w-full px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-bold outline-none" /></div>
@@ -1199,7 +1202,7 @@ export default function POSDiretos() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 p-1 pt-2">
-                                    <input type="checkbox" id="regProd" checked={manualItem.registerProduct} onChange={(e) => setManualItem({ ...manualItem, registerProduct: e.target.checked })} className="w-3.5 h-3.5 rounded border-slate-300 text-primary focus:ring-primary" />
+                                    <input type="checkbox" id="regProd" checked={manualItem.registerProduct} onChange={(e) => setManualItem({ ...manualItem, registerProduct: e.target.checked })} className="w-3.5 h-3.5 rounded border-slate-300 text-rose-500 focus:ring-primary" />
                                     <label htmlFor="regProd" className="text-[9px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight">Registar permanentemente na base de itens</label>
                                 </div>
                                 <button
@@ -1220,7 +1223,7 @@ export default function POSDiretos() {
                                         setIsManualItemModalOpen(false);
                                         setManualItem({ name: '', price: '', category: '', ref: `MV-${Date.now().toString().slice(-6)}`, cost: '', registerProduct: false });
                                     } }
-                                    className="w-full py-3.5 bg-primary text-white font-black text-[9px] uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all mt-2"
+                                    className="w-full py-3.5 bg-primary text-white font-black text-[9px] uppercase tracking-widest rounded-2xl shadow-xl shadow-rose-500/20 hover:scale-[1.01] transition-all mt-2"
                                 >
                                     Confirmar Adição
                                 </button>
@@ -1268,7 +1271,7 @@ export default function POSDiretos() {
                                                     updateItemDiscount(discountModalConfig.cartItemId!, val, 'fixed'); 
                                                 } 
                                             }} 
-                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 outline-none font-black text-slate-900 dark:text-white text-lg" 
                                         />
                                     </div>
                                     <div className="space-y-1.5">
@@ -1289,7 +1292,7 @@ export default function POSDiretos() {
                                                     updateItemDiscount(discountModalConfig.cartItemId!, val, 'percent'); 
                                                 } 
                                             }} 
-                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-black text-slate-900 dark:text-white text-lg" 
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 outline-none font-black text-slate-900 dark:text-white text-lg" 
                                         />
                                     </div>
                                 </div>
