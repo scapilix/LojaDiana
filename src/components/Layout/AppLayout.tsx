@@ -24,7 +24,8 @@ import {
   Settings,
   Store,
   Video,
-  Settings2
+  Settings2,
+  Ticket
 } from 'lucide-react';
 
 
@@ -73,6 +74,7 @@ const navGroups = [
       { id: 'despesas', label: 'Gestão de Despesas', icon: Wallet, path: '/despesas' },
       { id: 'emprestimos', label: 'Crédito / Empréstimos', icon: Banknote, path: '/emprestimos' },
       { id: 'faturas', label: 'Faturas & Recibos', icon: FileText, path: '/faturas' },
+      { id: 'vales', label: 'Vales de Troca', icon: Ticket, path: '/vales' },
     ]
   },
   {

@@ -41,6 +41,8 @@ interface ExcelData {
     storeName?: string;
     whatsapp?: string;
     instagram?: string;
+    iban?: string;
+    mbway?: string;
     theme?: 'light' | 'dark' | 'glass';
     themeId?: 'clean' | 'colorido' | 'dark';
     heroImages?: string[];
@@ -99,6 +101,7 @@ interface DataContextType {
   updateTransferBanks: (banks: { name: string; color: string }[]) => Promise<void>;
   updateSaleVerification: (idVenda: string, updates: { bank_color?: string, is_caiu?: boolean, is_retificado?: boolean }) => Promise<void>;
   addExchange: (exchange: any, voucher?: any) => Promise<void>;
+  redeemVoucher: (voucherNumber: string, orderId: string) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -642,9 +645,26 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       const currentExchanges = data.order_exchanges || [];
       const newExchanges = [exchange, ...currentExchanges];
       
-      const updates = [
+      const updates: any[] = [
         { key: 'order_exchanges', value: newExchanges }
       ];
+
+      // Update customer balance if voucher was generated
+      const currentCustomers = [...(data.customers || [])];
+      if (voucher && voucher.value > 0) {
+        const customerName = voucher.customer_name;
+        const custIdx = currentCustomers.findIndex(c => 
+          (c.nome_cliente && c.nome_cliente.trim().toUpperCase() === customerName.trim().toUpperCase())
+        );
+        
+        if (custIdx > -1) {
+          currentCustomers[custIdx] = {
+            ...currentCustomers[custIdx],
+            saldo: (parseFloat(currentCustomers[custIdx].saldo) || 0) + voucher.value
+          };
+          updates.push({ key: 'import_customers', value: currentCustomers });
+        }
+      }
 
       if (voucher) {
         const currentVouchers = data.vouchers || [];
@@ -682,10 +702,46 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
         ...prev, 
         order_exchanges: newExchanges,
         vouchers: voucher ? [voucher, ...(prev.vouchers || [])] : prev.vouchers,
-        orders: currentOrders
+        orders: currentOrders,
+        customers: currentCustomers
       }));
     } catch (err) {
       console.error('Error adding exchange:', err);
+      throw err;
+    }
+  };
+
+  const redeemVoucher = async (voucherNumber: string, orderId: string) => {
+    try {
+      const currentVouchers = [...(data.vouchers || [])];
+      const voucherIdx = currentVouchers.findIndex(v => v.number === voucherNumber);
+      
+      if (voucherIdx === -1) throw new Error('Vale não encontrado');
+      
+      const voucher = currentVouchers[voucherIdx];
+      
+      if (voucher.status !== 'active') throw new Error(`Vale já está ${voucher.status}`);
+      if (new Date(voucher.valid_until) < new Date()) throw new Error('Vale expirado');
+
+      const updatedVoucher = {
+        ...voucher,
+        status: 'used',
+        used_at: new Date().toISOString(),
+        used_in_order: orderId
+      };
+
+      currentVouchers[voucherIdx] = updatedVoucher;
+
+      const { error } = await supabase
+        .from('loja_app_state')
+        .upsert([{ key: 'vouchers', value: currentVouchers }]);
+
+      if (error) throw error;
+
+      setData(prev => ({ ...prev, vouchers: currentVouchers }));
+      return updatedVoucher;
+    } catch (err) {
+      console.error('Error redeeming voucher:', err);
       throw err;
     }
   };
@@ -709,7 +765,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
       updateOrderStatuses,
       updateTransferBanks,
       updateSaleVerification,
-      addExchange
+      addExchange,
+      redeemVoucher
     }}>
       {children}
     </DataContext.Provider>

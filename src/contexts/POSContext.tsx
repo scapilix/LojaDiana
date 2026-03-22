@@ -54,6 +54,8 @@ interface POSContextType {
     shippingType: string;
     shippingCost: number;
     setShippingType: (type: string) => void;
+    appliedVoucher: { number: string; value: number } | null;
+    setAppliedVoucher: (voucher: { number: string; value: number } | null) => void;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -66,6 +68,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [shippingType, setShippingTypeState] = useState('Sem entrega');
     const [shippingCost, setShippingCost] = useState(0);
+    const [appliedVoucher, setAppliedVoucher] = useState<{ number: string; value: number } | null>(null);
 
     // We need to refresh the main data context after a successful sale so the dashboard and stock update
     const { data, setData } = useData();
@@ -209,7 +212,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
         ? cartSubtotal * (cartDiscount / 100) 
         : cartDiscount;
 
-    const cartTotal = Math.max(0, cartSubtotal - cartActualDiscount + shippingCost);
+    const cartTotal = Math.max(0, cartSubtotal - cartActualDiscount + shippingCost - (appliedVoucher?.value || 0));
 
     const formatItemName = (item: CartItem) => {
         let name = item.nome_artigo;
@@ -233,7 +236,27 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 const currentCustomers = data.customers || [];
                 const updatedCustomers = currentCustomers.map(c => {
                     if (c.nome_cliente === selectedCustomer.nome) {
-                        return { ...c, saldo: Math.max(0, (parseFloat(c.saldo) || 0) - balanceUsed) };
+                        let newSaldo = (parseFloat(c.saldo) || 0) - balanceUsed;
+                        if (appliedVoucher) {
+                            newSaldo -= appliedVoucher.value;
+                        }
+                        return { ...c, saldo: Math.max(0, newSaldo) };
+                    }
+                    return c;
+                });
+
+                await supabase
+                    .from('loja_app_state')
+                    .upsert({ key: 'import_customers', value: updatedCustomers });
+                
+                setData(prev => ({ ...prev, customers: updatedCustomers }));
+            } else if (appliedVoucher && selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso') {
+                // If only voucher used but customer selected, still subtract from balance
+                const currentCustomers = data.customers || [];
+                const updatedCustomers = currentCustomers.map(c => {
+                    if (c.nome_cliente === selectedCustomer.nome) {
+                        const newSaldo = Math.max(0, (parseFloat(c.saldo) || 0) - appliedVoucher.value);
+                        return { ...c, saldo: newSaldo };
                     }
                     return c;
                 });
@@ -245,13 +268,33 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 setData(prev => ({ ...prev, customers: updatedCustomers }));
             }
 
+            // Update voucher if applied
+            if (appliedVoucher) {
+                const currentVouchers = [...(data.vouchers || [])];
+                const vIdx = currentVouchers.findIndex(v => v.number === appliedVoucher.number);
+                if (vIdx > -1) {
+                    currentVouchers[vIdx] = {
+                        ...currentVouchers[vIdx],
+                        status: 'used',
+                        used_at: new Date().toISOString(),
+                        used_in_order: `#${data.orders?.length || 0} (Temp ID)`
+                    };
+
+                    await supabase
+                        .from('loja_app_state')
+                        .upsert({ key: 'vouchers', value: currentVouchers });
+                    
+                    setData(prev => ({ ...prev, vouchers: currentVouchers }));
+                }
+            }
+
             // 1. Insert into relational `orders` table
             const orderToInsert = {
                 nome_cliente: selectedCustomer?.nome || 'Cliente Avulso',
                 instagram: selectedCustomer?.instagram || null,
                 nif: nif || selectedCustomer?.nif || null,
                 total: cartTotal - balanceUsed,
-                forma_de_pagamento: balanceUsed > 0 ? `${paymentMethod} + Saldo` : paymentMethod,
+                forma_de_pagamento: (balanceUsed > 0 || appliedVoucher) ? `${paymentMethod}${balanceUsed > 0 ? ' + Saldo' : ''}${appliedVoucher ? ' + Vale' : ''}` : paymentMethod,
                 status: isDireto ? 'Pendente Direto' : status,
                 sales_channel: 'pos',
                 is_gift: isGift || false,
@@ -314,7 +357,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
                 lucro: cart.reduce((sum, item) => sum + ((item.pvp_cica - (item.base_price || 0)) * item.quantidade), 0),
                 nome_cliente: orderToInsert.nome_cliente,
                 instagram: orderToInsert.instagram,
-                forma_de_pagamento: paymentMethod,
+                forma_de_pagamento: (balanceUsed > 0 || appliedVoucher) ? `${paymentMethod}${balanceUsed > 0 ? ' + Saldo' : ''}${appliedVoucher ? ' + Vale' : ''}` : paymentMethod,
                 data_venda: new Date().toISOString(),
                 status: isDireto ? 'Pendente Direto' : 'Concluída',
                 sales_channel: 'pos',
@@ -344,6 +387,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
             setData(prev => ({ ...prev, orders: newOrders }));
 
             clearCart();
+            setAppliedVoucher(null);
             if (onSaleComplete) onSaleComplete();
             return true;
 
@@ -357,10 +401,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
     };
 
     // Legacy fallback if `orders` table doesn't exist yet
-    const finalizeLegacy = async (paymentMethod: string, status = 'Concluída', nif?: string, notes?: string, discountTotal?: number, isDireto = false) => {
+    const finalizeLegacy = async (paymentMethod: string, status = 'Concluída', nif?: string, notes?: string, discountTotal?: number, isDireto = false, balanceUsed = 0) => {
         const legacyOrderFormat = {
             id_venda: `#${data.orders?.length || 0}`,
-            pvp: cartTotal,
+            pvp: cartTotal - balanceUsed,
             lucro: cart.reduce((sum, item) => {
                 const base = item.pvp_cica * item.quantidade;
                 let itemDiscount = 0;
@@ -379,12 +423,12 @@ export function POSProvider({ children }: { children: ReactNode }) {
             instagram: selectedCustomer?.instagram || '',
             nif: nif || selectedCustomer?.nif || '',
             notes: notes || '',
-            forma_de_pagamento: paymentMethod,
+            forma_de_pagamento: (balanceUsed > 0 || appliedVoucher) ? `${paymentMethod}${balanceUsed > 0 ? ' + Saldo' : ''}${appliedVoucher ? ' + Vale' : ''}` : paymentMethod,
             data_venda: new Date().toISOString(),
             status: isDireto ? 'Pendente Direto' : status,
             sales_channel: 'pos',
             is_direto: isDireto,
-            discount_total: discountTotal || cartActualDiscount,
+            discount_total: (discountTotal || cartActualDiscount) + balanceUsed,
             shipping_type: shippingType,
             shipping_cost: shippingCost,
             items: cart.map(item => {
@@ -415,11 +459,51 @@ export function POSProvider({ children }: { children: ReactNode }) {
         const currentOrders = data.orders || [];
         const newOrders = [legacyOrderFormat, ...currentOrders];
 
+        // Update voucher in legacy too
+        // Update customer balance if used or voucher applied
+        if (selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso') {
+            const currentCustomers = data.customers || [];
+            const updatedCustomers = currentCustomers.map(c => {
+                if (c.nome_cliente === selectedCustomer.nome) {
+                    let newSaldo = (parseFloat(c.saldo) || 0);
+                    if (balanceUsed > 0) newSaldo -= balanceUsed;
+                    if (appliedVoucher) newSaldo -= appliedVoucher.value;
+                    return { ...c, saldo: Math.max(0, newSaldo) };
+                }
+                return c;
+            });
+
+            await supabase
+                .from('loja_app_state')
+                .upsert({ key: 'import_customers', value: updatedCustomers });
+            
+            setData(prev => ({ ...prev, customers: updatedCustomers }));
+        }
+
+        if (appliedVoucher) {
+            const currentVouchers = [...(data.vouchers || [])];
+            const vIdx = currentVouchers.findIndex(v => v.number === appliedVoucher.number);
+            if (vIdx > -1) {
+                currentVouchers[vIdx] = {
+                    ...currentVouchers[vIdx],
+                    status: 'used',
+                    used_at: new Date().toISOString(),
+                    used_in_order: legacyOrderFormat.id_venda
+                };
+                await supabase.from('loja_app_state').upsert({ key: 'vouchers', value: currentVouchers });
+                setData(prev => ({ ...prev, vouchers: currentVouchers, orders: newOrders }));
+            } else {
+                setData(prev => ({ ...prev, orders: newOrders }));
+            }
+        } else {
+            setData(prev => ({ ...prev, orders: newOrders }));
+        }
+
         await supabase
             .from('loja_app_state')
             .upsert({ key: 'import_orders', value: newOrders });
 
-        setData(prev => ({ ...prev, orders: newOrders }));
+        setAppliedVoucher(null);
         clearCart();
     };
 
@@ -448,7 +532,9 @@ export function POSProvider({ children }: { children: ReactNode }) {
             isProcessing,
             shippingType,
             shippingCost,
-            setShippingType
+            setShippingType,
+            appliedVoucher,
+            setAppliedVoucher
         }}>
             {children}
         </POSContext.Provider>

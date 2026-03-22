@@ -228,8 +228,9 @@ export default function Encomendas() {
         value: totalExchangedValue,
         customer_name: selectedOrderForExchange.nome_cliente,
         order_id: selectedOrderForExchange.id_venda,
+        issued_by: validatedUser,
         created_at: new Date().toISOString(),
-        valid_until: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), // 6 months
+        valid_until: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days
         status: 'active'
       };
 
@@ -361,6 +362,39 @@ export default function Encomendas() {
       `*MORADA:* ${address || 'N/A'}\n\n` +
       `Se precisar de alguma ajuda ou tiver alguma dúvida, estou por aqui!\n\n` +
       `Muito obrigado pela preferência!`;
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const getPaymentWhatsAppLink = (order: any) => {
+    const contact = getCustomerContact(order);
+    const phone = contact?.replace(/\D/g, '');
+    if (!phone || phone === '') return '#';
+
+    const iban = data.appSettings?.iban || '[DADOS PAGAMENTO EM DEFINIÇÕES]';
+    const mbway = data.appSettings?.mbway || '[DADOS PAGAMENTO EM DEFINIÇÕES]';
+
+    const message = `Olá ${order.nome_cliente?.split(' ')[0]}!\n\n` +
+      `Seguem os dados para pagamento da sua encomenda *${order.id_venda}*:\n\n` +
+      `*VALOR TOTAL:* ${formatCurrency(Number(order.pvp))}\n\n` +
+      `*IBAN:* ${iban}\n` +
+      `*MBWAY:* ${mbway}\n\n` +
+      `Por favor, envie o comprovativo assim que possível para podermos processar o seu envio. Se tiver alguma dúvida, estou por aqui!\n\n` +
+      `Muito obrigado!`;
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const getShippedWhatsAppLink = (order: any) => {
+    const contact = getCustomerContact(order);
+    const phone = contact?.replace(/\D/g, '');
+    if (!phone || phone === '') return '#';
+
+    const message = `Olá ${order.nome_cliente?.split(' ')[0]}!\n\n` +
+      `Tenho boas notícias! A sua encomenda *${order.id_venda}* já foi enviada e está a caminho! 🚀\n\n` +
+      `Método de Envio: ${order.loja_ctt || 'CTT'}\n\n` +
+      `Em breve deverá recebê-la na morada indicada. Qualquer questão, não hesite em contactar. \n\n` +
+      `Obrigada pela preferência! ✨`;
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
@@ -690,14 +724,18 @@ export default function Encomendas() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const isPaid = order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue';
-                          updateSaleStatus(order.id_venda, isPaid ? 'Pendente' : 'Pago');
+                          if (!isPaid) {
+                            updateSaleStatus(order.id_venda, 'Pago');
+                          }
+                          const link = getPaymentWhatsAppLink(order);
+                          if (link !== '#') window.open(link, '_blank');
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
                           (order.status === 'Pago' || order.status === 'Enviado' || order.status === 'Entregue')
                             ? 'bg-blue-500/10 text-blue-600'
                             : 'hover:bg-slate-100 text-slate-300 dark:text-slate-700'
                         }`}
-                        title={order.status === 'Pago' ? 'Marcar como Pendente' : 'Marcar como Pago'}
+                        title="Enviar dados de pagamento via WhatsApp"
                       >
                         <CreditCard className="w-3.5 h-3.5 mx-auto" />
                       </button>
@@ -707,14 +745,18 @@ export default function Encomendas() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const isSent = order.status === 'Enviado' || order.status === 'Entregue';
-                          updateSaleStatus(order.id_venda, isSent ? 'Pago' : 'Enviado');
+                          if (!isSent) {
+                            updateSaleStatus(order.id_venda, 'Enviado');
+                          }
+                          const link = getShippedWhatsAppLink(order);
+                          if (link !== '#') window.open(link, '_blank');
                         }}
                         className={`p-1.5 rounded-lg transition-all ${
                           (order.status === 'Enviado' || order.status === 'Entregue')
                             ? 'bg-purple-500/10 text-purple-600'
                             : 'hover:bg-slate-100 text-slate-300 dark:text-slate-700'
                         }`}
-                        title={order.status === 'Enviado' ? 'Marcar como Pago' : 'Marcar como Enviado'}
+                        title="Informar envio via WhatsApp"
                       >
                         <TruckIcon className="w-3.5 h-3.5 mx-auto" />
                       </button>
@@ -724,9 +766,9 @@ export default function Encomendas() {
                     </td>
                     <td className="px-3 py-2.5 font-bold">
                       <div className="flex items-center gap-1.5">
-                        {order.instagram && order.instagram !== '-' ? (
+                        {order.instagram && order.instagram !== '-' && order.instagram !== 'N/A' ? (
                           <a 
-                            href={`https://instagram.com/${order.instagram.replace('@', '')}`}
+                            href={`https://instagram.com/${String(order.instagram).replace('@', '').trim()}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}

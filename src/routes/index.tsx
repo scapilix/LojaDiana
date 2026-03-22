@@ -18,6 +18,7 @@ import Loja from '../pages/Loja';
 import Settings from '../pages/Settings';
 import POS from '../pages/POS';
 import Personalizacoes from '../pages/Personalizacoes';
+import ValesTroca from '../pages/ValesTroca';
 
 import Login from '../pages/Login';
 import { FilterProvider } from '../contexts/FilterContext';
@@ -68,6 +69,7 @@ function AppRoutes() {
                   <Route path="diretos" element={<Diretos />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="personalizacoes" element={<Personalizacoes />} />
+                  <Route path="vales" element={<ValesTroca />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

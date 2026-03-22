@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash } from 'lucide-react';
+import { Search, X, CreditCard, Banknote, Smartphone, ShoppingCart, Instagram, Package, Loader2, CheckCircle2, FilePlus, Gift, Receipt, Truck, Tag, Percent, LayoutGrid, List, AlertTriangle, Delete, ArrowRightLeft, Wallet, Hash, Ticket } from 'lucide-react';
 import { usePOS } from '../contexts/POSContext';
 import { useStockLogic } from '../hooks/useStockLogic';
 import { useData } from '../contexts/DataContext';
@@ -13,7 +13,7 @@ export default function POS() {
     const {
         cart, addToCart, updateItemDiscount, updateItemPrice, updateQuantity, removeFromCart, clearCart,
         cartTotal, cartDiscount, cartDiscountType, cartActualDiscount, setCartDiscount, selectedCustomer, setSelectedCustomer, finalizeSale, isProcessing,
-        shippingType, setShippingType
+        shippingType, setShippingType, appliedVoucher, setAppliedVoucher
     } = usePOS();
 
     const { addProduct, data } = useData();
@@ -36,6 +36,8 @@ export default function POS() {
     const [nif, setNif] = useState('');
     const [isGift, setIsGift] = useState(false);
     const [isDiretoSale, setIsDiretoSale] = useState(false);
+    const [voucherInput, setVoucherInput] = useState('');
+    const [voucherError, setVoucherError] = useState('');
     const [saleNotes, setSaleNotes] = useState('');
     const [saleStatus, setSaleStatus] = useState<'Concluída' | 'Draft/Espera'>('Concluída');
 
@@ -226,6 +228,8 @@ export default function POS() {
                 setBalanceUsed(0);
                 setSelectedCustomer({ nome: 'Cliente Avulso', saldo: 0 });
                 setCustomerSearchTerm('');
+                setVoucherInput('');
+                setVoucherError('');
 
                 if (saleStatus === 'Draft/Espera') {
                     navigate('/encomendas');
@@ -235,6 +239,31 @@ export default function POS() {
         if (success) {
             alert(saleStatus === 'Concluída' ? 'Venda realizada com sucesso!' : 'Pedido guardado com sucesso!');
         }
+    };
+
+    const handleApplyVoucher = () => {
+        setVoucherError('');
+        if (!voucherInput.trim()) return;
+
+        const voucher = data.vouchers?.find(v => v.number.toUpperCase() === voucherInput.toUpperCase().trim());
+        
+        if (!voucher) {
+            setVoucherError('Vale não encontrado');
+            return;
+        }
+
+        if (voucher.status !== 'active') {
+            setVoucherError(`Este vale já está ${voucher.status}`);
+            return;
+        }
+
+        if (new Date(voucher.valid_until) < new Date()) {
+            setVoucherError('Este vale está expirado');
+            return;
+        }
+
+        setAppliedVoucher({ number: voucher.number, value: voucher.value });
+        setVoucherInput('');
     };
 
     return (
@@ -948,6 +977,56 @@ export default function POS() {
                                                         </div>
                                                     )}
                                                 </div>
+                                            </div>
+
+                                            {/* Voucher Redemption Section */}
+                                            <div className="space-y-2">
+                                                <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest px-1">Vale de Troca</label>
+                                                {appliedVoucher ? (
+                                                    <div className="flex items-center justify-between p-2 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-7 h-7 bg-purple-500 text-white rounded-lg flex items-center justify-center">
+                                                                <Ticket className="w-4 h-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[8px] font-black text-purple-600 uppercase leading-none">{appliedVoucher.number}</p>
+                                                                <p className="text-[10px] font-black text-purple-700">-{formatCurrency(appliedVoucher.value)}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => setAppliedVoucher(null)}
+                                                            className="p-1.5 hover:bg-purple-500/20 rounded-lg text-purple-600 transition-colors"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex gap-2">
+                                                        <div className="relative flex-1">
+                                                            <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Nº do Vale..."
+                                                                value={voucherInput}
+                                                                onChange={(e) => {
+                                                                    setVoucherInput(e.target.value);
+                                                                    setVoucherError('');
+                                                                }}
+                                                                onKeyDown={(e) => e.key === 'Enter' && handleApplyVoucher()}
+                                                                className={`w-full py-2 pl-9 pr-3 bg-slate-50 dark:bg-white/5 border ${voucherError ? 'border-rose-500' : 'border-slate-200 dark:border-white/10'} rounded-xl text-[10px] font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/10 transition-all`}
+                                                            />
+                                                            {voucherError && (
+                                                                <p className="absolute -bottom-4 left-1 text-[7px] font-black text-rose-500 uppercase">{voucherError}</p>
+                                                            )}
+                                                        </div>
+                                                        <button 
+                                                            onClick={handleApplyVoucher}
+                                                            className="px-4 bg-primary text-white rounded-xl text-[8px] font-black uppercase tracking-widest shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                                        >
+                                                            Aplicar
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {selectedCustomer && selectedCustomer.nome !== 'Cliente Avulso' && (selectedCustomer.saldo || 0) > 0 && (

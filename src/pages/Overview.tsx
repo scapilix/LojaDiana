@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   DollarSign, ShoppingCart, CreditCard,
   Filter, X, ArrowUpRight, ArrowDownRight,
-  Package
+  Package, ArrowRightLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SmartDateFilter } from '../components/SmartDateFilter';
@@ -89,6 +89,8 @@ function Overview() {
     totalRevenue,
     orderCount,
     avgTicket,
+    exchangeCount,
+    exchangeRate,
     topProducts,
     salesByDate,
     filteredOrders,
@@ -157,9 +159,9 @@ function Overview() {
 
       {/* KPI Grid — 6 columns */}
       {/* Top Row: Focus KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <KpiCard
-          label="Vendas Diárias"
+          label="Vendas Médias"
           value={formatCurrency(totalRevenue / 30)}
           trend={12.5}
           icon={DollarSign}
@@ -171,9 +173,17 @@ function Overview() {
           icon={CreditCard}
         />
         <KpiCard
-          label="Pedidos Hoje"
-          value={Math.floor(orderCount / 30)}
+          label="Taxa de Trocas"
+          value={`${exchangeRate.toFixed(1)}%`}
+          sub={`${exchangeCount} trocas registradas`}
+          accent="rose"
+          icon={ArrowRightLeft}
+        />
+        <KpiCard
+          label="Volume Mensal"
+          value={orderCount}
           trend={5.3}
+          accent="violet"
           icon={ShoppingCart}
         />
       </div>

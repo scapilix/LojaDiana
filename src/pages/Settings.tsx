@@ -15,7 +15,9 @@ import {
     UserPlus,
     UserCircle,
     Key,
-    Shield
+    Shield,
+    CreditCard,
+    Smartphone
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { supabase } from '../lib/supabase';
@@ -38,6 +40,8 @@ export default function Settings() {
         storeName: data.appSettings?.storeName || '',
         whatsapp: data.appSettings?.whatsapp || '',
         instagram: data.appSettings?.instagram || '',
+        iban: data.appSettings?.iban || '',
+        mbway: data.appSettings?.mbway || '',
         heroImages: data.appSettings?.heroImages || ['', '', '']
     });
 
@@ -229,7 +233,27 @@ export default function Settings() {
                                                     className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none transition-all font-bold text-sm"
                                                     placeholder="Link do Instagram"
                                                 />
+                                                <div className="relative">
+                                                <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-500" />
+                                                <input
+                                                    type="text"
+                                                    value={generalSettings.iban}
+                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, iban: e.target.value })}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold text-sm"
+                                                    placeholder="IBAN para Pagamento"
+                                                />
                                             </div>
+                                            <div className="relative">
+                                                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                                                <input
+                                                    type="text"
+                                                    value={generalSettings.mbway}
+                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, mbway: e.target.value })}
+                                                    className="w-full pl-12 pr-5 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-sm"
+                                                    placeholder="Telemóvel MBWay"
+                                                />
+                                            </div>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>

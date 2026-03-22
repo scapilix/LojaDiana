@@ -6,6 +6,8 @@ export interface DashboardMetrics {
   totalProfit: number;
   orderCount: number;
   avgTicket: number;
+  exchangeCount: number;
+  exchangeRate: number;
   revenueByMonth: { month: string; value: number }[];
   regionalData: { name: string; value: number }[];
   topCustomers: { name: string; revenue: number; orders: number; instagram: string; percentage: number }[];
@@ -531,11 +533,30 @@ export const useDashboardData = (filters: DashboardFilters = {}): DashboardMetri
       });
     }
 
+    // Calculate exchange rate
+    const exchangeCount = (rawData.order_exchanges || []).filter((ex: any) => {
+      if (!isFiltered) return true;
+      if (!ex.date) return false;
+      const date = new Date(ex.date);
+      const y = date.getFullYear().toString();
+      const m = (date.getMonth() + 1).toString().padStart(2, '0');
+      const d = date.getDate().toString().padStart(2, '0');
+
+      if (filters.year && y !== filters.year) return false;
+      if (filters.month && m !== filters.month) return false;
+      if (filters.days && filters.days.length > 0 && !filters.days.includes(d)) return false;
+      return true;
+    }).length;
+
+    const exchangeRate = orders.length > 0 ? (exchangeCount / orders.length) * 100 : 0;
+
     return {
       totalRevenue,
       totalProfit,
       orderCount,
       avgTicket,
+      exchangeCount,
+      exchangeRate,
       revenueByMonth,
       regionalData,
       topCustomers,
