@@ -1873,30 +1873,19 @@ export default function Encomendas() {
                 {/* Reason Selection */}
                 <div className="space-y-3">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Motivo do Cancelamento</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {data.appSettings?.cancellationReasons?.map((reason: string) => (
-                      <button
-                        key={reason}
-                        onClick={() => setCancelReason(reason)}
-                        className={`p-3 rounded-2xl border-2 transition-all text-left ${
-                          cancelReason === reason
-                            ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
-                            : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
-                        }`}
-                      >
-                        <span className="text-[10px] font-bold leading-tight">{reason}</span>
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setCancelReason('Outro')}
-                      className={`p-3 rounded-2xl border-2 transition-all text-left ${
-                        cancelReason === 'Outro'
-                          ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/50 text-rose-600'
-                          : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
-                      }`}
+                  <div className="relative">
+                    <select
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-white/5 border-2 border-transparent focus:border-rose-500/50 rounded-2xl px-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all appearance-none cursor-pointer pr-10 hover:bg-slate-100 dark:hover:bg-white/10"
                     >
-                      <span className="text-[10px] font-bold leading-tight">Outro / Personalizado</span>
-                    </button>
+                      <option value="" disabled className="dark:bg-slate-900">Selecione o motivo do cancelamento...</option>
+                      {data.appSettings?.cancellationReasons?.map((reason: string) => (
+                        <option key={reason} value={reason} className="dark:bg-slate-900">{reason}</option>
+                      ))}
+                      <option value="Outro" className="dark:bg-slate-900">Outro / Personalizado</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
 
                   {cancelReason === 'Outro' && (
