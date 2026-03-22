@@ -48,8 +48,14 @@ const navGroups = [
       { id: 'pos', label: 'POS', icon: Store, path: '/pos' },
       { id: 'cadastro-vendas', label: 'Nova Venda', icon: PlusCircle, path: '/cadastro-vendas' },
       { id: 'encomendas', label: 'Pedidos / Encomendas', icon: ClipboardList, path: '/encomendas' },
-      { id: 'diretos', label: 'Diretos / Live', icon: Video, path: '/diretos' },
       { id: 'portes', label: 'Logística & Retornos', icon: Truck, path: '/portes' },
+    ]
+  },
+  {
+    label: 'Diretos / Live',
+    items: [
+      { id: 'pos-diretos', label: 'POS Diretos', icon: Store, path: '/pos-diretos' },
+      { id: 'diretos', label: 'Gestão de Diretos', icon: Video, path: '/diretos' },
     ]
   },
   {

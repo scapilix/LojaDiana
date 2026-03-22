@@ -1877,7 +1877,7 @@ export default function Encomendas() {
                     <select
                       value={cancelReason}
                       onChange={(e) => setCancelReason(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-white/5 border-2 border-transparent focus:border-rose-500/50 rounded-2xl px-4 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all appearance-none cursor-pointer pr-10 hover:bg-slate-100 dark:hover:bg-white/10"
+                      className="w-full bg-slate-50 dark:bg-white/5 border-2 border-transparent focus:border-rose-500/50 rounded-2xl px-4 py-2.5 text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none transition-all appearance-none cursor-pointer pr-10 hover:bg-slate-100 dark:hover:bg-white/10"
                     >
                       <option value="" disabled className="dark:bg-slate-900">Selecione o motivo do cancelamento...</option>
                       {data.appSettings?.cancellationReasons?.map((reason: string) => (
@@ -1908,7 +1908,7 @@ export default function Encomendas() {
                 <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
                   <div className="flex flex-col gap-0.5 px-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Código (PIN) de Autorização</label>
-                    <span className="text-[8px] font-bold text-slate-400/60 uppercase tracking-wider">Utilize o seu código configurado nas definições</span>
+                    <span className="text-[10px] font-black text-rose-500/80 uppercase tracking-widest">Utilize o seu código (PIN) configurado nas definições</span>
                   </div>
                   <div className="relative">
                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1920,7 +1920,7 @@ export default function Encomendas() {
                         setCancelPinError('');
                       }}
                       placeholder="••••"
-                      className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-lg font-black tracking-[0.5em] outline-none transition-all ${
+                      className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-base font-black tracking-[0.5em] outline-none transition-all ${
                         cancelPinError ? 'border-rose-500' : 'border-transparent focus:border-rose-500/50 focus:bg-white dark:focus:bg-slate-800'
                       }`}
                     />
