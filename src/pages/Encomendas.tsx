@@ -775,12 +775,14 @@ export default function Encomendas() {
                       <div className="flex flex-col gap-1">
                         <span>{order.id_venda || '#N/A'}</span>
                         {order.items?.some((i: any) => i.is_exchanged) && (
-                          <div className={`text-[8px] px-1 py-0.5 rounded-md text-center uppercase tracking-tighter transition-all ${
-                            order.is_retificado 
-                              ? 'bg-emerald-500 text-white font-black' 
-                              : 'bg-amber-400 text-amber-950 font-black'
-                          }`}>
-                            Troca
+                          <div className="flex">
+                            <span className={`text-[7px] px-1.5 py-0.5 rounded-full uppercase tracking-widest leading-none transition-all ${
+                              order.is_retificado 
+                                ? 'bg-emerald-500 text-white font-black' 
+                                : 'bg-amber-400 text-amber-950 font-black'
+                            }`}>
+                              Troca
+                            </span>
                           </div>
                         )}
                       </div>
@@ -940,7 +942,15 @@ export default function Encomendas() {
                             </td>
                             <td className="px-6 py-3 min-w-[200px]">
                               <div className="flex flex-col">
-                                <span className="font-black text-slate-900 dark:text-white text-[11px]">{item.designacao || 'Unknown'}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-black text-slate-900 dark:text-white text-[11px]">{item.designacao || 'Unknown'}</span>
+                                  {item.is_exchanged && (
+                                    <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[7px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-500/20">
+                                      <RotateCcw className="w-2.5 h-2.5" />
+                                      Já trocado
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[9px] font-bold text-slate-400 uppercase">Quantidade: {item.quantidade || 1}</span>
                               </div>
                             </td>
