@@ -47,10 +47,19 @@ export default function ValesTroca() {
   const stats = useMemo(() => {
     const vouchers = data.vouchers || [];
     return {
-      total: vouchers.length,
-      active: vouchers.filter(v => getStatus(v) === 'active').length,
-      used: vouchers.filter(v => getStatus(v) === 'used').length,
-      expired: vouchers.filter(v => getStatus(v) === 'expired').length
+      total: { count: vouchers.length, value: vouchers.reduce((acc: number, v: any) => acc + Number(v.value || 0), 0) },
+      active: { 
+        count: vouchers.filter(v => getStatus(v) === 'active').length, 
+        value: vouchers.filter(v => getStatus(v) === 'active').reduce((acc: number, v: any) => acc + Number(v.value || 0), 0) 
+      },
+      used: { 
+        count: vouchers.filter(v => getStatus(v) === 'used').length, 
+        value: vouchers.filter(v => getStatus(v) === 'used').reduce((acc: number, v: any) => acc + Number(v.value || 0), 0) 
+      },
+      expired: { 
+        count: vouchers.filter(v => getStatus(v) === 'expired').length, 
+        value: vouchers.filter(v => getStatus(v) === 'expired').reduce((acc: number, v: any) => acc + Number(v.value || 0), 0) 
+      }
     };
   }, [data.vouchers]);
 
@@ -59,10 +68,10 @@ export default function ValesTroca() {
       {/* Stats Header */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Emitidos', value: stats.total, icon: Ticket, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-          { label: 'Vales Ativos', value: stats.active, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Vales Usados', value: stats.used, icon: ArrowRight, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { label: 'Vales Expirados', value: stats.expired, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+          { label: 'Total Emitidos', amount: stats.total.count, value: stats.total.value, icon: Ticket, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+          { label: 'Vales Ativos', amount: stats.active.count, value: stats.active.value, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Vales Usados', amount: stats.used.count, value: stats.used.value, icon: ArrowRight, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+          { label: 'Vales Expirados', amount: stats.expired.count, value: stats.expired.value, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10' },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -75,12 +84,15 @@ export default function ValesTroca() {
               <div className={`${stat.bg} p-2 rounded-2xl`}>
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 leading-none mb-1">
                   {stat.label}
                 </p>
-                <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                  {stat.value}
+                <p className="text-xl font-black text-slate-900 dark:text-white leading-none mb-1">
+                  {stat.amount}
+                </p>
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {formatCurrency(stat.value)}
                 </p>
               </div>
             </div>

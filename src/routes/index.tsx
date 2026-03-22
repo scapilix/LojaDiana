@@ -11,7 +11,6 @@ import Portes from '../pages/Portes';
 import Faturas from '../pages/Faturas';
 import Despesas from '../pages/Despesas';
 import Emprestimos from '../pages/Emprestimos';
-import CadastroVendas from '../pages/CadastroVendas';
 import Encomendas from '../pages/Encomendas';
 import Diretos from '../pages/Diretos';
 import Loja from '../pages/Loja';
@@ -68,7 +67,6 @@ function AppRoutes() {
                   <Route path="faturas" element={<Faturas />} />
                   <Route path="despesas" element={<Despesas />} />
                   <Route path="emprestimos" element={<Emprestimos />} />
-                  <Route path="cadastro-vendas" element={<CadastroVendas />} />
                   <Route path="encomendas" element={<Encomendas />} />
                   <Route path="diretos" element={<Diretos />} />
                   <Route path="settings" element={<Settings />} />

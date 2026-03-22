@@ -1212,21 +1212,22 @@ export default function Encomendas() {
                     <h3 className="text-xl font-black uppercase tracking-tighter">Resumo do Pedido</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                       {/* Normal Receipt Button */}
-                       <button 
-                        onClick={() => {
+                    {(() => {
+                      const handlePrint = (type: 'sale' | 'exchange' | 'gift', exchangeCode?: string) => {
+                        const printReceipt = () => {
                           const WinPrint = window.open('', '', 'width=900,height=900');
                           const html = ReactDOMServer.renderToString(
                             <ReceiptTemplate 
                               order={selectedOrderForInvoice} 
                               settings={data.appSettings} 
+                              type={type}
+                              exchangeCode={exchangeCode}
                             />
                           );
                           WinPrint?.document.write(`
                             <html>
                               <head>
-                                <title>Talão de Venda - #${selectedOrderForInvoice.id_venda}</title>
+                                <title>Talão ${type === 'gift' ? 'Oferta' : type === 'exchange' ? 'Troca' : 'Venda'} - #${selectedOrderForInvoice.id_venda}</title>
                                 <script src="https://cdn.tailwindcss.com"></script>
                                 <style>
                                   @media print {
@@ -1245,134 +1246,80 @@ export default function Encomendas() {
                             WinPrint?.print();
                             WinPrint?.close();
                           }, 500);
-                        }}
-                        className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
-                        title="Imprimir Talão Normal"
-                      >
-                        <Printer className="w-4 h-4" />
-                        Imprimir
-                      </button>
+                        };
 
-                      {/* Gift Receipt Button */}
-                      <button 
-                        onClick={() => {
-                          const WinPrint = window.open('', '', 'width=900,height=900');
-                          const html = ReactDOMServer.renderToString(
-                            <ReceiptTemplate 
-                              order={selectedOrderForInvoice} 
-                              settings={data.appSettings} 
-                              type="gift"
-                            />
-                          );
-                          WinPrint?.document.write(`
-                            <html>
-                              <head>
-                                <title>Talão de Oferta - #${selectedOrderForInvoice.id_venda}</title>
-                                <script src="https://cdn.tailwindcss.com"></script>
-                                <style>
-                                  @media print {
-                                    @page { margin: 0; }
-                                    body { margin: 0; }
-                                  }
-                                </style>
-                              </head>
-                              <body>
-                                ${html}
-                              </body>
-                            </html>
-                          `);
-                          WinPrint?.document.close();
-                          setTimeout(() => {
-                            WinPrint?.print();
-                            WinPrint?.close();
-                          }, 500);
-                        }}
-                        className="p-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
-                        title="Talão de Oferta"
-                      >
-                        <Star className="w-4 h-4" />
-                        Oferta
-                      </button>
+                        printReceipt();
+                        if (data.appSettings?.printer_double_print) {
+                          setTimeout(printReceipt, 1500); // Small delay before second print dialog
+                        }
+                      };
 
-                      {/* Exchange Receipt Button (Conditional) */}
-                      {(() => {
-                        const exchange = data.order_exchanges?.find((ex: any) => ex.order_id === selectedOrderForInvoice.id_venda);
-                        if (!exchange) return null;
-                        
-                        return (
+                      const exchange = data.order_exchanges?.find((ex: any) => ex.order_id === selectedOrderForInvoice.id_venda);
+
+                      return (
+                        <>
                           <button 
-                            onClick={() => {
-                              const WinPrint = window.open('', '', 'width=900,height=900');
-                              const html = ReactDOMServer.renderToString(
-                                <ReceiptTemplate 
-                                  order={selectedOrderForInvoice} 
-                                  settings={data.appSettings} 
-                                  type="exchange"
-                                  exchangeCode={exchange.voucher_number || exchange.id}
-                                />
-                              );
-                              WinPrint?.document.write(`
-                                <html>
-                                  <head>
-                                    <title>Talão de Troca - #${selectedOrderForInvoice.id_venda}</title>
-                                    <script src="https://cdn.tailwindcss.com"></script>
-                                    <style>
-                                      @media print {
-                                        @page { margin: 0; }
-                                        body { margin: 0; }
-                                      }
-                                    </style>
-                                  </head>
-                                  <body>
-                                    ${html}
-                                  </body>
-                                </html>
-                              `);
-                              WinPrint?.document.close();
-                              setTimeout(() => {
-                                WinPrint?.print();
-                                WinPrint?.close();
-                              }, 500);
-                            }}
-                            className="p-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20"
-                            title="Talão de Troca"
+                            onClick={() => handlePrint('sale')}
+                            className="p-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-500/20"
+                            title="Imprimir Talão Normal"
                           >
-                            <RotateCcw className="w-4 h-4" />
-                            Troca
+                            <Printer className="w-4 h-4" />
+                            Imprimir
                           </button>
-                        );
-                      })()}
 
-                      <button 
-                        onClick={() => {
-                          const subject = encodeURIComponent(`Talão de Venda #${selectedOrderForInvoice.id_venda}`);
-                          const body = encodeURIComponent(`Olá ${selectedOrderForInvoice.nome_cliente}, aqui está o resumo do seu pedido #${selectedOrderForInvoice.id_venda}.`);
-                          window.location.href = `mailto:?subject=${subject}&body=${body}`;
-                        }}
-                        className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
-                        title="Enviar por E-mail"
-                      >
-                        <Mail className="w-4 h-4" />
-                      </button>
+                          <button 
+                            onClick={() => handlePrint('gift')}
+                            className="p-2.5 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-pink-500/20"
+                            title="Talão de Oferta"
+                          >
+                            <Star className="w-4 h-4" />
+                            Oferta
+                          </button>
 
-                      <button 
-                        onClick={() => {
-                          const text = `Olá ${selectedOrderForInvoice.nome_cliente}! Segue o resumo do seu pedido #${selectedOrderForInvoice.id_venda} na ${data.appSettings?.storeName || 'nossa loja'}. Total: ${formatCurrency(selectedOrderForInvoice.pvp)}`;
-                          const whatsappUrl = `https://wa.me/${selectedOrderForInvoice.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
-                          window.open(whatsappUrl, '_blank');
-                        }}
-                        className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
-                        title="Partilhar WhatsApp"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </button>
+                          {exchange && (
+                            <button 
+                              onClick={() => handlePrint('exchange', exchange.voucher_number || exchange.id)}
+                              className="p-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20"
+                              title="Talão de Troca"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              Troca
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
 
-                      <button onClick={() => setShowInvoiceModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
+                    <button 
+                      onClick={() => {
+                        const subject = encodeURIComponent(`Talão de Venda #${selectedOrderForInvoice.id_venda}`);
+                        const body = encodeURIComponent(`Olá ${selectedOrderForInvoice.nome_cliente}, aqui está o resumo do seu pedido #${selectedOrderForInvoice.id_venda}.`);
+                        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                      }}
+                      className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+                      title="Enviar por E-mail"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        const text = `Olá ${selectedOrderForInvoice.nome_cliente}! Segue o resumo do seu pedido #${selectedOrderForInvoice.id_venda} na ${data.appSettings?.storeName || 'nossa loja'}. Total: ${formatCurrency(selectedOrderForInvoice.pvp)}`;
+                        const whatsappUrl = `https://wa.me/${selectedOrderForInvoice.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+                        window.open(whatsappUrl, '_blank');
+                      }}
+                      className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
+                      title="Partilhar WhatsApp"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <button onClick={() => setShowInvoiceModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
+              </div>
 
                 <div className="p-8 overflow-y-auto max-h-[70vh] custom-scrollbar bg-slate-50/30 dark:bg-slate-900/40">
                   <div id="printable-invoice" className="bg-white dark:bg-slate-950 p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm text-slate-900 dark:text-white">
@@ -1457,7 +1404,6 @@ export default function Encomendas() {
                     </div>
                   </div>
                 </div>
-              </div>
             </motion.div>
           </div>
         )}
