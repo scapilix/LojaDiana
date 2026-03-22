@@ -23,6 +23,7 @@ interface ReceiptProps {
     receipt_show_customer?: boolean;
     receipt_header?: string;
     receipt_footer?: string;
+    receipt_logo_url?: string;
     printer_paper_width?: '80mm' | '58mm';
   };
 }
@@ -35,6 +36,7 @@ export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings }) => 
   const paperWidth = settings?.printer_paper_width || '80mm';
   const showLogo = settings?.receipt_show_logo ?? true;
   const showCustomer = settings?.receipt_show_customer ?? true;
+  const logoUrl = settings?.receipt_logo_url;
 
   return (
     <div 
@@ -44,11 +46,17 @@ export const ReceiptTemplate: React.FC<ReceiptProps> = ({ order, settings }) => 
       <div className="text-center mb-4">
         {showLogo && (
           <div className="mb-2">
-            <h1 className="text-sm font-black uppercase mb-1">{settings?.storeName || 'Loja Diana'}</h1>
-            <div className="flex flex-col items-center gap-0.5 opacity-50">
-               <div className="w-8 h-1 bg-black"></div>
-               <div className="w-12 h-1 bg-black"></div>
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Store Logo" className="w-16 h-16 object-contain mx-auto mb-2" />
+            ) : (
+              <>
+                <h1 className="text-sm font-black uppercase mb-1">{settings?.storeName || 'Loja Diana'}</h1>
+                <div className="flex flex-col items-center gap-0.5 opacity-50">
+                   <div className="w-8 h-1 bg-black"></div>
+                   <div className="w-12 h-1 bg-black"></div>
+                </div>
+              </>
+            )}
           </div>
         )}
         

@@ -53,6 +53,7 @@ interface ExcelData {
     receipt_show_customer?: boolean;
     receipt_header?: string;
     receipt_footer?: string;
+    receipt_logo_url?: string;
     printer_paper_width?: '80mm' | '58mm';
     printer_double_print?: boolean;
     printer_bluetooth?: boolean;
@@ -121,7 +122,13 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children, initialData }: { children: ReactNode; initialData: ExcelData }) {
-  const [data, setData] = useState<ExcelData>(initialData);
+  const [data, setData] = useState<ExcelData>({
+    ...initialData,
+    appSettings: {
+      ...initialData.appSettings,
+      receipt_logo_url: initialData.appSettings?.receipt_logo_url || ''
+    }
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   // Sync state with initialData if it changes

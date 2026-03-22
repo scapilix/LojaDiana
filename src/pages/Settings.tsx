@@ -93,6 +93,7 @@ export default function Settings() {
         receipt_show_customer: data.appSettings?.receipt_show_customer ?? true,
         receipt_header: data.appSettings?.receipt_header || '',
         receipt_footer: data.appSettings?.receipt_footer || '',
+        receipt_logo_url: data.appSettings?.receipt_logo_url || '',
         printer_paper_width: data.appSettings?.printer_paper_width || '80mm',
         printer_double_print: data.appSettings?.printer_double_print || false,
         printer_bluetooth: data.appSettings?.printer_bluetooth || false
@@ -211,6 +212,24 @@ export default function Settings() {
         } catch (error) {
             console.error('Error uploading hero image:', error);
             alert('Erro ao carregar imagem');
+        } finally {
+            setIsUploading(null);
+        }
+    };
+
+    const handleReceiptLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(99); // Special index for logo
+            const url = await uploadToSupabase(file, 'loja_logos');
+            if (url) {
+                setGeneralSettings({ ...generalSettings, receipt_logo_url: url });
+            }
+        } catch (error) {
+            console.error('Error uploading receipt logo:', error);
+            alert('Erro ao carregar logotipo');
         } finally {
             setIsUploading(null);
         }
@@ -542,18 +561,44 @@ export default function Settings() {
                                     <div className="space-y-4">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Visibilidade</label>
                                         <div className="space-y-3">
-                                            <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-purple-200 transition-all group">
-                                                <div className="flex items-center gap-3">
-                                                    <Layout className="w-4 h-4 text-slate-400 group-hover:text-purple-500" />
-                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Mostrar Logotipo</span>
+                                            <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Layout className="w-4 h-4 text-slate-400" />
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Mostrar Logotipo</span>
+                                                    </div>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={generalSettings.receipt_show_logo}
+                                                        onChange={e => setGeneralSettings({...generalSettings, receipt_show_logo: e.target.checked})}
+                                                        className="w-5 h-5 rounded-lg border-2 border-slate-300 text-purple-600 focus:ring-purple-500"
+                                                    />
                                                 </div>
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={generalSettings.receipt_show_logo}
-                                                    onChange={e => setGeneralSettings({...generalSettings, receipt_show_logo: e.target.checked})}
-                                                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-purple-600 focus:ring-purple-500"
-                                                />
-                                            </label>
+                                                
+                                                <div className="pt-2 border-t border-slate-200/50 dark:border-white/5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative w-12 h-12 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 overflow-hidden flex items-center justify-center">
+                                                            {generalSettings.receipt_logo_url ? (
+                                                                <img src={generalSettings.receipt_logo_url} alt="Logo Preview" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <ImageIcon className="w-5 h-5 text-slate-300" />
+                                                            )}
+                                                            {isUploading === 99 && (
+                                                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                                                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <label className="inline-block px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer hover:bg-purple-700 transition-colors">
+                                                                {generalSettings.receipt_logo_url ? 'Alterar Logo' : 'Carregar Logo'}
+                                                                <input type="file" className="hidden" accept="image/*" onChange={handleReceiptLogoUpload} />
+                                                            </label>
+                                                            <p className="text-[8px] text-slate-400 font-bold uppercase mt-1">PNG/JPG recomendado</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 cursor-pointer hover:border-purple-200 transition-all group">
                                                 <div className="flex items-center gap-3">
                                                     <UserCircle className="w-4 h-4 text-slate-400 group-hover:text-purple-500" />
