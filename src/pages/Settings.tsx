@@ -52,6 +52,8 @@ export default function Settings() {
     // User Management State
     const [users, setUsers] = useState<any[]>([]);
     const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Vendedor' });
+    const [editingUserId, setEditingUserId] = useState<string | number | null>(null);
+    const [editPassword, setEditPassword] = useState('');
     const { user: currentUser } = useAuth();
 
     // Handlers
@@ -89,6 +91,19 @@ export default function Settings() {
             }
         }
     };
+    const handleUpdatePassword = async (id: string | number) => {
+        if (!editPassword) return;
+        const { error } = await supabase.from('loja_users').update({ password: editPassword }).eq('id', id);
+        if (!error) {
+            fetchUsers();
+            setEditingUserId(null);
+            setEditPassword('');
+            setShowStatus('success');
+        } else {
+            setShowStatus('error');
+        }
+    };
+
     const handleSaveGeneral = async () => {
         setIsSaving(true);
         try {
@@ -413,7 +428,7 @@ export default function Settings() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Palavra-passe</label>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código (PIN)</label>
                                             <div className="relative">
                                                 <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                                 <input
@@ -478,14 +493,59 @@ export default function Settings() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {u.id !== currentUser?.id && (
-                                                    <button
-                                                        onClick={() => handleDeleteUser(u.id)}
-                                                        className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {editingUserId === u.id ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="password"
+                                                                value={editPassword}
+                                                                onChange={(e) => setEditPassword(e.target.value)}
+                                                                className="w-24 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs font-bold"
+                                                                placeholder="Novo PIN"
+                                                                autoFocus
+                                                            />
+                                                            <button
+                                                                onClick={() => handleUpdatePassword(u.id)}
+                                                                className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+                                                                title="Guardar PIN"
+                                                            >
+                                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingUserId(null);
+                                                                    setEditPassword('');
+                                                                }}
+                                                                className="p-2 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg hover:text-rose-500 transition-colors"
+                                                                title="Cancelar"
+                                                            >
+                                                                <AlertCircle className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingUserId(u.id);
+                                                                    setEditPassword('');
+                                                                }}
+                                                                className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-purple-600 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                                title="Editar PIN"
+                                                            >
+                                                                <Key className="w-4 h-4" />
+                                                            </button>
+                                                            {u.id !== currentUser?.id && (
+                                                                <button
+                                                                    onClick={() => handleDeleteUser(u.id)}
+                                                                    className="p-3 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                                    title="Remover Utilizador"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

@@ -1459,7 +1459,7 @@ export default function Encomendas() {
                   <div className="space-y-6 py-4">
                     <div className="text-center space-y-2">
                       <p className="text-lg font-bold text-slate-700 dark:text-slate-200">Validação de Colaborador</p>
-                      <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Insira o seu PIN pessoal</p>
+                      <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Insira o seu Código (PIN) pessoal</p>
                     </div>
                     <div className="max-w-[200px] mx-auto space-y-4">
                       <input
@@ -1488,7 +1488,7 @@ export default function Encomendas() {
                     >
                       {isValidatingPIN ? (
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : 'Validar PIN'}
+                      ) : 'Validar Código (PIN)'}
                     </button>
                   </div>
                 )}
@@ -1917,7 +1917,7 @@ export default function Encomendas() {
 
                 {/* PIN Section */}
                 <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Código de Autorização</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Código (PIN) de Autorização</label>
                   <div className="relative">
                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -1927,7 +1927,7 @@ export default function Encomendas() {
                         setCancelPIN(e.target.value);
                         setCancelPinError('');
                       }}
-                      placeholder="Insira o seu código para confirmar"
+                      placeholder="Insira o seu Código (PIN) para confirmar"
                       className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-2 rounded-2xl text-sm font-black tracking-[0.5em] outline-none transition-all ${
                         cancelPinError ? 'border-rose-500' : 'border-transparent focus:border-rose-500/50 focus:bg-white dark:focus:bg-slate-800'
                       }`}
