@@ -12,33 +12,11 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDiretosData } from '../hooks/useDiretosData';
+import { KpiCard } from '../components/KpiCard';
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
 
-function KpiCard({ label, value, sub, icon: Icon, trend }: any) {
-  return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] p-6 shadow-xl relative overflow-hidden group hover:border-rose-500/20 transition-all">
-      <div className="flex justify-between items-start mb-4">
-        <div className="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500">
-          <Icon className="w-5 h-5" />
-        </div>
-        {trend && (
-          <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full uppercase tracking-widest">
-            <TrendingUp className="w-3 h-3" />
-            {trend}
-          </div>
-        )}
-      </div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{label}</p>
-        <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{value}</h3>
-        {sub && <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-tighter">{sub}</p>}
-      </div>
-      <div className="absolute bottom-0 left-0 h-1 bg-rose-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 w-full" />
-    </div>
-  );
-}
 
 export default function AnaliseDiretos() {
   const { 
@@ -84,16 +62,19 @@ export default function AnaliseDiretos() {
           label="Faturação Total" 
           value={formatCurrency(totalRevenue)} 
           icon={DollarSign} 
+          accent="rose"
         />
         <KpiCard 
           label="Volume de Vendas" 
           value={orderCount} 
           icon={ShoppingCart} 
+          accent="rose"
         />
         <KpiCard 
           label="Ticket Médio" 
           value={formatCurrency(avgTicket)} 
           icon={CreditCard} 
+          accent="rose"
         />
         {bestLive && (
           <KpiCard 
@@ -101,6 +82,7 @@ export default function AnaliseDiretos() {
             value={formatCurrency(bestLive.revenue)} 
             sub={bestLive.name}
             icon={Star} 
+            accent="rose"
           />
         )}
       </div>

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   DollarSign, ShoppingCart, CreditCard,
-  Filter, X, ArrowUpRight, ArrowDownRight,
+  Filter, X,
   Package, ArrowRightLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { SmartDateFilter } from '../components/SmartDateFilter';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useFilters } from '../contexts/FilterContext';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-// Local KpiCard component defined below
+import { KpiCard } from '../components/KpiCard';
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -18,69 +18,6 @@ const pageVariants = {
   exit: { opacity: 0 }
 };
 
-function MiniSparkBar({ data, color = '#6366f1' }: { data: { value: number }[], color?: string }) {
-  if (!data?.length) return <div className="h-10 flex items-end gap-0.5">{[...Array(7)].map((_, i) => <div key={i} className="flex-1 bg-slate-100 dark:bg-white/5 rounded-sm h-1" />)}</div>;
-  const max = Math.max(...data.map((d: any) => d.value), 1);
-  return (
-    <div className="h-10 flex items-end gap-0.5">
-      {data.map((d: any, i: number) => (
-        <div
-          key={i}
-          className="flex-1 rounded-sm transition-all"
-          style={{ height: `${Math.max((d.value / max) * 100, 4)}%`, backgroundColor: color, opacity: 0.7 + (i / data.length) * 0.3 }}
-        />
-      ))}
-    </div>
-  );
-}
-
-interface KpiCardProps {
-  label: string;
-  value: string | number;
-  sub?: string;
-  trend?: number; // percentage
-  icon: React.ElementType;
-  sparkData?: { value: number }[];
-  sparkColor?: string;
-  accent?: string;
-}
-
-function KpiCard({ label, value, sub, trend, icon: Icon, sparkData, sparkColor = '#6366f1', accent = 'indigo' }: KpiCardProps) {
-  const isUp = trend !== undefined ? trend >= 0 : null;
-  const accentMap: Record<string, string> = {
-    indigo: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    violet: 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400',
-    amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    rose: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400',
-    slate: 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400',
-  };
-
-  return (
-    <div className="bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-2xl p-5 flex flex-col gap-4 hover:border-primary/20 transition-all hover:shadow-xl group">
-      <div className="flex items-center justify-between">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accentMap[accent] || accentMap.indigo}`}>
-          <Icon className="w-3.5 h-3.5" />
-        </div>
-        {trend !== undefined && (
-          <div className={`flex items-center gap-0.5 text-[10px] font-bold ${isUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-            {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {Math.abs(trend).toFixed(1)}%
-          </div>
-        )}
-      </div>
-
-      <div>
-        <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">{label}</p>
-        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{value}</p>
-        {sub && <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>}
-      </div>
-
-      {sparkData && <MiniSparkBar data={sparkData} color={sparkColor} />}
-      <div className="kpi-accent-line opacity-0 group-hover:opacity-100 transition-opacity" />
-    </div>
-  );
-}
 
 function Overview() {
   const { filters, setFilters } = useFilters();
