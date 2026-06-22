@@ -51,12 +51,12 @@ export default function Encomendas() {
   // Follow-up Modal State
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [selectedOrderForInvoice] = useState<any>(null);
-  const [followUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
+  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<any>(null);
+  const [followUpData, setFollowUpData] = useState<{ type: 'delivery' | 'feedback', order: any } | null>(null);
 
   // Exchange States
   const [showExchangeModal, setShowExchangeModal] = useState(false);
-  const [selectedOrderForExchange] = useState<any>(null);
+  const [selectedOrderForExchange, setSelectedOrderForExchange] = useState<any>(null);
   const [exchangeStep, setExchangeStep] = useState(1);
   const [exchangePIN, setExchangePIN] = useState('');
   const [exchangeType, setExchangeType] = useState<'online' | 'fisico' | null>(null);
@@ -338,7 +338,7 @@ export default function Encomendas() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[hsl(35_18%_92%)]">
-                  {['Ref', 'Cliente', 'Produto', 'Valor', 'Data', 'Estado'].map(h => (
+                  {['Ref', 'Cliente', 'Produto', 'Valor', 'Data', 'Estado', ''].map(h => (
                     <th key={h} className="text-left text-[9px] font-bold text-[hsl(30_8%_55%)] uppercase tracking-[0.07em] px-4 py-3">{h}</th>
                   ))}
                 </tr>
@@ -361,6 +361,38 @@ export default function Encomendas() {
                     <td className="px-4 py-2.5 text-[12px] font-bold text-[hsl(20_15%_8%)]">€{Number(order.pvp ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-2.5 text-[10px] text-[hsl(30_8%_55%)]">{formatDate(order.data_venda)}</td>
                     <td className="px-4 py-2.5"><StatusBadge status={order.status ?? 'Pendente'} /></td>
+                    <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1">
+                        <button
+                          title="Ver talão"
+                          onClick={() => { setSelectedOrderForInvoice(order); setShowInvoiceModal(true); }}
+                          className="p-1.5 rounded-lg text-[hsl(30_8%_55%)] hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          title="Troca"
+                          onClick={() => { setSelectedOrderForExchange(order); setExchangeStep(1); setShowExchangeModal(true); }}
+                          className="p-1.5 rounded-lg text-[hsl(30_8%_55%)] hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          title="Cancelar encomenda"
+                          onClick={() => { setSelectedOrderForCancel(order); setShowCancelModal(true); }}
+                          className="p-1.5 rounded-lg text-[hsl(30_8%_55%)] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          title="Acompanhamento"
+                          onClick={() => { setFollowUpData({ type: 'delivery', order }); setShowFollowUpModal(true); }}
+                          className="p-1.5 rounded-lg text-[hsl(30_8%_55%)] hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
