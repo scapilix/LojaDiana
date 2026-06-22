@@ -1,0 +1,53 @@
+/* ── LojaDiana Design System — Branco Premium ── */
+
+:root {
+  /* Cores principais */
+  --color-primary:       hsl(340 72% 45%);
+  --color-primary-light: hsl(340 40% 95%);
+  --color-primary-dark:  hsl(340 72% 38%);
+  --color-primary-muted: hsl(340 60% 62%);
+
+  /* Fundos */
+  --color-bg-app:    hsl(38 25% 96%);
+  --color-bg-card:   white;
+  --color-bg-hover:  hsl(38 25% 98%);
+  --color-bg-subtle: hsl(38 18% 97%);
+
+  /* Bordas */
+  --color-border:        hsl(35 18% 90%);
+  --color-border-strong: hsl(35 18% 82%);
+
+  /* Texto */
+  --color-text:       hsl(20 15% 8%);
+  --color-text-muted: hsl(30 8% 55%);
+  --color-text-faint: hsl(30 8% 72%);
+
+  /* Status */
+  --color-success-bg:   #ecfdf5;
+  --color-success-text: #059669;
+  --color-warning-bg:   #fffbeb;
+  --color-warning-text: #d97706;
+  --color-info-bg:      #eff6ff;
+  --color-info-text:    #2563eb;
+  --color-danger-bg:    #fef2f2;
+  --color-danger-text:  #dc2626;
+
+  /* KPI accent bars */
+  --kpi-rose:  linear-gradient(90deg, hsl(340 72% 45%), hsl(340 60% 62%));
+  --kpi-green: linear-gradient(90deg, #10b981, #34d399);
+  --kpi-blue:  linear-gradient(90deg, #3b82f6, #60a5fa);
+  --kpi-amber: linear-gradient(90deg, #f59e0b, #fbbf24);
+
+  /* Espaçamento e raios */
+  --radius-card:   14px;
+  --radius-pill:   20px;
+  --radius-btn:    10px;
+  --radius-input:  10px;
+
+  /* Sombras */
+  --shadow-card:  0 1px 4px rgba(0,0,0,0.06);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.15);
+
+  /* Sidebar */
+  --sidebar-width: 220px;
+}
