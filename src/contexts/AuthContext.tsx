@@ -14,7 +14,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean | 'timeout'>;
   logout: () => void;
   changePassword: (oldP: string, newP: string) => Promise<boolean>;
   isInitialized: boolean;
@@ -47,23 +47,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session — always set isInitialized even on error or timeout
+    const initTimeout = setTimeout(() => setIsInitialized(true), 5000);
+
     supabase.auth.getSession().then(async ({ data: { session: s } }) => {
-      if (s?.user) {
-        const profile = await fetchUserProfile(s.user.id);
-        setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
-        setSession(s);
+      try {
+        if (s?.user) {
+          const profile = await fetchUserProfile(s.user.id);
+          setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
+          setSession(s);
+        }
+      } catch {
+        // profile fetch failed — still mark initialized so app can redirect to login
+      } finally {
+        clearTimeout(initTimeout);
+        setIsInitialized(true);
       }
-      setIsInitialized(true);
-    });
+    }).catch(() => { clearTimeout(initTimeout); setIsInitialized(true); });
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
-      if (s?.user) {
-        const profile = await fetchUserProfile(s.user.id);
-        setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
-      } else {
-        setUser(null);
+      try {
+        if (s?.user) {
+          const profile = await fetchUserProfile(s.user.id);
+          setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
+        } else {
+          setUser(null);
+        }
+      } catch {
+        if (!s?.user) setUser(null);
       }
       setSession(s);
     });
@@ -74,11 +86,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsSyncing(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return false;
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise<{ error: Error }>(resolve =>
+          setTimeout(() => resolve({ error: new Error('timeout') }), 8000)
+        ),
+      ]);
+      if ('error' in result && result.error) {
+        if (result.error.message === 'timeout') return 'timeout';
+        return false;
+      }
       return true;
     } catch {
-      return false;
+      return 'timeout';
     } finally {
       setIsSyncing(false);
     }
