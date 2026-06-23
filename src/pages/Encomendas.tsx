@@ -26,6 +26,7 @@ import { useFilters } from '../contexts/FilterContext';
 import { useData } from '../contexts/DataContext';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 import { supabase } from '../lib/supabase';
+import { buildWhatsAppUrl } from '../lib/lojaPublica';
 import { FilterChips } from '../components/ui/FilterChips';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -34,7 +35,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 
 export default function Encomendas() {
   const { filters, setFilters } = useFilters();
-  const { data, updateSaleStatus, addExchange } = useData();
+  const { data, updateSaleStatus, addExchange, updateOnlineOrderStatus } = useData();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -327,6 +328,54 @@ export default function Encomendas() {
             { value: 'Cancelado', label: 'Canceladas', count: filteredOrders.filter(o => o.status === 'Cancelado').length,             dotColor: '#dc2626' },
           ]}
         />
+
+        {/* Online orders pending payment */}
+        {(data.onlineOrders || []).filter((o: any) => o.status === 'Aguarda pagamento').length > 0 && (
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+              <h2 className="text-xs font-bold text-[hsl(20_15%_30%)] uppercase tracking-wide">
+                Encomendas Online — Aguardam Pagamento ({(data.onlineOrders || []).filter((o: any) => o.status === 'Aguarda pagamento').length})
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {(data.onlineOrders || []).filter((o: any) => o.status === 'Aguarda pagamento').map((order: any) => (
+                <div key={order.id} className="bg-rose-50 border border-rose-200 rounded-[14px] p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-[hsl(20_15%_8%)]">{order.ref}</span>
+                      <span className="text-[11px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-semibold">Aguarda pagamento</span>
+                    </div>
+                    <p className="text-sm text-[hsl(20_15%_20%)]">{order.nome_cliente}</p>
+                    <p className="text-xs text-muted-foreground">{order.telefone} · {order.email}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {(order.items || []).length} artigo(s) · <strong className="text-[hsl(340_72%_45%)]">{Number(order.total).toFixed(2)}€</strong>
+                      {order.metodo_envio && ` · ${order.metodo_envio}`}
+                    </p>
+                    {order.notas && <p className="text-xs text-muted-foreground mt-0.5 italic">"{order.notas}"</p>}
+                  </div>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <a
+                      href={buildWhatsAppUrl(order, data.appSettings || {})}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#1da851] text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      WhatsApp
+                    </a>
+                    <button
+                      onClick={() => updateOnlineOrderStatus(order.id, 'Pago')}
+                      className="text-xs font-medium text-emerald-700 border border-emerald-300 bg-emerald-50 px-3 py-2 rounded-xl hover:bg-emerald-100 transition-colors"
+                    >
+                      Marcar pago
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-[14px] border border-[hsl(35_18%_90%)] shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden">
           {sortedItems.length === 0 ? (
