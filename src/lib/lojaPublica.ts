@@ -96,11 +96,17 @@ export async function fetchLojaData(slug: string): Promise<LojaData> {
 }
 
 export async function submitOnlineOrder(order: OnlineOrder): Promise<string> {
-  const { data, error } = await supabase
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), 10000)
+  );
+
+  const insert = supabase
     .from('online_orders')
     .insert([order])
     .select('id')
     .single();
+
+  const { data, error } = await Promise.race([insert, timeout]) as any;
 
   if (error) throw new Error(error.message);
   return data.id;

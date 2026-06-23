@@ -115,8 +115,9 @@ export default function Loja() {
       setOrderRef(ref);
       setCart([]);
       setStep('success');
-    } catch {
-      alert('Erro ao submeter encomenda. Tenta novamente.');
+    } catch (err: any) {
+      const msg = err?.message || 'Erro desconhecido';
+      alert(`Erro ao submeter encomenda: ${msg}\n\nTenta novamente.`);
     } finally {
       setSubmitting(false);
     }

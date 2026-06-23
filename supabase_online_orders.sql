@@ -41,3 +41,8 @@ create policy "auth_update_online_orders"
   on public.online_orders for update
   to authenticated
   using (true);
+
+-- Grant table-level permissions (required in addition to RLS policies)
+grant usage on schema public to anon, authenticated;
+grant insert on public.online_orders to anon;
+grant select, update on public.online_orders to authenticated;
