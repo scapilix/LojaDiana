@@ -15,6 +15,7 @@ import { KpiCard } from "../components/KpiCard";
 import { supabase } from "../lib/supabase";
 import { PageHeader } from '../components/ui/PageHeader';
 import { EmptyState } from '../components/ui/EmptyState';
+import { StatusBadge } from '../components/ui/StatusBadge';
 
 /* ---------------------- TYPE DEFINITIONS ---------------------- */
 interface Emprestimo {
@@ -268,12 +269,7 @@ export default function Emprestimos() {
                       {formatCurrency(Number(emp.valor))}
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${emp.estado === 'Pendente'
-                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                          : 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                        }`}>
-                        {emp.estado}
-                      </span>
+                      <StatusBadge status={emp.estado} />
                     </td>
                     <td className="px-4 py-5 text-sm font-bold text-slate-500 dark:text-slate-400">
                       {emp.data_pagamento ? new Date(emp.data_pagamento).toLocaleDateString("pt-PT") : '-'}
@@ -317,7 +313,7 @@ export default function Emprestimos() {
         </div>
       </div>
 
-      {/* FORM MODAL */}
+      {/* FORM MODAL - intentionally inside scroll container, AnimatePresence uses fixed positioning */}
       <AnimatePresence>
         {isFormOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
