@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
@@ -155,6 +155,19 @@ function AppLayout() {
 
   const storeName = data.appSettings?.storeName || 'Loja Diana';
 
+  const pendingOnlineOrders = useMemo(() => {
+    const lastViewed = localStorage.getItem('last_orders_viewed') || '1970-01-01T00:00:00Z';
+    return (data.onlineOrders || []).filter(
+      (o: any) => o.status === 'Aguarda pagamento' && o.created_at > lastViewed
+    ).length;
+  }, [data.onlineOrders]);
+
+  useEffect(() => {
+    if (location.pathname === '/app/encomendas') {
+      localStorage.setItem('last_orders_viewed', new Date().toISOString());
+    }
+  }, [location.pathname]);
+
   const planBadgeStyle = (plan?: string) => {
     if (plan === 'plus')  return { background: '#fef3c7', color: '#92640a' };
     if (plan === 'pro')   return { background: '#fdf0f3', color: '#c1392b' };
@@ -222,6 +235,11 @@ function AppLayout() {
                       {!isSidebarCollapsed && (
                         <>
                           <span className="text-[12px] font-medium flex-1 truncate">{item.label}</span>
+                          {item.id === 'encomendas' && pendingOnlineOrders > 0 && (
+                            <span className="text-[10px] font-bold bg-rose-500 text-white min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                              {pendingOnlineOrders}
+                            </span>
+                          )}
                           {(item as any).badge && (
                             <span className="text-[10px] font-bold bg-[hsl(340_72%_45%)] text-white px-1.5 py-0.5 rounded-full">
                               {(item as any).badge}
@@ -328,7 +346,12 @@ function AppLayout() {
                       })}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-sm font-medium flex-1">{item.label}</span>
+                      {item.id === 'encomendas' && pendingOnlineOrders > 0 && (
+                        <span className="text-[10px] font-bold bg-rose-500 text-white min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                          {pendingOnlineOrders}
+                        </span>
+                      )}
                     </NavLink>
                   ))}
               </div>
