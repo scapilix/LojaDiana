@@ -86,13 +86,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsSyncing(true);
-      console.log('[login] attempting signInWithPassword...');
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      console.log('[login] result:', { user: data?.user?.email, error: error?.message });
-      if (error) return false;
+
+      // Use direct fetch — supabase-js signInWithPassword hangs on this network
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await Promise.race([
+        fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 15000)
+        ),
+      ]);
+
+      const data = await (res as Response).json();
+
+      if (!(res as Response).ok || data.error_code) return false;
+
+      // Inject the session into supabase client
+      await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+
       return true;
-    } catch (e) {
-      console.error('[login] exception:', e);
+    } catch {
       return 'timeout' as const;
     } finally {
       setIsSyncing(false);
