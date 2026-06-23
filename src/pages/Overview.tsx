@@ -8,6 +8,8 @@ import { PageHeader }  from '../components/ui/PageHeader';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 import { useFilters } from '../contexts/FilterContext';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useData } from '../contexts/DataContext';
+import { ShoppingBag, ChevronRight } from 'lucide-react';
 
 function Overview() {
   const { filters, setFilters } = useFilters();
@@ -40,6 +42,12 @@ function Overview() {
 
   const recentOrders = useMemo(() => (filteredOrders || []).slice(0, 6), [filteredOrders]);
 
+  const { data } = useData();
+  const pendingOnlineOrders = useMemo(
+    () => (data.onlineOrders || []).filter((o: any) => o.status === 'Aguarda pagamento'),
+    [data.onlineOrders]
+  );
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -56,6 +64,29 @@ function Overview() {
       />
 
       <div className="flex-1 overflow-y-auto p-5 bg-[hsl(38_25%_96%)] space-y-4">
+
+        {/* Online orders alert */}
+        {pendingOnlineOrders.length > 0 && (
+          <div className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-2xl px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
+                <ShoppingBag className="h-5 w-5 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-rose-800">
+                  {pendingOnlineOrders.length} encomenda{pendingOnlineOrders.length > 1 ? 's' : ''} online a aguardar pagamento
+                </p>
+                <p className="text-xs text-rose-600">Envia o link de pagamento via WhatsApp</p>
+              </div>
+            </div>
+            <Link
+              to="/app/encomendas"
+              className="flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-100 hover:bg-rose-200 px-3 py-2 rounded-xl transition-colors"
+            >
+              Ver <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
 
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
