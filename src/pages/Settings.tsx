@@ -27,7 +27,8 @@ import {
     Type,
     Copy,
     XCircle,
-    RotateCcw
+    RotateCcw,
+    ShoppingBag
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { supabase } from '../lib/supabase';
@@ -86,6 +87,7 @@ export default function Settings() {
         instagram: data.appSettings?.instagram || '',
         iban: data.appSettings?.iban || '',
         mbway: data.appSettings?.mbway || '',
+        loja_slug: (data.appSettings as any)?.loja_slug || '',
         heroImages: data.appSettings?.heroImages || ['', '', ''],
         cancellationReasons: data.appSettings?.cancellationReasons || [],
         storeAddress: data.appSettings?.storeAddress || '',
@@ -388,6 +390,29 @@ export default function Settings() {
                                                     placeholder="Telemóvel MBWay"
                                                 />
                                             </div>
+                                        </div>
+                                        {/* Loja pública slug */}
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2 mb-2">
+                                                <ShoppingBag className="w-3 h-3 text-[hsl(340_72%_45%)]" /> Link da Loja Online
+                                            </label>
+                                            <div className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3">
+                                                <span className="text-xs text-muted-foreground whitespace-nowrap">#/loja/</span>
+                                                <input
+                                                    type="text"
+                                                    value={generalSettings.loja_slug}
+                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, loja_slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                                                    className="flex-1 bg-transparent outline-none font-bold text-sm"
+                                                    placeholder="diana"
+                                                />
+                                            </div>
+                                            {generalSettings.loja_slug && (
+                                                <p className="text-xs text-muted-foreground mt-1 ml-1">
+                                                    Link: <a href={`/#/loja/${generalSettings.loja_slug}`} target="_blank" rel="noreferrer" className="text-[hsl(340_72%_45%)] hover:underline">
+                                                        /#/loja/{generalSettings.loja_slug}
+                                                    </a>
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
