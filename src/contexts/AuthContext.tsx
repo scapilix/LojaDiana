@@ -86,19 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsSyncing(true);
-      const result = await Promise.race([
-        supabase.auth.signInWithPassword({ email, password }),
-        new Promise<{ error: Error }>(resolve =>
-          setTimeout(() => resolve({ error: new Error('timeout') }), 20000)
-        ),
-      ]);
-      if ('error' in result && result.error) {
-        if (result.error.message === 'timeout') return 'timeout';
-        return false;
-      }
+      console.log('[login] attempting signInWithPassword...');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('[login] result:', { user: data?.user?.email, error: error?.message });
+      if (error) return false;
       return true;
-    } catch {
-      return 'timeout';
+    } catch (e) {
+      console.error('[login] exception:', e);
+      return 'timeout' as const;
     } finally {
       setIsSyncing(false);
     }
