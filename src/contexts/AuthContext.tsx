@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await Promise.race([
         supabase.auth.signInWithPassword({ email, password }),
         new Promise<{ error: Error }>(resolve =>
-          setTimeout(() => resolve({ error: new Error('timeout') }), 8000)
+          setTimeout(() => resolve({ error: new Error('timeout') }), 20000)
         ),
       ]);
       if ('error' in result && result.error) {
