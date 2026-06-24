@@ -315,7 +315,11 @@ export default function Encomendas() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto p-5 bg-[hsl(38_25%_96%)] space-y-3">
+      <div className="flex-1 overflow-y-auto p-5 bg-[hsl(38_25%_96%)]">
+        <div className="flex gap-4 items-start">
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0 space-y-3">
 
         <FilterChips
           active={filters.status || 'all'}
@@ -448,6 +452,10 @@ export default function Encomendas() {
             </table>
           )}
         </div>
+
+      </div>
+
+      </div>
 
       </div>
 

@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { KpiCard }    from '../components/ui/KpiCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { EmptyState }  from '../components/ui/EmptyState';
 import { PageHeader }  from '../components/ui/PageHeader';
+import { MiniCalendar } from '../components/ui/MiniCalendar';
 import { SmartDateFilter } from '../components/SmartDateFilter';
 import { useFilters } from '../contexts/FilterContext';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -41,6 +42,15 @@ function Overview() {
   );
 
   const recentOrders = useMemo(() => (filteredOrders || []).slice(0, 6), [filteredOrders]);
+  const [calendarSelected, setCalendarSelected] = useState<Date | null>(null);
+
+  // Dates with orders for calendar dots
+  const orderActiveDates = useMemo(() =>
+    [...new Set((filteredOrders || []).map((o: any) =>
+      (o.date || o.data_venda || '').split('T')[0]
+    ).filter(Boolean))] as string[],
+    [filteredOrders]
+  );
 
   const { data } = useData();
   const pendingOnlineOrders = useMemo(
@@ -96,7 +106,7 @@ function Overview() {
           <KpiCard accent="amber" label="Trocas"         value={exchangeCount} />
         </div>
 
-        {/* Chart + Top Produtos */}
+        {/* Chart + Side Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4">
 
           {/* Gráfico de vendas */}
@@ -163,30 +173,41 @@ function Overview() {
             </div>
           </div>
 
-          {/* Top Produtos */}
-          <div className="bg-white rounded-[14px] border border-[hsl(35_18%_90%)] shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-[hsl(35_18%_92%)]">
-              <h2 className="text-[13px] font-bold text-[hsl(20_15%_8%)]">Top Produtos</h2>
-            </div>
-            <div className="p-4 space-y-3">
-              {(topProducts || []).slice(0, 5).map((p: any, i: number) => (
-                <div key={p.ref ?? i} className="flex items-center gap-3">
-                  <span className={`w-5 h-5 rounded-[6px] flex items-center justify-center text-[9px] font-black flex-shrink-0 ${i === 0 ? 'bg-[#fef3c7] text-[#92640a]' : 'bg-[hsl(38_25%_93%)] text-[hsl(30_8%_55%)]'}`}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-[hsl(20_15%_8%)] truncate">{p.name ?? p.ref}</p>
-                    <div className="mt-1 h-1 rounded-full bg-[hsl(35_18%_92%)]">
-                      <div className="h-full rounded-full bg-[hsl(340_72%_45%)]"
-                        style={{ width: `${topProducts[0]?.totalRevenue || topProducts[0]?.revenue ? ((p.totalRevenue || p.revenue || 0) / (topProducts[0].totalRevenue || topProducts[0].revenue)) * 100 : 0}%` }} />
+          {/* Right column: Calendar + Top Produtos */}
+          <div className="flex flex-col gap-4">
+
+            {/* Mini Calendar */}
+            <MiniCalendar
+              selected={calendarSelected}
+              onSelect={setCalendarSelected}
+              activeDates={orderActiveDates}
+            />
+
+            {/* Top Produtos */}
+            <div className="bg-white rounded-[14px] border border-[hsl(35_18%_90%)] shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-[hsl(35_18%_92%)]">
+                <h2 className="text-[13px] font-bold text-[hsl(20_15%_8%)]">Top Produtos</h2>
+              </div>
+              <div className="p-4 space-y-3">
+                {(topProducts || []).slice(0, 5).map((p: any, i: number) => (
+                  <div key={p.ref ?? i} className="flex items-center gap-3">
+                    <span className={`w-5 h-5 rounded-[6px] flex items-center justify-center text-[9px] font-black flex-shrink-0 ${i === 0 ? 'bg-[#fef3c7] text-[#92640a]' : 'bg-[hsl(38_25%_93%)] text-[hsl(30_8%_55%)]'}`}>
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold text-[hsl(20_15%_8%)] truncate">{p.name ?? p.ref}</p>
+                      <div className="mt-1 h-1 rounded-full bg-[hsl(35_18%_92%)]">
+                        <div className="h-full rounded-full bg-[hsl(340_72%_45%)]"
+                          style={{ width: `${topProducts[0]?.totalRevenue || topProducts[0]?.revenue ? ((p.totalRevenue || p.revenue || 0) / (topProducts[0].totalRevenue || topProducts[0].revenue)) * 100 : 0}%` }} />
+                      </div>
                     </div>
+                    <span className="text-[11px] font-bold text-[hsl(20_15%_8%)] flex-shrink-0">{formatCurrency(p.totalRevenue || p.revenue || 0)}</span>
                   </div>
-                  <span className="text-[11px] font-bold text-[hsl(20_15%_8%)] flex-shrink-0">{formatCurrency(p.totalRevenue || p.revenue || 0)}</span>
-                </div>
-              ))}
-              {(!topProducts || topProducts.length === 0) && (
-                <EmptyState title="Sem produtos" description="Importe encomendas para ver o ranking" />
-              )}
+                ))}
+                {(!topProducts || topProducts.length === 0) && (
+                  <EmptyState title="Sem produtos" description="Importe encomendas para ver o ranking" />
+                )}
+              </div>
             </div>
           </div>
         </div>
