@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { KpiCard }    from '../components/ui/KpiCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -101,22 +101,63 @@ function Overview() {
 
           {/* Gráfico de vendas */}
           <div className="bg-white rounded-[14px] border border-[hsl(35_18%_90%)] shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[hsl(35_18%_92%)]">
-              <h2 className="text-[13px] font-bold text-[hsl(20_15%_8%)]">Vendas por dia</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(35_18%_92%)]">
+              <div>
+                <h2 className="text-[13px] font-bold text-[hsl(20_15%_8%)]">Vendas por dia</h2>
+                <p className="text-[11px] text-[hsl(30_8%_55%)] mt-0.5">Receita diária no período selecionado</p>
+              </div>
+              <span className="text-[11px] font-semibold text-[hsl(340_72%_45%)] bg-[hsl(340_72%_97%)] px-2.5 py-1 rounded-full">
+                {dayChartData.length} dias
+              </span>
             </div>
-            <div className="p-4 h-[180px]">
+            <div className="px-2 pt-4 pb-2 h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dayChartData}>
+                <AreaChart data={dayChartData} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="hsl(340,72%,45%)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(340,72%,45%)" stopOpacity={0} />
+                      <stop offset="0%"  stopColor="hsl(340,72%,50%)" stopOpacity={0.18} />
+                      <stop offset="100%" stopColor="hsl(340,72%,50%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" tick={{ fontSize: 9, fill: 'hsl(30 8% 60%)' }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Tooltip contentStyle={{ background: 'white', border: '1px solid hsl(35 18% 90%)', borderRadius: 10, fontSize: 11 }} />
-                  <Area type="monotone" dataKey="valor" stroke="hsl(340,72%,45%)" strokeWidth={2} fill="url(#colorRevenue)" />
+                  <CartesianGrid vertical={false} stroke="hsl(35,18%,93%)" strokeDasharray="3 0" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10, fill: 'hsl(30,8%,58%)', fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                    tickMargin={8}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: 'hsl(30,8%,58%)', fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
+                    width={36}
+                    tickMargin={4}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'white',
+                      border: '1px solid hsl(35,18%,88%)',
+                      borderRadius: 10,
+                      fontSize: 12,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                      padding: '8px 12px',
+                    }}
+                    labelStyle={{ color: 'hsl(20,15%,30%)', fontWeight: 700, marginBottom: 2 }}
+                    formatter={(value: number) => [`${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €`, 'Receita']}
+                    cursor={{ stroke: 'hsl(340,72%,45%)', strokeWidth: 1, strokeDasharray: '4 2' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="valor"
+                    stroke="hsl(340,72%,45%)"
+                    strokeWidth={2.5}
+                    fill="url(#colorRevenue)"
+                    dot={false}
+                    activeDot={{ r: 5, fill: 'hsl(340,72%,45%)', stroke: 'white', strokeWidth: 2 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
