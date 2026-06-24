@@ -35,7 +35,7 @@ function getAuthHeaders(): Record<string, string> {
   };
 }
 
-export async function pgUpsert(table: string, row: Record<string, unknown>, onConflict: string): Promise<void> {
+export async function pgUpsert(table: string, row: Record<string, unknown>, _onConflict: string): Promise<void> {
   const res = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
     method: 'POST',
     headers: { ...getAuthHeaders(), Prefer: `resolution=merge-duplicates` },
