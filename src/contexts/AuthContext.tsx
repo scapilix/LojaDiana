@@ -47,50 +47,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    // Get initial session — always set isInitialized even on error or timeout
-    const initTimeout = setTimeout(() => setIsInitialized(true), 5000);
-
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+    // Read session directly from localStorage — supabase.auth.getSession() makes
+    // network calls that hang on this corporate network, so we bypass it entirely.
+    const initFromStorage = async () => {
       try {
-        if (s?.user) {
-          const profile = await fetchUserProfile(s.user.id);
-          setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
-          setSession(s);
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] ?? '';
+        const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        if (!raw) { setIsInitialized(true); return; }
+
+        const stored = JSON.parse(raw) as { access_token?: string; expires_at?: number; user?: { id: string; email?: string } };
+        if (!stored.access_token || !stored.user) { setIsInitialized(true); return; }
+
+        // Check expiry (expires_at is Unix seconds)
+        if (stored.expires_at && stored.expires_at < Date.now() / 1000) {
+          localStorage.removeItem(`sb-${projectRef}-auth-token`);
+          setIsInitialized(true);
+          return;
         }
+
+        const fallbackProfile = { role: 'vendedor' as const, storeId: null as string | null, storeName: null as string | null };
+        const profile = await Promise.race([
+          fetchUserProfile(stored.user.id),
+          new Promise<typeof fallbackProfile>((resolve) => setTimeout(() => resolve(fallbackProfile), 5000)),
+        ]).catch(() => fallbackProfile);
+
+        setUser({ id: stored.user.id, email: stored.user.email ?? '', ...profile });
+        setSession(stored as any);
       } catch {
-        // profile fetch failed — still mark initialized so app can redirect to login
+        // any parse error → proceed to login
       } finally {
-        clearTimeout(initTimeout);
         setIsInitialized(true);
       }
-    }).catch(() => { clearTimeout(initTimeout); setIsInitialized(true); });
+    };
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
-      try {
-        if (s?.user) {
-          const profile = await fetchUserProfile(s.user.id);
-          setUser({ id: s.user.id, email: s.user.email ?? '', ...profile });
-        } else {
-          setUser(null);
-        }
-      } catch {
-        if (!s?.user) setUser(null);
-      }
-      setSession(s);
-    });
-
-    return () => subscription.unsubscribe();
+    initFromStorage();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setIsSyncing(true);
 
-      // Use direct fetch — supabase-js signInWithPassword hangs on this network
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+      // Direct fetch — supabase-js internal fetch hangs on this network
       const res = await Promise.race([
         fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
           method: 'POST',
@@ -103,14 +104,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       const data = await (res as Response).json();
-
       if (!(res as Response).ok || data.error_code) return false;
 
-      // Inject the session into supabase client
-      await supabase.auth.setSession({
+      // Parse JWT payload to get user info (no extra network call needed)
+      const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+
+      // Write session directly to localStorage (bypasses supabase-js setSession which also hangs)
+      const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] ?? '';
+      const storageKey = `sb-${projectRef}-auth-token`;
+      const sessionObj = {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
-      });
+        expires_at: payload.exp,
+        expires_in: data.expires_in,
+        token_type: 'bearer',
+        user: data.user,
+      };
+      localStorage.setItem(storageKey, JSON.stringify(sessionObj));
+
+      // Update React state — fetchUserProfile also uses supabase-js (DB query, not auth),
+      // so race with 5s timeout in case it hangs too
+      const fallbackProfile = { role: 'vendedor' as const, storeId: null as string | null, storeName: null as string | null };
+      const profile = await Promise.race([
+        fetchUserProfile(payload.sub),
+        new Promise<typeof fallbackProfile>((resolve) => setTimeout(() => resolve(fallbackProfile), 5000)),
+      ]).catch(() => fallbackProfile);
+      setUser({ id: payload.sub, email: data.user.email, ...profile });
+      setSession(sessionObj as any);
+      setIsInitialized(true);
 
       return true;
     } catch {

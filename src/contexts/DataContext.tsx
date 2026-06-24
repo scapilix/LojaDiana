@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, pgUpsert, pgSelect } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
 export interface Variation {
@@ -160,27 +160,23 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
   // ── app_state helpers ──────────────────────────────────────────────────────
 
   const upsertState = async (key: string, value: any) => {
-    const row: any = { key, value };
+    const row: Record<string, unknown> = { key, value };
     if (storeId) row.store_id = storeId;
-
-    const query = supabase.from('loja_app_state').upsert(row, { onConflict: storeId ? 'store_id,key' : 'key' });
-    const { error } = await query;
-    if (error) throw error;
+    // Use direct fetch — supabase-js client hangs on this corporate network
+    await pgUpsert('loja_app_state', row, storeId ? 'store_id,key' : 'key');
   };
 
   const fetchImportedState = async () => {
     try {
-      let query = supabase
-        .from('loja_app_state')
-        .select('key, value')
-        .in('key', ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog',
-          'categories', 'sizes', 'colors', 'app_settings', 'variations',
-          'order_statuses', 'transfer_banks', 'order_exchanges', 'vouchers']);
+      const KEYS = ['import_orders', 'import_customers', 'import_stats', 'manual_products_catalog',
+        'categories', 'sizes', 'colors', 'app_settings', 'variations',
+        'order_statuses', 'transfer_banks', 'order_exchanges', 'vouchers'];
 
-      if (storeId) query = query.eq('store_id', storeId);
-
-      const { data: stateData, error } = await query;
-      if (!stateData || error) return;
+      // Use direct fetch — supabase-js hangs on this corporate network
+      const params: Record<string, string> = { key: `in.(${KEYS.join(',')})`, select: 'key,value' };
+      if (storeId) params.store_id = `eq.${storeId}`;
+      const stateData = await pgSelect('loja_app_state', params);
+      if (!stateData?.length) return;
 
       const updates: Partial<ExcelData> = {};
       stateData.forEach(item => {
@@ -228,10 +224,9 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
 
   const fetchPurchases = async () => {
     try {
-      let query = supabase.from('loja_compras').select('*').order('data_compra', { ascending: false });
-      if (storeId) query = query.eq('store_id', storeId);
-      const { data: purchases, error } = await query;
-      if (error) throw error;
+      const params: Record<string, string> = { order: 'data_compra.desc' };
+      if (storeId) params.store_id = `eq.${storeId}`;
+      const purchases = await pgSelect('loja_compras', params);
       if (purchases) setData(prev => ({ ...prev, purchases }));
     } catch (err) {
       console.error('Error fetching purchases:', err);
@@ -454,12 +449,8 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
 
   const fetchOnlineOrders = async () => {
     try {
-      const { data: orders, error } = await supabase
-        .from('online_orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-      if (orders && !error) {
+      const orders = await pgSelect('online_orders', { order: 'created_at.desc', limit: '200' });
+      if (orders) {
         setData(prev => ({ ...prev, onlineOrders: orders }));
       }
     } catch {
@@ -483,10 +474,9 @@ export function DataProvider({ children, initialData }: { children: ReactNode; i
 
   const fetchLiveSessions = async () => {
     try {
-      let query = supabase.from('live_sessions').select('*').order('start_time', { ascending: false });
-      if (storeId) query = query.eq('store_id', storeId);
-      const { data: sessions, error } = await query;
-      if (error) throw error;
+      const params: Record<string, string> = { order: 'start_time.desc' };
+      if (storeId) params.store_id = `eq.${storeId}`;
+      const sessions = await pgSelect('live_sessions', params);
       setData(prev => ({ ...prev, live_sessions: sessions }));
     } catch (err) {
       console.error('Error fetching live sessions:', err);

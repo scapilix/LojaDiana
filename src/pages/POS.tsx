@@ -20,8 +20,8 @@ const PAYMENT_METHODS = [
   { id: 'Dinheiro',       icon: Banknote,        label: 'Dinheiro' },
   { id: 'MBWay',          icon: Smartphone,       label: 'MBWay' },
   { id: 'Multibanco',     icon: CreditCard,       label: 'Multibanco' },
-  { id: 'TransferÃªncia',  icon: ArrowRightLeft,   label: 'Transf.' },
-  { id: 'Ref. Entidade',  icon: Hash,             label: 'ReferÃªncia' },
+  { id: 'Transferência',  icon: ArrowRightLeft,   label: 'Transf.' },
+  { id: 'Ref. Entidade',  icon: Hash,             label: 'Referência' },
   { id: 'Saldo Cliente',  icon: Wallet,           label: 'Saldo' },
 ];
 
@@ -142,8 +142,8 @@ export default function POS() {
     setVoucherError('');
     if (!voucherInput.trim()) return;
     const v = data.vouchers?.find(v => v.number.toUpperCase() === voucherInput.toUpperCase().trim());
-    if (!v) { setVoucherError('Vale nÃ£o encontrado'); return; }
-    if (v.status !== 'active') { setVoucherError(`Vale jÃ¡ ${v.status}`); return; }
+    if (!v) { setVoucherError('Vale não encontrado'); return; }
+    if (v.status !== 'active') { setVoucherError(`Vale já ${v.status}`); return; }
     if (new Date(v.valid_until) < new Date()) { setVoucherError('Vale expirado'); return; }
     setAppliedVoucher({ number: v.number, value: v.value });
     setVoucherInput('');
@@ -176,7 +176,7 @@ export default function POS() {
             onClick={() => navigate('/encomendas')}
             className="text-[12px] font-semibold text-[hsl(30_8%_40%)] border border-[hsl(35_18%_88%)] px-3 py-1.5 rounded-[10px] hover:border-[hsl(340_72%_45%)] transition-colors"
           >
-            HistÃ³rico
+            Histórico
           </button>
         }
       />
@@ -191,7 +191,7 @@ export default function POS() {
               <input
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Pesquisar produto ou referÃªncia..."
+                placeholder="Pesquisar produto ou referência..."
                 className="flex-1 bg-transparent text-[12px] outline-none text-[hsl(20_15%_8%)] placeholder:text-[hsl(30_8%_65%)]"
               />
               {searchTerm && (
@@ -204,7 +204,7 @@ export default function POS() {
 
           {/* Product grid */}
           {filteredProducts.length === 0 ? (
-            <EmptyState title="Sem produtos" description="Importe o catÃ¡logo de produtos para comeÃ§ar a vender" />
+            <EmptyState title="Sem produtos" description="Importe o catálogo de produtos para começar a vender" />
           ) : (
             <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 content-start">
               {filteredProducts.map(product => (
@@ -221,7 +221,7 @@ export default function POS() {
                     )}
                   </div>
                   <p className="text-[11px] font-bold text-[hsl(20_15%_8%)] leading-tight mb-0.5 truncate">{product.name}</p>
-                  <p className="text-[12px] font-black text-[hsl(340_72%_45%)]">â‚¬{(product.pvp || 0).toFixed(2)}</p>
+                  <p className="text-[12px] font-black text-[hsl(340_72%_45%)]">{fmt(product.pvp || 0)}</p>
                   <p className="text-[9px] text-[hsl(30_8%_60%)]">{product.ref}</p>
                 </button>
               ))}
@@ -260,11 +260,11 @@ export default function POS() {
                     <p className="text-[9px] text-[hsl(30_8%_55%)]">{[item.size, item.color].filter(Boolean).join(' ')}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => updateQuantity(item.cartItemId, -1)} className="w-5 h-5 rounded-[5px] bg-white border border-[hsl(35_18%_88%)] text-[11px] font-bold flex items-center justify-center">âˆ’</button>
+                    <button onClick={() => updateQuantity(item.cartItemId, -1)} className="w-5 h-5 rounded-[5px] bg-white border border-[hsl(35_18%_88%)] text-[11px] font-bold flex items-center justify-center">-</button>
                     <span className="text-[11px] font-bold w-4 text-center">{item.quantidade}</span>
                     <button onClick={() => updateQuantity(item.cartItemId, 1)} className="w-5 h-5 rounded-[5px] bg-white border border-[hsl(35_18%_88%)] text-[11px] font-bold flex items-center justify-center">+</button>
                   </div>
-                  <span className="text-[11px] font-black text-[hsl(20_15%_8%)] w-10 text-right">â‚¬{(item.pvp_cica * item.quantidade).toFixed(0)}</span>
+                  <span className="text-[11px] font-black text-[hsl(20_15%_8%)] w-10 text-right">{fmt(item.pvp_cica * item.quantidade)}</span>
                 </div>
               ))
             )}
@@ -274,7 +274,7 @@ export default function POS() {
             <div className="flex justify-between items-center mb-3">
               <span className="text-[12px] text-[hsl(30_8%_55%)] font-medium">Total</span>
               <span className="font-['Playfair_Display'] text-[22px] font-bold text-[hsl(20_15%_8%)]">
-                â‚¬{cartTotal.toFixed(2)}
+                {fmt(cartTotal)}
               </span>
             </div>
             <button
@@ -282,7 +282,7 @@ export default function POS() {
               disabled={cart.length === 0}
               className="w-full bg-[hsl(340_72%_45%)] hover:bg-[hsl(340_72%_38%)] disabled:opacity-50 text-white text-[13px] font-bold py-3 rounded-[10px] transition-colors"
             >
-              ðŸ’³ Finalizar Venda
+              Finalizar Venda
             </button>
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function POS() {
               <div className="flex items-center justify-between border-b border-border p-4">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">{configuringProduct.name}</h3>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Escolha as variaÃ§Ãµes</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Escolha as variações</p>
                 </div>
                 <button onClick={() => setConfiguringProduct(null)} className="rounded-lg p-1.5 transition-colors hover:bg-secondary">
                   <X className="h-4 w-4 text-muted-foreground" />
@@ -406,7 +406,7 @@ export default function POS() {
             >
               <div className="flex items-center justify-between border-b border-border p-5">
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">OpÃ§Ãµes da venda</h3>
+                  <h3 className="text-base font-semibold text-foreground">Opções da venda</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">NIF, presente, voucher e mais</p>
                 </div>
                 <button onClick={() => setIsAdvancedModalOpen(false)} className="rounded-lg p-1.5 hover:bg-secondary transition-colors">
@@ -417,7 +417,7 @@ export default function POS() {
               <div className="p-5 space-y-4">
                 {/* Payment methods grid */}
                 <div>
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">MÃ©todo de pagamento</p>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Método de pagamento</p>
                   <div className="grid grid-cols-3 gap-1.5">
                     {PAYMENT_METHODS.map(method => (
                       <button
@@ -448,7 +448,7 @@ export default function POS() {
                           <span className="text-[10px] font-semibold text-muted-foreground">Valor recebido</span>
                           <div className="flex-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-1 dark:bg-emerald-500/10">
                             <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                              {cashReceived || '0'} â‚¬
+                              {cashReceived || '0'}&euro;
                             </span>
                           </div>
                         </div>
@@ -461,7 +461,7 @@ export default function POS() {
                           {[5, 10, 20, 50].map(amt => (
                             <button key={amt} onClick={() => setCashReceived(amt.toString())}
                               className="flex-1 rounded border border-border bg-secondary py-1 text-[10px] font-bold text-foreground hover:bg-primary hover:text-white transition-colors">
-                              {amt}â‚¬
+                              {amt}&euro;
                             </button>
                           ))}
                           <button onClick={() => setCashReceived(cartTotal.toFixed(2))}
@@ -492,7 +492,7 @@ export default function POS() {
 
                 {/* Sale type */}
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de operaÃ§Ã£o</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de operação</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setSaleStatus('Concluída')}
@@ -568,7 +568,7 @@ export default function POS() {
                   </div>
                   {selectedCustomer?.nome !== 'Cliente Avulso' && (selectedCustomer?.saldo || 0) > 0 && (
                     <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-1.5 dark:bg-emerald-500/10">
-                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Saldo disponÃ­vel</span>
+                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Saldo disponível</span>
                       <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">{fmt(selectedCustomer?.saldo || 0)}</span>
                     </div>
                   )}
@@ -578,7 +578,7 @@ export default function POS() {
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">NIF (opcional)</label>
                   <input
-                    type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="NÃºmero de contribuinte"
+                    type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="Número de contribuinte"
                     className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                   />
                 </div>
@@ -587,7 +587,7 @@ export default function POS() {
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Notas da venda</label>
                   <textarea
-                    value={saleNotes} onChange={e => setSaleNotes(e.target.value)} rows={2} placeholder="InstruÃ§Ãµes especiais, observaÃ§Ãµes..."
+                    value={saleNotes} onChange={e => setSaleNotes(e.target.value)} rows={2} placeholder="Instruções especiais, observações..."
                     className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 resize-none"
                   />
                 </div>
@@ -603,10 +603,10 @@ export default function POS() {
                       className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none cursor-pointer"
                     >
                       <option value="Sem entrega">Sem entrega</option>
-                      <option value="Entrega em mÃ£o">Entrega em mÃ£o</option>
-                      <option value="Continental">Portugal Continental (5â‚¬)</option>
-                      <option value="Ilhas">Ilhas (10â‚¬)</option>
-                      <option value="Estrangeiro">Internacional (15â‚¬)</option>
+                      <option value="Entrega em mão">Entrega em mão</option>
+                      <option value="Continental">Portugal Continental (5&euro;)</option>
+                      <option value="Ilhas">Ilhas (10&euro;)</option>
+                      <option value="Estrangeiro">Internacional (15&euro;)</option>
                     </select>
                   </div>
                 </div>
@@ -632,7 +632,7 @@ export default function POS() {
                       <div className="relative flex-1">
                         <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                         <input
-                          type="text" placeholder="NÃºmero do vale..." value={voucherInput}
+                          type="text" placeholder="Número do vale..." value={voucherInput}
                           onChange={e => { setVoucherInput(e.target.value); setVoucherError(''); }}
                           onKeyDown={e => e.key === 'Enter' && handleApplyVoucher()}
                           className={`w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm outline-none transition focus:ring-2 ${voucherError ? 'border-rose-400 focus:ring-rose-500/15' : 'border-input bg-background focus:border-primary focus:ring-primary/15'}`}
@@ -721,7 +721,7 @@ export default function POS() {
                   </button>
                 </div>
                 {!paymentMethod && cart.length > 0 && (
-                  <p className="text-center text-[10px] text-muted-foreground">Selecione um mÃ©todo de pagamento</p>
+                  <p className="text-center text-[10px] text-muted-foreground">Selecione um método de pagamento</p>
                 )}
               </div>
             </motion.div>
@@ -756,7 +756,7 @@ export default function POS() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">ReferÃªncia</label>
+                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Referência</label>
                     <input type="text" value={manualItem.ref} onChange={e => setManualItem({ ...manualItem, ref: e.target.value })} className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary transition" />
                   </div>
                   <div>
@@ -766,17 +766,17 @@ export default function POS() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">PreÃ§o de venda (â‚¬)</label>
+                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Preço de venda (€)</label>
                     <input type="number" value={manualItem.price} onChange={e => setManualItem({ ...manualItem, price: e.target.value })} placeholder="0.00" className="w-full rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:bg-emerald-500/10" />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Custo (â‚¬)</label>
+                    <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Custo (€)</label>
                     <input type="number" value={manualItem.cost} onChange={e => setManualItem({ ...manualItem, cost: e.target.value })} placeholder="0.00" className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary transition" />
                   </div>
                 </div>
                 <label className="flex items-center gap-2.5 cursor-pointer">
                   <input type="checkbox" checked={manualItem.registerProduct} onChange={e => setManualItem({ ...manualItem, registerProduct: e.target.checked })} className="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
-                  <span className="text-xs font-medium text-muted-foreground">Registar permanentemente no catÃ¡logo</span>
+                  <span className="text-xs font-medium text-muted-foreground">Registar permanentemente no catálogo</span>
                 </label>
                 <button
                   onClick={async () => {
@@ -820,7 +820,7 @@ export default function POS() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Banknote className="h-3 w-3" /> Desconto (â‚¬)</label>
+                    <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Banknote className="h-3 w-3" /> Desconto (€)</label>
                     <input type="number" autoFocus
                       value={discountModalConfig.type === 'total' ? (cartDiscountType === 'fixed' ? cartDiscount : Number((discountModalConfig.baseValue * (cartDiscount / 100)).toFixed(2))) : (cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount_type === 'fixed' ? cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount : Number((discountModalConfig.baseValue * ((cart.find(i => i.cartItemId === discountModalConfig.cartItemId)?.discount || 0) / 100)).toFixed(2))) || ''}
                       onChange={e => { const v = parseFloat(e.target.value) || 0; discountModalConfig.type === 'total' ? setCartDiscount(v, 'fixed') : updateItemDiscount(discountModalConfig.cartItemId!, v, 'fixed'); }}
@@ -873,7 +873,7 @@ export default function POS() {
             >
               <div className="flex items-center justify-between border-b border-border p-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground">Trocar variaÃ§Ã£o</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Trocar variação</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">{changingVariationItem.nome_artigo}</p>
                 </div>
                 <button onClick={() => { setChangingVariationItem(null); setChangeVariationColor(null); }} className="rounded-lg p-1.5 hover:bg-secondary transition-colors">

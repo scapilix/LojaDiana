@@ -108,8 +108,9 @@ function AppLayout() {
   const { user, logout, changePassword } = useAuth();
 
   useEffect(() => {
-    // Show onboarding wizard for new stores (after data loads)
-    if (data.appSettings !== undefined && !data.appSettings?.onboarding_complete) {
+    if (data.appSettings?.onboarding_complete) {
+      setShowOnboarding(false);
+    } else if (data.appSettings !== undefined && !data.appSettings?.onboarding_complete) {
       setShowOnboarding(true);
     }
   }, [data.appSettings]);
