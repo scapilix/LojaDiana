@@ -19,6 +19,7 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .app { display:grid; grid-template-rows:52px 1fr 155px; height:100vh; }
 .main { display:grid; grid-template-columns:195px 1fr 295px; overflow:hidden; }
 
+/* ── Top bar ── */
 .topbar {
   background:var(--bg2); border-bottom:1px solid var(--border);
   display:flex; align-items:center; padding:0 18px; gap:20px;
@@ -34,6 +35,7 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
 .live-txt { font-size:11px; color:var(--muted); }
 
+/* ── Symbol list ── */
 .sym-list { background:var(--bg2); border-right:1px solid var(--border); overflow-y:auto; }
 .sym-list::-webkit-scrollbar { width:3px; }
 .sym-list::-webkit-scrollbar-thumb { background:var(--border); }
@@ -48,6 +50,7 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .b-SELL { background:rgba(248,81,73,.18);  color:var(--red);   }
 .b-HOLD { background:rgba(88,166,255,.12); color:var(--blue);  }
 
+/* ── Chart ── */
 .chart-wrap { display:flex; flex-direction:column; overflow:hidden; }
 .chart-hdr {
   padding:10px 16px; border-bottom:1px solid var(--border);
@@ -58,6 +61,7 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .ch-chg { font-size:12px; }
 #chart { flex:1; }
 
+/* ── Right panel ── */
 .panel {
   background:var(--bg2); border-left:1px solid var(--border);
   overflow-y:auto; display:flex; flex-direction:column;
@@ -67,6 +71,7 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .sec { padding:13px 14px; border-bottom:1px solid var(--border); }
 .sec-title { font-size:9.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:9px; }
 
+/* Signal box */
 .sig-box { text-align:center; padding:14px 10px; border-radius:8px; margin-bottom:9px; }
 .sig-box.BUY  { background:rgba(63,185,80,.08);  border:1px solid rgba(63,185,80,.3);  }
 .sig-box.SELL { background:rgba(248,81,73,.08);   border:1px solid rgba(248,81,73,.3);  }
@@ -78,9 +83,11 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .conf-fill { height:100%; border-radius:3px; transition:width .5s; }
 .cf-BUY { background:var(--green); } .cf-SELL { background:var(--red); } .cf-HOLD { background:var(--blue); }
 
+/* ML badge */
 .ml-tag { display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--muted); padding:4px 8px; background:var(--bg3); border-radius:4px; }
 .ml-dot { width:6px; height:6px; border-radius:50%; background:var(--purple); flex-shrink:0; }
 
+/* Indicators */
 .ind-row { display:flex; align-items:center; padding:5px 0; border-bottom:1px solid rgba(48,54,61,.5); }
 .ind-row:last-child { border:none; }
 .ind-n { color:var(--muted); font-size:11px; width:80px; flex-shrink:0; }
@@ -88,9 +95,11 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .ind-fill { height:100%; border-radius:2px; transition:width .4s, background .4s; }
 .ind-v { font-size:11px; font-weight:500; width:56px; text-align:right; white-space:nowrap; }
 
+/* Reasoning */
 .rsn { display:flex; gap:5px; padding:3px 0; font-size:11px; color:var(--muted); line-height:1.45; }
 .rsn::before { content:'▸'; color:var(--blue); flex-shrink:0; margin-top:1px; }
 
+/* Buttons */
 .btns { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .btn { padding:9px; border:none; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; transition:.12s; letter-spacing:.4px; }
 .btn:hover { opacity:.82; transform:translateY(-1px); }
@@ -100,9 +109,11 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .btn-a { grid-column:span 2; background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
 .btn-a.on { background:rgba(88,166,255,.12); color:var(--blue); border-color:rgba(88,166,255,.3); }
 
+/* Positions */
 .pos-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:11px; border-bottom:1px solid rgba(48,54,61,.4); }
 .pos-row:last-child { border:none; }
 
+/* ── Bottom bar ── */
 .bottom { background:var(--bg2); border-top:1px solid var(--border); padding:8px 16px; overflow-x:auto; display:flex; flex-direction:column; }
 .bottom::-webkit-scrollbar { height:3px; }
 .bottom::-webkit-scrollbar-thumb { background:var(--border); }
@@ -110,14 +121,30 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 .chips { display:flex; gap:8px; align-items:center; overflow-x:auto; }
 .chip { display:flex; gap:10px; align-items:center; background:var(--bg3); padding:5px 10px; border-radius:5px; white-space:nowrap; font-size:11px; }
 .chip-sym { font-weight:700; }
+
 .g  { color:var(--green); }
 .r  { color:var(--red);   }
 .mu { color:var(--muted); }
+
+/* Mode switch */
+.mode-switch { display:flex; gap:4px; background:var(--bg3); border-radius:6px; padding:3px; }
+.mode-btn { border:none; background:transparent; color:var(--muted); font-size:11px; font-weight:700; padding:5px 12px; border-radius:4px; cursor:pointer; letter-spacing:.4px; }
+.mode-btn.active.paper { background:rgba(88,166,255,.18); color:var(--blue); }
+.mode-btn.active.real  { background:rgba(248,81,73,.22);  color:var(--red);  }
+.mode-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+/* Toasts */
+.toasts { position:fixed; top:64px; right:16px; z-index:999; display:flex; flex-direction:column; gap:8px; }
+.toast { background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--red); color:var(--text);
+         padding:10px 14px; border-radius:6px; font-size:12px; max-width:320px; box-shadow:0 4px 14px rgba(0,0,0,.4);
+         animation:toast-in .2s ease-out; }
+@keyframes toast-in { from{opacity:0; transform:translateX(20px);} to{opacity:1; transform:translateX(0);} }
 </style>
 </head>
 <body>
 <div class="app">
 
+  <!-- Top bar -->
   <div class="topbar">
     <div class="logo">🧠 Neural<em>Trader</em></div>
     <div class="stats">
@@ -127,12 +154,21 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
       <div class="st"><span class="st-l">Trades / Acerto</span><span class="st-v" id="s-wr">0 / 0%</span></div>
       <div class="st"><span class="st-l">IA Aprendeu</span><span class="st-v" style="color:var(--purple)" id="s-ml">0 amostras</span></div>
     </div>
+    <div class="mode-switch">
+      <button class="mode-btn paper active" id="mode-paper-btn" onclick="setMode('paper')">📝 PAPER</button>
+      <button class="mode-btn real" id="mode-real-btn" onclick="setMode('real')" disabled>⚠️ REAL</button>
+    </div>
     <div class="live"><div class="dot"></div><span class="live-txt">LIVE</span></div>
   </div>
 
+  <div class="toasts" id="toasts"></div>
+
   <div class="main">
+
+    <!-- Symbol list -->
     <div class="sym-list" id="sym-list"></div>
 
+    <!-- Chart -->
     <div class="chart-wrap">
       <div class="chart-hdr">
         <span class="ch-sym" id="ch-sym">BTCUSDT</span>
@@ -142,7 +178,9 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
       <div id="chart"></div>
     </div>
 
+    <!-- Analysis panel -->
     <div class="panel">
+
       <div class="sec">
         <div class="sec-title">Sinal da IA</div>
         <div class="sig-box HOLD" id="sig-box">
@@ -158,12 +196,36 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 
       <div class="sec">
         <div class="sec-title">Indicadores Técnicos</div>
-        <div class="ind-row"><span class="ind-n">RSI (14)</span><div class="ind-track"><div class="ind-fill" id="f-rsi" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-rsi">--</span></div>
-        <div class="ind-row"><span class="ind-n">MACD Hist</span><div class="ind-track"><div class="ind-fill" id="f-macd" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-macd">--</span></div>
-        <div class="ind-row"><span class="ind-n">BB Position</span><div class="ind-track"><div class="ind-fill" id="f-bb" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-bb">--</span></div>
-        <div class="ind-row"><span class="ind-n">Estocástico K</span><div class="ind-track"><div class="ind-fill" id="f-stoch" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-stoch">--</span></div>
-        <div class="ind-row"><span class="ind-n">EMA Trend</span><div class="ind-track"><div class="ind-fill" id="f-ema" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-ema">--</span></div>
-        <div class="ind-row"><span class="ind-n">Volume Ratio</span><div class="ind-track"><div class="ind-fill" id="f-vol" style="width:50%;background:var(--blue)"></div></div><span class="ind-v mu" id="v-vol">--</span></div>
+        <div class="ind-row">
+          <span class="ind-n">RSI (14)</span>
+          <div class="ind-track"><div class="ind-fill" id="f-rsi" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-rsi">--</span>
+        </div>
+        <div class="ind-row">
+          <span class="ind-n">MACD Hist</span>
+          <div class="ind-track"><div class="ind-fill" id="f-macd" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-macd">--</span>
+        </div>
+        <div class="ind-row">
+          <span class="ind-n">BB Position</span>
+          <div class="ind-track"><div class="ind-fill" id="f-bb" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-bb">--</span>
+        </div>
+        <div class="ind-row">
+          <span class="ind-n">Estocástico K</span>
+          <div class="ind-track"><div class="ind-fill" id="f-stoch" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-stoch">--</span>
+        </div>
+        <div class="ind-row">
+          <span class="ind-n">EMA Trend</span>
+          <div class="ind-track"><div class="ind-fill" id="f-ema" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-ema">--</span>
+        </div>
+        <div class="ind-row">
+          <span class="ind-n">Volume Ratio</span>
+          <div class="ind-track"><div class="ind-fill" id="f-vol" style="width:50%;background:var(--blue)"></div></div>
+          <span class="ind-v mu" id="v-vol">--</span>
+        </div>
       </div>
 
       <div class="sec">
@@ -172,11 +234,11 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
       </div>
 
       <div class="sec">
-        <div class="sec-title">Executar (Paper Trading)</div>
+        <div class="sec-title" id="exec-title">Executar (Paper Trading)</div>
         <div class="btns">
-          <button class="btn btn-b" onclick="trade('buy')">&#9650; COMPRAR</button>
-          <button class="btn btn-s" onclick="trade('sell')">&#9660; VENDER</button>
-          <button class="btn btn-a" id="auto-btn" onclick="toggleAuto()">&#129302; Auto-Trade: OFF</button>
+          <button class="btn btn-b" onclick="trade('buy')">▲ COMPRAR</button>
+          <button class="btn btn-s" onclick="trade('sell')">▼ VENDER</button>
+          <button class="btn btn-a" id="auto-btn" onclick="toggleAuto()">🤖 Auto-Trade: OFF</button>
         </div>
       </div>
 
@@ -184,23 +246,32 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
         <div class="sec-title">Posições Abertas</div>
         <div id="pos-list"><span class="mu">Nenhuma posição</span></div>
       </div>
+
+    </div><!-- /panel -->
+  </div><!-- /main -->
+
+  <!-- Bottom trades -->
+  <div class="bottom">
+    <div class="bot-title">Histórico de Trades</div>
+    <div class="chips" id="trades-chips">
+      <span class="mu">Nenhum trade ainda</span>
     </div>
   </div>
 
-  <div class="bottom">
-    <div class="bot-title">Histórico de Trades</div>
-    <div class="chips" id="trades-chips"><span class="mu">Nenhum trade ainda</span></div>
-  </div>
-</div>
+</div><!-- /app -->
 
 <script>
 const SYMBOLS = {{ symbols | tojson }};
 let sel = SYMBOLS[0];
-let sdata = {};
+let sdata = {};       // symbol → latest signal dict
 let autoOn = false;
 let chart, cSeries, vSeries;
-let openPrice = {};
+let openPrice = {};   // symbol → open price for change %
+let mode = 'paper';   // 'paper' | 'real'
+let realEnabled = false;
+let lastPaperStats = null, lastRealStats = null;
 
+// ── Chart ──────────────────────────────────────────────────────────────────────
 function initChart() {
   const el = document.getElementById('chart');
   chart = LightweightCharts.createChart(el, {
@@ -236,6 +307,7 @@ async function loadChart(sym) {
   } catch(e) { console.warn('Chart load error', e); }
 }
 
+// ── Symbol list ───────────────────────────────────────────────────────────────
 function renderSymList() {
   document.getElementById('sym-list').innerHTML = SYMBOLS.map(s => {
     const d = sdata[s] || {};
@@ -259,8 +331,11 @@ function selectSym(s) {
   document.getElementById('ch-sym').textContent = s;
 }
 
+// ── Panel ─────────────────────────────────────────────────────────────────────
 function updatePanel() {
   const d = sdata[sel]; if (!d) return;
+
+  // Signal box
   const action = d.action || 'HOLD';
   const conf   = d.confidence || 0;
   document.getElementById('sig-box').className = `sig-box ${action}`;
@@ -271,20 +346,44 @@ function updatePanel() {
   const fill = document.getElementById('conf-fill');
   fill.className = `conf-fill cf-${action}`;
   fill.style.width = `${conf}%`;
+
+  // ML badge
   const mpc = d.ml_confidence ? (d.ml_confidence*100).toFixed(0) : '0';
   document.getElementById('ml-txt').textContent =
     `IA Neural: prevê ${d.ml_prediction||'NEUTRAL'} com ${mpc}% de confiança`;
+
+  // Indicators
   const ind = d.indicators || {};
-  setInd('rsi',  ind.rsi, 0, 100, ind.rsi < 30 ? 'var(--green)' : ind.rsi > 70 ? 'var(--red)' : 'var(--blue)', (ind.rsi||0).toFixed(1));
-  const mhSign = (ind.macd_hist||0) > 0 ? '+' : '';
-  setInd('macd', clamp(50 + Math.sign(ind.macd_hist||0)*30, 0, 100), 0, 100, (ind.macd_hist||0) > 0 ? 'var(--green)' : 'var(--red)', mhSign+(ind.macd_hist||0).toFixed(4));
+
+  setInd('rsi',  ind.rsi, 0, 100,
+    ind.rsi < 30 ? 'var(--green)' : ind.rsi > 70 ? 'var(--red)' : 'var(--blue)',
+    (ind.rsi||0).toFixed(1));
+
+  const mhNorm = clamp(50 + (ind.macd_hist||0) / ((Math.abs(ind.macd_hist||0)+1e-9)*2 + 1e-9) * 50, 0, 100);
+  setInd('macd', mhNorm, 0, 100,
+    (ind.macd_hist||0) > 0 ? 'var(--green)' : 'var(--red)',
+    ((ind.macd_hist||0) > 0 ? '+' : '') + (ind.macd_hist||0).toFixed(4));
+
   const bbp = (ind.bb_position||0.5) * 100;
-  setInd('bb', bbp, 0, 100, bbp < 20 ? 'var(--green)' : bbp > 80 ? 'var(--red)' : 'var(--blue)', bbp.toFixed(0)+'%');
-  setInd('stoch', ind.stoch_k||50, 0, 100, (ind.stoch_k||50) < 20 ? 'var(--green)' : (ind.stoch_k||50) > 80 ? 'var(--red)' : 'var(--blue)', (ind.stoch_k||0).toFixed(1));
+  setInd('bb', bbp, 0, 100,
+    bbp < 20 ? 'var(--green)' : bbp > 80 ? 'var(--red)' : 'var(--blue)',
+    bbp.toFixed(0) + '%');
+
+  setInd('stoch', ind.stoch_k||50, 0, 100,
+    (ind.stoch_k||50) < 20 ? 'var(--green)' : (ind.stoch_k||50) > 80 ? 'var(--red)' : 'var(--blue)',
+    (ind.stoch_k||0).toFixed(1));
+
   const et = ind.ema_trend||0;
-  setInd('ema', clamp(50 + et*8, 0, 100), 0, 100, et > 0 ? 'var(--green)' : 'var(--red)', (et>0?'+':'')+et.toFixed(3)+'%');
+  setInd('ema', clamp(50 + et*8, 0, 100), 0, 100,
+    et > 0 ? 'var(--green)' : 'var(--red)',
+    (et > 0 ? '+' : '') + et.toFixed(3) + '%');
+
   const vr = ind.volume_ratio||1;
-  setInd('vol', clamp(vr/3*100, 0, 100), 0, 100, vr > 1.5 ? 'var(--yellow)' : 'var(--blue)', vr.toFixed(2)+'x');
+  setInd('vol', clamp(vr/3*100, 0, 100), 0, 100,
+    vr > 1.5 ? 'var(--yellow)' : 'var(--blue)',
+    vr.toFixed(2) + 'x');
+
+  // Reasoning
   const reasons = d.reasoning || [];
   document.getElementById('rsn-list').innerHTML = reasons.length
     ? reasons.map(r => `<div class="rsn">${r}</div>`).join('')
@@ -299,16 +398,24 @@ function setInd(key, val, min, max, color, label) {
   if (v) { v.textContent = label; v.style.color = color; }
 }
 
+// ── Portfolio ─────────────────────────────────────────────────────────────────
 function updatePortfolio(p) {
   if (!p) return;
-  document.getElementById('s-bal').textContent = '$' + (p.balance||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  document.getElementById('s-val').textContent = '$' + (p.total_value||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('s-bal').textContent =
+    '$' + (p.balance||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('s-val').textContent =
+    '$' + (p.total_value||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
   const pnl = p.total_pnl||0, pct = p.total_pnl_pct||0;
   const pnlEl = document.getElementById('s-pnl');
   const sign = pnl >= 0 ? '+' : '';
   pnlEl.textContent = `${sign}$${pnl.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
   pnlEl.className = 'st-v ' + (pnl >= 0 ? 'g' : 'r');
-  document.getElementById('s-wr').textContent = `${p.total_trades||0} trades · ${p.win_rate||0}% acerto`;
+
+  document.getElementById('s-wr').textContent =
+    `${p.total_trades||0} trades · ${p.win_rate||0}% acerto`;
+
+  // Positions
   const pos = p.positions||{};
   const keys = Object.keys(pos);
   document.getElementById('pos-list').innerHTML = keys.length
@@ -316,27 +423,70 @@ function updatePortfolio(p) {
         const q = pos[s];
         const cl = q.pnl >= 0 ? 'g' : 'r';
         const sg = q.pnl >= 0 ? '+' : '';
-        return `<div class="pos-row"><span style="font-weight:700">${s.replace('USDT','')}</span><span class="mu">@ $${fmtPrice(q.entry_price)}</span><span class="${cl}">${sg}$${q.pnl.toFixed(2)} (${sg}${q.pnl_pct.toFixed(2)}%)</span></div>`;
+        return `<div class="pos-row">
+          <span style="font-weight:700">${s.replace('USDT','')}</span>
+          <span class="mu">@ $${fmtPrice(q.entry_price)}</span>
+          <span class="${cl}">${sg}$${q.pnl.toFixed(2)} (${sg}${q.pnl_pct.toFixed(2)}%)</span>
+        </div>`;
       }).join('')
     : '<span class="mu">Nenhuma posição aberta</span>';
+
+  // Trade chips
   const trades = (p.recent_trades||[]).slice().reverse();
   document.getElementById('trades-chips').innerHTML = trades.length
     ? trades.map(t => {
         const cl = t.pnl >= 0 ? 'g' : 'r';
         const sg = t.pnl >= 0 ? '+' : '';
-        return `<div class="chip"><span class="chip-sym">${t.symbol.replace('USDT','')}</span><span class="mu">$${fmtPrice(t.exit_price)}</span><span class="${cl}">${sg}$${t.pnl.toFixed(2)} (${sg}${t.pnl_pct.toFixed(2)}%)</span></div>`;
+        return `<div class="chip">
+          <span class="chip-sym">${t.symbol.replace('USDT','')}</span>
+          <span class="mu">$${fmtPrice(t.exit_price)}</span>
+          <span class="${cl}">${sg}$${t.pnl.toFixed(2)} (${sg}${t.pnl_pct.toFixed(2)}%)</span>
+        </div>`;
       }).join('')
     : '<span class="mu">Nenhum trade realizado ainda</span>';
 }
 
-function trade(action) { ws.send(JSON.stringify({ action, symbol: sel })); }
+// ── Actions ───────────────────────────────────────────────────────────────────
+function trade(action) {
+  if (mode === 'real') {
+    const verb = action === 'buy' ? 'COMPRAR' : 'VENDER';
+    if (!confirm(`⚠️ Isto vai ${verb} ${sel} com DINHEIRO REAL na Binance. Confirmas?`)) return;
+  }
+  ws.send(JSON.stringify({ action, symbol: sel, mode }));
+}
 function toggleAuto()  { ws.send(JSON.stringify({ action: 'toggle_auto' })); }
+
+function setMode(m) {
+  if (m === 'real' && !realEnabled) return;
+  if (m === 'real' && !confirm(
+    '⚠️ ATENÇÃO: vais mudar para modo REAL. Compras/vendas vão executar ordens ' +
+    'verdadeiras na tua conta Binance, com dinheiro real. Continuar?'
+  )) return;
+  mode = m;
+  document.getElementById('mode-paper-btn').classList.toggle('active', m === 'paper');
+  document.getElementById('mode-real-btn').classList.toggle('active', m === 'real');
+  document.getElementById('exec-title').textContent =
+    m === 'real' ? 'Executar (REAL — dinheiro de verdade)' : 'Executar (Paper Trading)';
+  updatePortfolio(m === 'real' ? lastRealStats : lastPaperStats);
+}
+
+function showToast(message) {
+  const box = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = message;
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 6000);
+}
+
 function setAuto(enabled) {
   autoOn = enabled;
   const btn = document.getElementById('auto-btn');
-  btn.textContent = `\u{1F916} Auto-Trade: ${enabled ? 'ON' : 'OFF'}`;
+  btn.textContent = `🤖 Auto-Trade: ${enabled ? 'ON' : 'OFF'}`;
   btn.className = `btn btn-a${enabled ? ' on' : ''}`;
 }
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
 function fmtPrice(p) {
   if (!p) return '--';
   if (p > 1000) return p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -345,25 +495,35 @@ function fmtPrice(p) {
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
+// ── WebSocket ─────────────────────────────────────────────────────────────────
 let ws;
 function connectWS() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.onopen  = () => console.log('WS connected');
   ws.onclose = () => { console.warn('WS closed, retry in 3s'); setTimeout(connectWS, 3000); };
   ws.onerror = e  => console.error('WS error', e);
+
   ws.onmessage = ev => {
     const d = JSON.parse(ev.data);
+
     if (d.type === 'init') {
       Object.assign(sdata, d.signals||{});
       setAuto(d.auto_trade);
+      realEnabled = !!d.real_trading_enabled;
+      document.getElementById('mode-real-btn').disabled = !realEnabled;
+      document.getElementById('mode-real-btn').title = realEnabled ? ''
+        : 'Configura BINANCE_API_KEY, BINANCE_SECRET e REAL_TRADING=true no .env';
       if (d.ml_samples !== undefined) document.getElementById('s-ml').textContent = `${d.ml_samples} amostras`;
+      lastPaperStats = d.portfolio; lastRealStats = d.real_portfolio;
       renderSymList(); updatePanel();
-      updatePortfolio(d.portfolio);
+      updatePortfolio(mode === 'real' ? lastRealStats : lastPaperStats);
       loadChart(sel);
+
     } else if (d.type === 'tick') {
       const sym = d.symbol;
       if (!sdata[sym]) sdata[sym] = {};
       sdata[sym].price = d.price;
+
       if (sym === sel) {
         document.getElementById('ch-price').textContent = '$' + fmtPrice(d.price);
         const op = openPrice[sym] || d.open;
@@ -373,24 +533,34 @@ function connectWS() {
         el.className = 'ch-chg ' + (chg >= 0 ? 'g' : 'r');
         try {
           cSeries.update({ time:d.time, open:d.open, high:d.high, low:d.low, close:d.close });
-          vSeries.update({ time:d.time, value:d.volume, color: d.close >= d.open ? 'rgba(63,185,80,.35)' : 'rgba(248,81,73,.35)' });
+          vSeries.update({ time:d.time, value:d.volume,
+            color: d.close >= d.open ? 'rgba(63,185,80,.35)' : 'rgba(248,81,73,.35)' });
         } catch(_) {}
       }
       renderSymList();
+
     } else if (d.type === 'signal_update') {
       sdata[d.symbol] = d;
       if (d.ml_samples !== undefined) document.getElementById('s-ml').textContent = `${d.ml_samples} amostras`;
       if (d.symbol === sel) updatePanel();
-      updatePortfolio(d.portfolio);
+      lastPaperStats = d.portfolio; lastRealStats = d.real_portfolio;
+      updatePortfolio(mode === 'real' ? lastRealStats : lastPaperStats);
       renderSymList();
+
     } else if (d.type === 'portfolio') {
-      updatePortfolio(d.portfolio);
+      lastPaperStats = d.portfolio; lastRealStats = d.real_portfolio;
+      updatePortfolio(mode === 'real' ? lastRealStats : lastPaperStats);
+
     } else if (d.type === 'auto_trade') {
       setAuto(d.enabled);
+
+    } else if (d.type === 'trade_error') {
+      showToast(d.message);
     }
   };
 }
 
+// ── Init ──────────────────────────────────────────────────────────────────────
 initChart();
 renderSymList();
 connectWS();

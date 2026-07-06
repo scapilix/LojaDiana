@@ -45,10 +45,13 @@ open http://localhost:8000
 |---------------------|---------|---------------------------------------------------|
 | `PAPER_BALANCE`     | 10000   | Saldo inicial do paper trading (USD)              |
 | `REAL_TRADING`      | false   | Habilitar trades reais (requer API keys)          |
-| `AUTO_TRADE`        | false   | Auto-executar trades baseados nos sinais          |
+| `AUTO_TRADE`        | false   | Auto-executar trades baseados nos sinais (paper apenas — nunca executa ordens reais) |
 | `MIN_CONFIDENCE`    | 70      | Confiança mínima (%) para auto-trade              |
-| `BINANCE_API_KEY`   | —       | Chave da API Binance (apenas para real trading)   |
+| `BINANCE_API_KEY`   | —       | Chave da API Binance (apenas para real trading), permissão apenas Spot Trading |
 | `BINANCE_SECRET`    | —       | Secret da API Binance (apenas para real trading)  |
+| `BINANCE_TESTNET`   | false   | Usar testnet da Binance (dinheiro fictício) para validar antes de produção |
+
+No dashboard, um seletor **PAPER / REAL** no topo controla onde as ordens manuais (botões Comprar/Vender) são executadas. Trocar para REAL exige confirmação explícita, e o botão só fica ativo se `REAL_TRADING=true` e as chaves forem válidas.
 
 ---
 
@@ -82,6 +85,20 @@ directives/         → Documentação da estratégia e do modelo ML
 4. Sinal final: peso dos indicadores + peso da IA → BUY/SELL/HOLD + confiança%
 5. Loop:        quanto mais candles, melhor o modelo
 ```
+
+O modelo começa "ingênuo" e fica progressivamente mais preciso. Após ~500 candles por símbolo, o ganho de performance se torna perceptível.
+
+---
+
+## Interface
+
+| Área              | O que mostra                                          |
+|-------------------|-------------------------------------------------------|
+| **Lista lateral** | Preço atual + sinal + confiança de cada símbolo       |
+| **Gráfico**       | Candlesticks + volume em tempo real                   |
+| **Painel direito**| Sinal da IA, indicadores técnicos, análise detalhada  |
+| **Portfólio**     | Saldo, P&L, posições abertas, win rate                |
+| **Barra inferior**| Histórico dos últimos trades com resultado            |
 
 ---
 

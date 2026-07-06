@@ -8,6 +8,7 @@ TIMEFRAME = '1m'
 PAPER_BALANCE = float(os.getenv('PAPER_BALANCE', '10000'))
 BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', '')
 BINANCE_SECRET = os.getenv('BINANCE_SECRET', '')
+BINANCE_TESTNET = os.getenv('BINANCE_TESTNET', 'false').lower() == 'true'
 REAL_TRADING = os.getenv('REAL_TRADING', 'false').lower() == 'true'
 AUTO_TRADE = os.getenv('AUTO_TRADE', 'false').lower() == 'true'
 MIN_CONFIDENCE = int(os.getenv('MIN_CONFIDENCE', '70'))

@@ -40,6 +40,21 @@ HOLD → -0.15 ≤ net ≤ +0.15
 - Auto-trade desativado por padrão — ativar apenas com estratégia testada
 - Confiança mínima para auto-trade: 70% (configurável via `MIN_CONFIDENCE`)
 
+## Real Trading (ordens reais na Binance)
+
+- Requer `BINANCE_API_KEY` + `BINANCE_SECRET` no `.env` com permissão apenas de
+  **Spot & Margin Trading** (nunca ativar "Withdrawals")
+- `REAL_TRADING=true` habilita o motor; `BINANCE_TESTNET=true` usa a testnet da
+  Binance (dinheiro fictício) para validar antes de ir a produção
+- O dashboard tem um seletor **PAPER / REAL** no topo — trocar para REAL exige
+  confirmação explícita, e cada compra/venda em modo REAL pede confirmação extra
+- **Auto-trade nunca executa ordens reais** — só opera em paper trading, mesmo com
+  `REAL_TRADING=true`. Ordens reais só saem por clique manual do utilizador
+- Ordem mínima: ~$10 USDT (mínimo da Binance para a maioria dos pares USDT).
+  Se `saldo_livre * TRADE_SIZE_PCT < $10`, a compra é recusada
+- Se as chaves forem inválidas ou sem permissão, o real trading fica desativado
+  automaticamente no arranque (log de erro, sem crash)
+
 ## Símbolos Recomendados
 
 Para scalping (1 minuto):
